@@ -1,0 +1,53 @@
+﻿@model OrganisationSetup.Models.DAL.ACUser
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+
+    Layout = "DefaultLayoutLogin";
+}
+
+<div class="login-card">
+    <div class="brand-section">
+        <div class="mb-3">
+            <i class="fas fa-cube fa-3x" style="color: #6366f1;"></i>
+        </div>
+        <h2>Inventory<span>System</span></h2>
+        <p>Welcome back! Please enter your details.</p>
+    </div>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert-error">
+            <i class="fas fa-circle-exclamation me-2"></i> @ViewBag.Error
+        </div>
+    }
+
+    <form asp-area="ApplicationConfiguration" asp-controller="COMAuthentication" asp-action="ValidateCredentials" method="post">
+        <div class="mb-1">
+            <label class="form-label">UserName</label>
+            <div class="input-group-custom">
+                <i class="fas fa-user-circle"></i>
+                <input type="text" asp-for="Description" id="TextBoxDescription" class="form-control-style" placeholder="Enter your username" required autocomplete="off" />
+            </div>
+            <span asp-validation-for="Description" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <label class="form-label">Password</label>
+                <a href="#" class="text-decoration-none small fw-bold" style="color: #6366f1;">Forgot?</a>
+            </div>
+            <div class="input-group-custom">
+                <i class="fas fa-key"></i>
+                <input type="password" asp-for="Password" id="TextBoxPassword" placeholder="••••••••" required />
+            </div>
+            <span asp-validation-for="Password" class="text-danger small"></span>
+        </div>
+        <input type="submit" class="btn-login" value="Login" />
+    </form>
+
+    <div class="mt-4 text-center">
+        <span class="text-muted small">Designed by <a href="#" class="text-decoration-none small fw-bold" style="color: #6366f1;">Muhammad Umair Akbar</a></span>
+    </div>
+</div>
+

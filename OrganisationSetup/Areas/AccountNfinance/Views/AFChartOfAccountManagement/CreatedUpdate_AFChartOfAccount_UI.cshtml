@@ -1,0 +1,106 @@
+﻿@using SharedUI.Models.Enums
+@{
+    Layout = "LayoutOne";
+}
+
+
+<div class="container-fluid py-2">
+
+    <div class="d-flex justify-content-between align-items-center border-bottom mb-4 pb-3">
+        <div>
+            <h5 class="fw-bold mb-0">@ViewBag.DisplayName</h5>
+            @{
+                string message = "Fill in the details to create a new system record.";
+                <p class="text-muted small mb-0">@message</p>
+            }
+        </div>
+        <div>
+            @{
+                if (ViewBag.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB))
+                {
+                    <button type="button" id="ButtonSaveData" class="btn btn-primary btn-sm px-4 shadow-sm">
+                        <i class="fa-solid fa-cloud-arrow-up me-1"></i> Save
+                    </button>
+                }
+                else if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
+                {
+                    <button type="button" id="ButtonUpdateData" class="btn btn-success btn-sm px-4 shadow-sm">
+                        <i class="fa-solid fa-cloud-arrow-up me-1"></i> Update
+                    </button>
+                }
+            }
+        </div>
+    </div>
+
+    <form id="ACChartOfAccountForm">
+        @Html.Hidden("OperationType", (string)ViewBag.OperationType)
+        @Html.Hidden("GuID")
+        @{
+            if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row mb-0">
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group">
+                                    @Html.Label("DropDownListDocument", "Document (Chart Of Account)", new { @class = "col-form-label" })
+                                    @Html.DropDownList("DocumentGuID", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListDocument" })
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            }
+        }
+        <div class="card">
+            <div class="card-body">
+                <div class="col-12 mt-4">
+                    <div class="bg-light rounded-2 border-start border-primary border-4 p-2">
+                        <span class="fw-bold text-primary small"><i class="fa-solid fa-building me-2"></i> CHART OF ACCOUNT INFORMATION</span>
+                    </div>
+                </div>
+
+                <div class="row mb-0">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="form-group">
+                            @Html.Label("TextBoxDescription", "Description", new { @class = "col-form-label" })
+                            @Html.TextBox("Description", null, new { @class = "form-control form-control-sm", required = "required", placeholder = "Provide Description!", @id = "TextBoxDescription" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-0">
+                    <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("DropDownListAccountType", "Account Type", new { @class = "col-form-label" })
+                            @Html.DropDownList("AccountTypeId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2 notToSave", required = "required", @id = "DropDownListAccountType" })
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("DropDownListAccountCatagory", "Account Catagory", new { @class = "col-form-label" })
+                            @Html.DropDownList("AccountCatagoryId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListAccountCatagory" })
+                        </div>
+                    </div>
+
+                    <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("DropDownListFinancialStatement", "Financial Statement", new { @class = "col-form-label" })
+                            @Html.DropDownList("FinancialStatementId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListFinancialStatement" })
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        @Html.Label("CheckBoxIsDefault", "Is Default", new { @class = "col-form-label" })
+                        @Html.CheckBox("IsDefault",true, new {@id="ChecBoxIsDefault"})
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<script src="~/js/accountnfinance/createdupdate_afchartofaccount_uiscript.js"></script>

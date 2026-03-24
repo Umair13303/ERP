@@ -1,0 +1,156 @@
+﻿@using SharedUI.Models.Enums
+@{
+    Layout = "LayoutOne";
+}
+<script src="~/js/aimschconfiguration/scripts/chcbrand/createupdate_chcbrand_ui.js"></script>
+<div class="container-fluid py-2">
+    <div class="d-flex justify-content-between align-items-center border-bottom mb-4 pb-3">
+        <div>
+            <h5 class="fw-bold mb-0">@ViewBag.DisplayName</h5>
+            @{
+                string message = "Fill in the details to create a new system record.";
+                <p class="text-muted small mb-0">@message</p>
+            }
+        </div>
+        <div>
+            @{
+                if (ViewBag.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB))
+                {
+                    <button type="button" id="ButtonSaveData" class="btn btn-primary btn-sm px-4 shadow-sm">
+                        <i class="fa-solid fa-cloud-arrow-up me-1"></i> Save Item
+                    </button>
+                }
+                else if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
+                {
+                    <button type="button" id="ButtonUpdateData" class="btn btn-success btn-sm px-4 shadow-sm">
+                        <i class="fa-solid fa-cloud-arrow-up me-1"></i> Update Item
+                    </button>
+                }
+            }
+        </div>
+    </div>
+<form id="CBrandForm">
+        @{
+            if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
+            {
+                
+            }
+        }
+        <div class="col-12 mt-4">
+            <div class="bg-light rounded-2 border-start border-primary border-4 p-2">
+                <span class="fw-bold text-primary small"><i class="fa-solid fa-user me-2"></i> ITEM INFORMATION</span>
+            </div>
+        </div>
+        <div class="row mb-0">
+            <div class="col-sm-12 col-md-6">
+                <div class="form-group">
+                    @Html.Label("TextBoxDescription", "Description", new { @class = "col-form-label" })
+                        @Html.TextBox("Description", null, new { @class = "form-control form-control-sm", placeholder = "Please Enter Description Here!", @id = "TextBoxDescription" })
+                </div>
+            </div>
+            <div class="col-sm-12 col-md-6">
+                <div class="form-group">
+                    @Html.Label("TextBoxMachineNumber", "Machine Number", new { @class = "col-form-label" })
+                    @Html.TextBox("MachineNumber", null, new { @class = "form-control form-control-sm", placeholder = "Please Enter Machine Number Here!", @id = "TextBoxMachineNumber" })
+                </div>
+            </div>
+        </div>
+        <div class="row mb-0">
+            <div class="col-sm-12 col-md-3">
+                <div class="form-group">
+                    @Html.Label("DropDownListDepartment", "Department", new { @class = "col-form-label" })
+                    <select class="form-control form-control-sm" name="DepartmentId" id="DropDownListDepartment">
+                        <option value="">-- Select Dept --</option>
+                        <option value="1">Electronics</option>
+                        <option value="2">Grocery</option>
+                        <option value="3">Hardware</option>
+                        <option value="4">Services</option>
+                        <option value="5">Footwear</option>
+                        <option value="6">Stationery</option>
+                        <option value="7">Mens-Ware Stitched</option>
+                        <option value="8">Mens-Ware UnStitched</option>
+                        <option value="9">Mens-Formal Wear</option>
+                        <option value="10">Ladies-Ware UnStitched</option>
+                        <option value="11">Ladies-Bridal & Formal</option>
+                        <option value="12">Ladies-Ware Stitched</option>
+                        <option value="13">Laces & Tailoring Material</option>
+                        <option value="14">Shawls & Scarves</option>
+                        <option value="15">Home Textiles</option>
+                        <option value="16">Hosiery & Undergarments</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-sm-12 col-md-3">
+                <div class="form-group">
+                    @Html.Label("DropDownListCategory", "Category", new { @class = "col-form-label" })
+                    <select class="form-control form-control-sm" name="CategoryId" id="DropDownListCategory">
+                        <option value="">-- Select Category --</option>
+                        <option value="1">Phones & Tablets</option>
+                        <option value="2">Laptops & Computers</option>
+                        <option value="3">Staples (Flour/Sugar/Pulse)</option>
+                        <option value="4">Beverages & Snacks</option>
+                        <option value="5">Construction Tools</option>
+                        <option value="6">Tailoring Labor</option>
+                        <option value="7">Men's Shoes</option>
+                        <option value="8">Ladies' Shoes</option>
+                        <option value="9">School & Office Supplies</option>
+                        <option value="10">Shalwar Kameez (Stitched)</option>
+                        <option value="11">Pents & Shirts</option>
+                        <option value="12">Cotton & Latha</option>
+                        <option value="13">Wash & Wear</option>
+                        <option value="14">Sherwani & Waistcoats</option>
+                        <option value="15">3-Piece Lawn</option>
+                        <option value="16">Chiffon & Silk</option>
+                        <option value="17">Bridal Wear</option>
+                        <option value="18">Ready-to-wear Kurtas</option>
+                        <option value="19">Laces & Borders</option>
+                        <option value="20">Shawls & Dupattas</option>
+                        <option value="21">Bedding & Towels</option>
+                        <option value="22">Undergarments & Socks</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-sm-12 col-md-3">
+                <div class="form-group">
+                    @Html.Label("TypeId", "Type", new { @class = "col-form-label" })
+                    <select class="form-control form-control-sm" name="UnitId" id="DropDownListUnit">
+                        <option value="1">Android Phone</option>
+                        <option value="2">Apple Phone</option>
+                        <option value="3">Tablets</option>
+                        <option value="4">Touch Apple</option>
+                        <option value="5">Non Touch Apple</option>
+                        <option value="6">Touch Lenovo</option>
+                        <option value="7">Non Touch Lenovo</option>
+                        <option value="8">Pulses (Dal)</option>
+                        <option value="9">Spices (Masala)</option>
+                        <option value="10">Egyptian Cotton</option>
+                        <option value="11">Premium Latha</option>
+                        <option value="12">Winter Karandi</option>
+                        <option value="13">Tropical Blend</option>
+                        <option value="14">Digital Print Lawn</option>
+                        <option value="15">Embroidered Lawn</option>
+                        <option value="16">Pure Silk</option>
+                        <option value="17">Fancy Gota Lace</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-sm-12 col-md-3">
+                <div class="form-group">
+                    @Html.Label("DropDownListUnit", "Unit", new { @class = "col-form-label" })
+                    <select class="form-control form-control-sm" name="UnitId" id="DropDownListUnit">
+                        <option value="1">Piece</option>
+                        <option value="2">Kilogram</option>
+                        <option value="3">Gram</option>
+                        <option value="4">Meter</option>
+                        <option value="5">Litre</option>
+                        <option value="6">Box</option>
+                        <option value="7">Set</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+
+</form>
+</div>

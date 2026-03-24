@@ -1,0 +1,133 @@
+﻿@using SharedUI.Models.Enums
+@{
+    Layout = "LayoutOne";
+}
+
+
+<div class="container-fluid py-2">
+
+    <div class="d-flex justify-content-between align-items-center border-bottom mb-4 pb-3">
+        <div>
+            <h5 class="fw-bold mb-0">@ViewBag.DisplayName</h5>
+            @{
+                string message = "Fill in the details to create a new system record.";
+                <p class="text-muted small mb-0">@message</p>
+            }
+        </div>
+        <div>
+            @{
+                if (ViewBag.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB))
+                {
+                    <button type="button" id="ButtonSaveData" class="btn btn-primary btn-sm px-4 shadow-sm">
+                        <i class="fa-solid fa-cloud-arrow-up me-1"></i> Save
+                    </button>
+                }
+                else if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
+                {
+                    <button type="button" id="ButtonUpdateData" class="btn btn-success btn-sm px-4 shadow-sm">
+                        <i class="fa-solid fa-cloud-arrow-up me-1"></i> Update
+                    </button>
+                }
+            }
+        </div>
+    </div>
+
+    <form id="ACUserForm">
+        @Html.Hidden("OperationType", (string)ViewBag.OperationType)
+        @Html.Hidden("GuID")
+        @{
+            if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row mb-0">
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group">
+                                    @Html.Label("DropDownListDocument", "Document (User)", new { @class = "col-form-label" })
+                                    @Html.DropDownList("DocumentGuID", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListDocument" })
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            }
+        }
+        <div class="card">
+            <div class="card-body">
+                <div class="col-12 mt-4">
+                    <div class="bg-light rounded-2 border-start border-primary border-4 p-2">
+                        <span class="fw-bold text-primary small"><i class="fa-solid fa-building me-2"></i> USER INFORMATION</span>
+                    </div>
+                </div>
+
+                <div class="row mb-0">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="form-group">
+                            @Html.Label("TextBoxDescription", "Description", new { @class = "col-form-label" })
+                            @Html.TextBox("Description", null, new { @class = "form-control form-control-sm", required = "required", placeholder = "Provide Description!", @id = "TextBoxDescription" })
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="form-group">
+                            @Html.Label("TextBoxPassword", "Password", new { @class = "col-form-label" })
+                            @Html.TextBox("Password", null, new { @class = "form-control form-control-sm", required = "required", placeholder = "Provide Password!", @id = "TextBoxPassword" })
+                        </div>
+                    </div>
+                </div>
+              
+                <div class="row mb-0">
+                    <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("TextBoxContact", "Contact Number", new { @class = "col-form-label" })
+                            @Html.TextBox("Contact", null, new { @class = "form-control form-control-sm contact", required = "required", placeholder = "Provide Contact!", @id = "TextBoxContact" })
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("TextBoxEmail", "Email Address", new { @class = "col-form-label" })
+                            @Html.TextBox("Email", null, new { @class = "form-control form-control-sm email", type = "email", required = "required", placeholder = "Provide Email!", @id = "TextBoxEmail" })
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("DropDownListRole", "Role", new { @class = "col-form-label" })
+                            @Html.DropDownList("RoleId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListRole" })
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("DropDownListCompany", "Company", new { @class = "col-form-label" })
+                            @Html.DropDownList("CompanyId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListCompany" })
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-0">
+                    <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("DropDownListBranch", "Branch", new { @class = "col-form-label" })
+                            @Html.DropDownList("BranchId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListBranch" })
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="form-group">
+                            @Html.Label("DropDownListAllowedBranch", "Allowed Branches", new { @class = "col-form-label" })
+                            @Html.DropDownList("AllowedBranchIds", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListAllowedBranch", multiple=true })
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("DropDownListEmployee", "Employee", new { @class = "col-form-label" })
+                            @Html.DropDownList("EmployeeId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListEmployee" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+       
+
+    </form>
+</div>
+
+<script src="~/js/applicationconfiguration/createupdate_acuser_uiscript.js"></script>

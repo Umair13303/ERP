@@ -1,0 +1,247 @@
+﻿@{
+    Layout = "LayoutOne";
+}
+
+<style>
+    /* --- High-Density Dashboard Overrides --- */
+    .main-content {
+        padding: 15px 25px;
+    }
+
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .stat-box {
+        background: #fff;
+        padding: 12px 15px;
+        border-radius: 10px;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+        .stat-box .label {
+            font-size: 10px;
+            color: #64748b;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-box .value {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-top: 4px;
+            color: #1e293b;
+        }
+
+    .brand-banner {
+        border-left: 4px solid #6366f1;
+        background: #fff;
+        padding: 12px 20px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid #f1f5f9;
+        border-left-width: 4px;
+    }
+
+        .brand-banner h2 {
+            font-size: 13px;
+            font-weight: 800;
+            margin: 0;
+            color: #1e293b;
+        }
+
+    /* --- Chart & Table Cards --- */
+    .dashboard-card {
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid #f1f5f9;
+        padding: 15px;
+        height: 100%;
+    }
+
+    .card-header-compact {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .card-title-compact {
+        font-size: 11px;
+        font-weight: 800;
+        color: #1e293b;
+        text-transform: uppercase;
+    }
+
+    .table-micro {
+        font-size: 11px;
+        margin: 0;
+    }
+
+        .table-micro th {
+            background: #f8fafc;
+            color: #64748b;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 9px;
+            border: none;
+        }
+
+        .table-micro td {
+            vertical-align: middle;
+            border-bottom: 1px solid #f8fafc;
+            padding: 8px;
+        }
+
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+    }
+</style>
+
+<main class="main-content">
+
+    <div class="brand-banner shadow-sm">
+        <div>
+            <h2>EXECUTIVE OVERVIEW</h2>
+            <span class="text-muted" style="font-size: 10px;">Winter Collection '26 Performance (Real-time)</span>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary border-0 fw-bold" style="font-size: 10px;">
+                <i class="fa-solid fa-arrows-rotate me-1"></i> Sync
+            </button>
+            <button class="btn btn-sm btn-dark px-3 fw-bold" style="font-size: 10px; border-radius: 6px;">
+                <i class="fa-solid fa-file-export me-1"></i> EXPORT DATA
+            </button>
+        </div>
+    </div>
+
+    <div class="stat-grid">
+        <div class="stat-box">
+            <div class="label">Net Revenue</div>
+            <div class="value">PKR 8.4M</div>
+            <div class="text-success fw-bold" style="font-size: 9px;"><i class="fa-solid fa-caret-up"></i> 14%</div>
+        </div>
+        <div class="stat-box">
+            <div class="label">Outlets Active</div>
+            <div class="value">42 / 45</div>
+            <div class="text-muted fw-bold" style="font-size: 9px;">3 Terminals Offline</div>
+        </div>
+        <div class="stat-box">
+            <div class="label">Inventory Health</div>
+            <div class="value" style="color: #6366f1;">92%</div>
+            <div class="text-muted fw-bold" style="font-size: 9px;">Swiss Voile Low</div>
+        </div>
+        <div class="stat-box">
+            <div class="label">Pending Orders</div>
+            <div class="value">1,024</div>
+            <div class="text-warning fw-bold" style="font-size: 9px;">48 Delayed</div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-7">
+            <div class="dashboard-card shadow-sm">
+                <div class="card-header-compact">
+                    <span class="card-title-compact">Revenue Distribution (7D)</span>
+                    <select class="form-select form-select-sm border-0 bg-light fw-bold" style="width: auto; font-size: 9px;">
+                        <option>Weekly View</option>
+                    </select>
+                </div>
+                <div style="height: 180px; position: relative;">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="dashboard-card shadow-sm">
+                <div class="card-header-compact">
+                    <span class="card-title-compact">Live Stock Movements</span>
+                    <span class="badge bg-soft-primary text-primary" style="font-size: 8px; background: #eef2ff;">LIVE</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-micro">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Outlet</th>
+                                <th>Qty</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold">Khaddar Unstitched</td>
+                                <td>Lahore - Packages</td>
+                                <td>-12</td>
+                                <td><span class="status-dot bg-success"></span>Sold</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Digital Printed</td>
+                                <td>Karachi - LuckyOne</td>
+                                <td>+50</td>
+                                <td><span class="status-dot bg-primary"></span>Restock</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Embroidered Silk</td>
+                                <td>Islamabad - Centaurus</td>
+                                <td>-04</td>
+                                <td><span class="status-dot bg-success"></span>Sold</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Swiss Voile</td>
+                                <td>Faisalabad - Blvd</td>
+                                <td>-01</td>
+                                <td><span class="status-dot bg-danger"></span>Return</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Revenue (M)',
+                data: [0.8, 1.2, 0.9, 1.5, 2.1, 1.8, 1.4],
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 0,
+                pointHoverRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 9 } } },
+                y: { grid: { borderDash: [5, 5] }, ticks: { font: { size: 9 } } }
+            }
+        }
+    });
+</script>

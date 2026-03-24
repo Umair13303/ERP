@@ -1,0 +1,214 @@
+1. SharedUI is a micro service that will be publically accessable to other project
+2. The purpose is to code less and more moduler.
+3. Common Models and classes will accessable globaly
+
+4. Folder Pattern:
+--------- FOLDER NAME I.E Models (PLURAL)
+--------- FILE NAME I.E VMMenu
+5. Interface:
+Interface is a defination , that is implemented to a classi
+it contains structure for a class, a class can be defined later it 
+it makes it lose bind so it does not give erroe
+6. Service: 
+It is a class that has been underhood of Interface and must contain all function defined in an interface
+ @*    <form id="registrationForm" class="row g-3">
+
+        <div class="col-12 mt-4">
+            <div class="bg-light p-2 rounded-2 border-start border-primary border-4">
+                <span class="fw-bold text-primary small"><i class="fa-solid fa-user me-2"></i> PERSONAL INFORMATION</span>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label fw-600">Full Name</label>
+            <input type="text" class="form-control form-control-sm" placeholder="Enter name">
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label fw-600">Father's Name</label>
+            <input type="text" class="form-control form-control-sm" placeholder="Guardian name">
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label fw-600">Date of Birth</label>
+            <input type="date" class="form-control form-control-sm">
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label fw-600">Gender</label>
+            <select class="form-select form-select-sm">
+                <option selected>Male</option>
+                <option>Female</option>
+                <option>Other</option>
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-600">CNIC Number</label>
+            <input type="text" class="form-control form-control-sm" placeholder="42XXX-XXXXXXX-X">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-600">Nationality</label>
+            <input list="countries" class="form-control form-control-sm" placeholder="Search...">
+            <datalist id="countries">
+                <option value="Pakistani">
+                <option value="Turkish">
+                <option value="Saudi">
+            </datalist>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-600">Marital Status</label>
+            <div class="pt-1">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="marital" id="m1" checked>
+                    <label class="form-check-label small" for="m1">Single</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="marital" id="m2">
+                    <label class="form-check-label small" for="m2">Married</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-600">Blood Group</label>
+            <select class="form-select form-select-sm">
+                <option>A+</option>
+                <option>B+</option>
+                <option>O+</option>
+                <option>AB+</option>
+            </select>
+        </div>
+
+        <div class="col-12 mt-4">
+            <div class="bg-light p-2 rounded-2 border-start border-primary border-4">
+                <span class="fw-bold text-primary small"><i class="fa-solid fa-address-book me-2"></i> CONTACT DETAILS</span>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label fw-600">Mobile Number</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text">+92</span>
+                <input type="text" class="form-control" placeholder="3XXXXXXXXX">
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label fw-600">Email Address</label>
+            <input type="email" class="form-control form-control-sm" placeholder="name@company.com">
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label fw-600">Emergency Contact</label>
+            <input type="tel" class="form-control form-control-sm">
+        </div>
+
+        <div class="col-md-8">
+            <label class="form-label fw-600">Current Residential Address</label>
+            <input type="text" class="form-control form-control-sm" placeholder="Street, Sector, City">
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label fw-600">City</label>
+            <select class="form-select form-select-sm">
+                <option>Karachi</option>
+                <option>Lahore</option>
+                <option>Islamabad</option>
+            </select>
+        </div>
+
+        <div class="col-12 mt-4">
+            <div class="bg-light p-2 rounded-2 border-start border-primary border-4">
+                <span class="fw-bold text-primary small"><i class="fa-solid fa-gears me-2"></i> SYSTEM CONFIGURATION</span>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-600">Department</label>
+            <select class="form-select form-select-sm">
+                <option>IT Support</option>
+                <option>Finance</option>
+                <option>Sales</option>
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-600">User Role</label>
+            <input type="text" class="form-control form-control-sm" value="Standard User" readonly>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-600">Employee ID</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light">EMP-</span>
+                <input type="text" class="form-control" value=".UserId" readonly>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-600">Salary Package</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text">Rs.</span>
+                <input type="number" class="form-control" placeholder="0.00">
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <label class="form-label fw-600">Remarks / Notes</label>
+            <textarea class="form-control form-control-sm" rows="2"></textarea>
+        </div>
+
+        <div class="col-md-3">
+            <div class="form-check form-switch mt-4">
+                <input class="form-check-input" type="checkbox" id="isActive" checked>
+                <label class="form-check-label fw-bold" for="isActive">Account Active</label>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="form-check mt-4">
+                <input class="form-check-input" type="checkbox" id="taxExempt">
+                <label class="form-check-label fw-bold" for="taxExempt">Tax Exempted</label>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-600">Access Key</label>
+            <input type="password" class="form-control form-control-sm" placeholder="••••••••">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-600">Reference Type</label>
+            <select class="form-select form-select-sm">
+                <option>Walk-in</option>
+                <option>Online</option>
+                <option>Internal</option>
+            </select>
+        </div>
+
+        <div class="col-12 mt-5 p-3 bg-light rounded-2 d-flex justify-content-end">
+            <button type="button" class="btn btn-link text-decoration-none text-muted btn-sm me-3">Cancel</button>
+            <button type="submit" class="btn btn-primary px-5 btn-sm shadow-sm">Complete Registration</button>
+        </div>
+    </form>
+ *@
+
+
+
+
+
+
+
+
+------------------------------------------ NUGET COMMANDS
+
+Scaffold-DbContext "Server=DESKTOP-U4KUL21\SQLEXPRESS01;Database=ERPOrganisationSetup;Trusted_Connection=True;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models/DAL -Context ERPOrganisationSetupContext -Force -NoOnConfiguring -UseDatabaseNames -NoPluralize
+1. IN GATEWAY: Install-Package Yarp.ReverseProxy
+2. IN GATEWAY, ORGANISATIONSETUP : Install-Package Microsoft.AspNetCore.Authentication.JwtBearer -Version 8.0.23
+3. IN GATEWAY, ORGANISATIONSETUP : Install-Package Microsoft.EntityFrameworkCore.SqlServer -Version 8.0.23
+4. IN ORGANISATIONSETUP, CLOTH HOUSE : Install-Package Microsoft.EntityFrameworkCore.Design -Version 8.0.23
+5. IN ORGANISATIONSETUP, CLOTH HOUSE : Install-Package Microsoft.EntityFrameworkCore.Tools -Version 8.0.23
+6. IN ORGANISATIONSETUP, CLOTH HOUSE : Install-Package Microsoft.EntityFrameworkCore.SqlServer -Version 8.0.23

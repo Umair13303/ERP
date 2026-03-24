@@ -1,0 +1,170 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using SharedUI.Interfaces
+@using SharedUI.Models.ViewModels
+@using System.Net.NetworkInformation
+@inject ISessionService UserSession
+
+@{
+    string initials = "U";
+    if (!string.IsNullOrEmpty(UserSession.UserName) && UserSession.UserName != "Guest")
+    {
+        var names = UserSession.UserName.Trim().Split(' ');
+        initials = names.Length > 1
+            ? (names[0][0].ToString() + names[1][0].ToString()).ToUpper()
+            : names[0][0].ToString().ToUpper();
+    }
+
+    string machineName = Environment.MachineName;
+    string macAddress = NetworkInterface.GetAllNetworkInterfaces()
+        .Where(nic => nic.OperationalStatus == OperationalStatus.Up && nic.NetworkInterfaceType != NetworkInterfaceType.Loopback)
+        .Select(nic => nic.GetPhysicalAddress().ToString())
+        .FirstOrDefault() ?? "N/A";
+
+    if (macAddress != "N/A" && macAddress.Length == 12)
+    {
+        macAddress = string.Join(":", Enumerable.Range(0, 6).Select(i => macAddress.Substring(i * 2, 2)));
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMS | @UserSession.CompanyName</title>
+
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/_content/SharedUI/layoutStyle/LayoutOne.css" />
+    
+    @* STYLES SHEET FOR SELECT 2 *@
+    <link href="/_content/SharedUI/lib/select2.min.css" rel="stylesheet" />
+    <link href="~/_content/SharedUI/lib/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
+    @* STYLES SHEET FOR TOASTER *@
+    <link href="~/_content/SharedUI/lib/toastr.min.css" rel="stylesheet" />
+
+    <script src="~/_content/SharedUI/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/_content/SharedUI/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    @* SCRIPT FOR SELECT 2 *@
+    <script src="~/_content/SharedUI/lib/select2.min.js"></script>
+    @* SCRIPT FOR INPUT MASKING *@
+    <script src="~/_content/SharedUI/lib/jquery.mask.min.js"></script>
+    <script src="~/_content/SharedUI/utilities/UIMasking.js"></script>
+    
+    @* SCRIPT FOR TOASTER *@
+    <script src="~/_content/SharedUI/lib/toastr.min.js"></script>
+    <script src="~/_content/SharedUI/utilities/UISetting.js"></script>
+
+
+
+
+</head>
+<body>
+    <div id="top-loader"></div>
+
+    <nav class="top-nav">
+        <a href="/" class="logo-area">@UserSession.CompanyName<span>.</span></a>
+
+        <div class="search-container">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="menuSearch" placeholder="Search forms (Press '/' to focus)..." autocomplete="off">
+            <div id="searchResultCard">
+                <div id="searchResultList"></div>
+            </div>
+        </div>
+
+        <div class="user-sec d-flex align-items-center ms-auto" onclick="toggleProfile(event)">
+            <div class="d-none d-sm-block me-3 text-end">
+                <div class="fw-bold" style="font-size: 12px;">@UserSession.UserName</div>
+                <div class="text-muted" style="font-size: 10px;">@UserSession.CompanyName</div>
+            </div>
+            <div class="user-avatar" style="cursor:pointer">@initials</div>
+
+            <div class="profile-dropdown" id="profileMenu">
+                <div class="profile-header">
+                    <div class="fw-bold text-primary" style="font-size: 14px;">@UserSession.UserName</div>
+                    <div class="text-muted" style="font-size: 11px; margin-bottom: 8px;">@UserSession.CompanyName</div>
+
+                    <div class="sys-info-row"><span>Machine:</span> <span>@machineName</span></div>
+                    <div class="sys-info-row"><span>MAC:</span> <span>@macAddress</span></div>
+                </div>
+                <div class="profile-body">
+                    <a href="/OSAUser/OSUAuthentication/OSULogout" class="form-link text-danger"><i class="fa-solid fa-power-off"></i> Sign Out System</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="action-bar">
+        @if (UserSession.UserMenu != null)
+        {
+            @foreach (var parentMenu in UserSession.UserMenu)
+            {
+                <div class="nav-item">
+                    @parentMenu.Menu?.ToUpper()
+                    <i class="fa-solid fa-chevron-down ms-2" style="font-size: 8px; opacity: 0.5;"></i>
+
+                    @if (parentMenu.SubMenu != null)
+                    {
+                        var totalItems = parentMenu.SubMenu.SelectMany(x => x.Rights).Count();
+                        <div class="form-menu @(totalItems > 10 ? "wide-menu" : "")">
+                            @foreach (var sub in parentMenu.SubMenu)
+                            {
+                                <div class="menu-section">
+                                    <div class="text-muted fw-bold border-bottom mb-2 mt-1 px-2 py-1" style="font-size: 9px; text-transform: uppercase;">
+                                        @sub.SubMenu
+                                    </div>
+                                    @foreach (var right in sub.Rights)
+                                    {
+                                        var gatewayUrl = right.Url.StartsWith("/") ? right.Url : "/" + right.Url + "?DisplayName=" + right.DisplayName + "&OperationType="+right.OperationType;
+
+                                        <a href="@gatewayUrl" class="form-link menu-item-source" data-name="@right.DisplayName">
+                                            <i class="fa-solid fa-circle-dot" style="font-size: 6px; opacity: 0.5;"></i> @right.DisplayName
+                                        </a>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+    <main class="main-content">
+        <div class="container-fluid">
+            <div class="content-card">
+                <div id="ui-loader">
+                    <div class="loader-content">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2 fw-bold">Processing... Please wait.</p>
+                    </div>
+                </div>
+                @RenderBody()
+            </div>
+        </div>
+    </main>
+    <footer class="main-footer">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <div class="footer-left">
+                &copy; @DateTime.Now.Year <strong>IMS</strong>. All rights reserved.
+            </div>
+            <div class="footer-right">
+                Developed by <a href="#" class="text-decoration-none fw-bold" style="color: var(--primary);">Muhammad Umair Akbar</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
+<script>
+    window.basePath = '@(Context.Request.PathBase.Value ?? "")';
+    if (window.basePath !== "" && !window.basePath.endsWith('/')) {
+        window.basePath += '/';
+    } else if (window.basePath === "") {
+        window.basePath = '/';
+    }
+</script>
+<script src="~/_content/SharedUI/layoutScript/LayoutOneScript.js"></script>
