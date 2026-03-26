@@ -18,6 +18,8 @@ namespace SharedUI.Models.TVP
         public int? ChartOfAccountId { get; set; }
         public decimal Debit { get; set; }
         public decimal Credit { get; set; }
+        public int? PostingStatus { get; set; }
+
         public DateTime? CreatedOn { get; set; }
         public int? CreatedBy { get; set; }
         public DateTime? UpdatedOn { get; set; }

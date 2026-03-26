@@ -22,6 +22,8 @@ public partial class AFInvoice
     public string? FBRStamp { get; set; }
 
     public int? InvoiceTypeId { get; set; }
+   
+    public int? PostingStatus { get; set; }
 
     public DateTime? CreatedOn { get; set; }
 

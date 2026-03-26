@@ -24,6 +24,8 @@ public partial class AFJournalVoucher
     public decimal Debit { get; set; }
 
     public decimal Credit { get; set; }
+    public int? PostingStatus { get; set; }
+
     public DateTime? CreatedOn { get; set; }
 
     public int? CreatedBy { get; set; }

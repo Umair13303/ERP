@@ -37,9 +37,10 @@ namespace SharedUI.Models.Enums
         product = 26,
         productATI = 27,
         invoice = 28,
-        invoicePICustomerOB= 29,
-        customerLedgerRecord= 30,
-        journalVoucher= 31,
+        invoiceProduct= 29,
+        invoiceProductCustomerOB= 30,
+        customerLedgerRecord= 31,
+        journalVoucher= 32,
 
     }
 }
