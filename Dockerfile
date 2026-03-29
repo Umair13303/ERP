@@ -14,4 +14,4 @@ FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 
-CMD ["dotnet", "ERPV1.dll"]
+CMD ["dotnet", "OrganisationSetup.dll"]
