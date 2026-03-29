@@ -8,13 +8,8 @@ namespace SharedUI.Models.Enums
 {
     public enum InvoiceType
     {
-        CustomerOpeningBalanceInvoice=1,
-        CustomerDirectSaleInvoice=2
+        OBMock=1,
+        Sale=2
     }
-    public enum InvoiceItemType
-    {
-        OpeningBalance=1,
-        Product=2,
-        Service=3
-    }
+    
 }

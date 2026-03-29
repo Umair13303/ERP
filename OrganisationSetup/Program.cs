@@ -104,11 +104,9 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllerRoute(
-    name: "areas",
+    name: "MyArea",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
-app.MapControllerRoute(
-    name: "default_root",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=COMAuthentication}/{action=Login}/{id?}",

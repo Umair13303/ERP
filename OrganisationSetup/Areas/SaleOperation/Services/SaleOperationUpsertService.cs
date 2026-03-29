@@ -108,7 +108,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                                                     postedData.CNICNumber?.Trim(),
                                                     postedData.Address?.Trim(),
                                                     postedData.AdditionalDetail?.Trim(),
-                                                    postedData.ReceivableAccountId = AFChartOfAccount.insertedId,
+                                                    AFChartOfAccount.insertedId,
                                                     postedData.OpeningBalance,
                                                     DateTime.Now,
                                                     userInfo.UserId,
@@ -152,13 +152,13 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                         var AFInvoice = await _repo.UpsertInto_AFInvoice(
                                                         postedData.OperationType,
                                                         invoiceGuID,
-                                                        postedData.LocationId = userInfo.BranchId,
-                                                        postedData.TransactionDate = DateTime.Now,
-                                                        postedData.CustomerId = SOCustomer.insertedId,
+                                                        userInfo.BranchId,
+                                                        DateTime.Now,
+                                                        SOCustomer.insertedId,
                                                         InvoiceDescription,
                                                         postedData.FBRStamp?.Trim(),
-                                                        (int?)InvoiceType.CustomerOpeningBalanceInvoice,
-                                                        (int?)PostingStatus.InvoiceStatus.unPaid,
+                                                        (int?)InvoiceType.OBMock,
+                                                        (int?)InvoiceStatus.unPaid,
                                                         DateTime.Now,
                                                         userInfo.UserId,
                                                         DateTime.Now,
@@ -176,20 +176,20 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
 
                         #region PORTION FOR :: FILL & UPSERT CustomerLedger
                         string customerLedgerDescription = InvoiceDescription + "Recorded as OB invoice having document control code: " + AFInvoice.documentCode + " .";
-                        List<AFCustomerLedger_TVP> customerLedger = new List<AFCustomerLedger_TVP>
+                        List<AFCustomerLedger> customerLedger = new List<AFCustomerLedger>
                         {
-                            new AFCustomerLedger_TVP
+                            new AFCustomerLedger
                             {
                                 Id = 0,
                                 GuID = customerLedgerGuID,
                                 Code= "",
                                 LocationId = userInfo.BranchId,
                                 RefDocumentType = (int?)DocumentType.invoice,
-                                RefDocumentGuID=invoiceGuID,
+                                RefDocumentId=AFInvoice.insertedId,
                                 Description= customerLedgerDescription,
                                 Debit= (decimal)postedData.OpeningBalance,
                                 Credit =0,
-                                PostingStatus= (int?)PostingStatus.LedgerStatus.unreconciled,
+                                ReconcillationStatus= (int?)ReconcileStatus.unreconciled,
                                 CreatedOn = DateTime.Now,
                                 CreatedBy = userInfo.UserId,
                                 UpdatedOn = DateTime.Now,
@@ -215,21 +215,21 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
 
                         #region PORTION FOR :: FILL & UPSERT JournalVoucher
                         var osvChartOfAccountInfo = await _cService.populateOSvChartOfAccountByParam(postedData.OperationType,(int?)FilterConditions.osvChartOfAccount_Operation_ByDefaultSetting,(int?)AccountCategory.EQUITY_RETAINED_EARNINGS);
-                        List<AFJournalVoucher_TVP> journalVoucher = new List<AFJournalVoucher_TVP>
+                        List<AFJournalVoucher> journalVoucher = new List<AFJournalVoucher>
                         {
-                            new AFJournalVoucher_TVP
+                            new AFJournalVoucher
                             {
                                 Id = 0,
                                 GuID = journalVoucherCreditGuID,
                                 Code="",
                                 LocationId = userInfo.BranchId,
                                 RefDocumentType=(int?)DocumentType.customerLedgerRecord,
-                                RefDocumentGuID = customerLedgerGuID,
+                                RefDocumentId = AFCustomerLedger.insertedId,
                                 Description = "Opening Balance Debit for " + postedData.Description,
                                 ChartOfAccountId= AFChartOfAccount.insertedId,
                                 Credit= 0,
                                 Debit= (decimal)postedData.OpeningBalance,
-                                PostingStatus=(int)PostingStatus.VoucherStatus.pending,
+                                PostingStatus=(int)PostingStatus.pending,
                                 CreatedOn = DateTime.Now,
                                 CreatedBy = userInfo.UserId,
                                 UpdatedOn = DateTime.Now,
@@ -240,19 +240,19 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                                 BranchId= userInfo.BranchId,
                                 CompanyId = userInfo.CompanyId
                             },
-                            new AFJournalVoucher_TVP
+                            new AFJournalVoucher
                             {
                                 Id = 0,
                                 GuID = journalVoucherDebitGuID,
                                 Code="",
                                 LocationId = userInfo.BranchId,
                                 RefDocumentType=(int?)DocumentType.customerLedgerRecord,
-                                RefDocumentGuID = customerLedgerGuID,
+                                RefDocumentId = AFCustomerLedger.insertedId,
                                 Description = "Equity Offset for " + postedData.Description + " Opening Balance",
                                 ChartOfAccountId= (int?)osvChartOfAccountInfo?.FirstOrDefault()?.Id,
                                 Credit= (decimal)postedData.OpeningBalance,
                                 Debit= 0,
-                                PostingStatus=(int)PostingStatus.VoucherStatus.pending,
+                                PostingStatus=(int)PostingStatus.pending,
                                 CreatedOn = DateTime.Now,
                                 CreatedBy = userInfo.UserId,
                                 UpdatedOn = DateTime.Now,

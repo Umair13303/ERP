@@ -15,14 +15,14 @@ public partial class AFCustomerLedger
 
     public int? RefDocumentType { get; set; }
 
-    public Guid? RefDocumentGuID { get; set; }
+    public int? RefDocumentId { get; set; }
 
     public string? Description { get; set; }
 
     public decimal Debit { get; set; }
 
     public decimal Credit { get; set; }
-    public int? PostingStatus { get; set; }
+    public int? ReconcillationStatus { get; set; }
 
     public DateTime? CreatedOn { get; set; }
 

@@ -15,7 +15,7 @@ public partial class AFJournalVoucher
 
     public int? RefDocumentType { get; set; }
 
-    public Guid? RefDocumentGuID { get; set; }
+    public int? RefDocumentId { get; set; }
 
     public string? Description { get; set; }
 
