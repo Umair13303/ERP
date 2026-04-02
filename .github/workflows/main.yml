@@ -1,21 +1,26 @@
-name: Build and Deploy
+name: Deploy to MonsterASP
 on:
   push:
-    branches: [ main ] # Or your branch name
+    branches: [ main ] # Ensure this matches your branch name
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup .NET
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      - name: Publish
-        run: dotnet publish -c Release -o ./out
-      - name: Deploy
-        uses: azure/webapps-deploy@v2
-        with:
-          publish-profile: ${{ secrets.MONSTER_PUBLISH_PROFILE }}
-          package: ./out
+
+      - name: Publish Application
+        run: dotnet publish -c Release -o ./publish
+
+      - name: Deploy to IIS via WebDeploy
+        run: |
+          msdeploy.exe -verb:sync `
+          -source:contentPath='${{ github.workspace }}\publish' `
+          -dest:contentPath='${{ secrets.SITE_NAME }}',ComputerName='https://${{ secrets.SERVER_NAME }}:8172/msdeploy.axmx?site=${{ secrets.SITE_NAME }}',UserName='${{ secrets.SITE_NAME }}',Password='${{ secrets.PUBLISH_PASSWORD }}',AuthType='Basic' `
+          -allowUntrusted
