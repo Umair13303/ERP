@@ -16,8 +16,11 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Publish App
-        # This converts your raw code into the "Finished" app files
         run: dotnet publish -c Release -o ./publish-out
+
+      - name: Create App Offline File
+        # This stops the server so DLLs aren't "locked"
+        run: echo "Site is updating..." > ./publish-out/app_offline.htm
 
       - name: Upload to MonsterASP via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -26,5 +29,17 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./publish-out/
-          # This matches the 'Website Root' in your screenshot
           server-dir: /wwwroot/
+          # This ensures we don't get stuck if one file fails initially
+          dry-run: false
+
+      - name: Remove App Offline File
+        # This restarts the server
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          # We tell the action to delete the offline file to wake the site up
+          method: delete
+          server-dir: /wwwroot/app_offline.htm
