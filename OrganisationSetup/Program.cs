@@ -120,6 +120,7 @@ if (!string.IsNullOrEmpty(pathBase))
     });
 }
 
+
 // ORDER IS CRITICAL
 app.UseForwardedHeaders(); // Must be first
 
