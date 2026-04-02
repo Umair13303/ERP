@@ -1,0 +1,29 @@
+name: Build and Deploy to MonsterASP
+on:
+  push:
+    branches: [ main ] # Change to 'master' if that is your branch name
+
+jobs:
+  deploy-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Get Code
+        uses: actions/checkout@v4
+
+      - name: 2. Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: 3. Publish (Compile Raw Code)
+        # This creates the 'Finished Cake' from your 'Raw Recipe'
+        run: dotnet publish -c Release -o ./publish-out
+
+      - name: 4. Upload to MonsterASP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./publish-out/
+          server-dir: /wwwroot/
