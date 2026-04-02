@@ -12,4 +12,6 @@ public partial class vAccountCatagory
     public string? ShortCode { get; set; }
 
     public int? AccountTypeId { get; set; }
+
+    public bool? Status { get; set; }
 }

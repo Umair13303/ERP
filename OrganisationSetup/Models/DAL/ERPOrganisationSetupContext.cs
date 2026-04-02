@@ -65,8 +65,6 @@ public partial class ERPOrganisationSetupContext : DbContext
 
     public virtual DbSet<vOrganisationType> vOrganisationType { get; set; }
 
-    public virtual DbSet<vOrganizationType> vOrganizationType { get; set; }
-
     public virtual DbSet<vRight> vRight { get; set; }
 
     public virtual DbSet<vRole> vRole { get; set; }
@@ -124,19 +122,22 @@ public partial class ERPOrganisationSetupContext : DbContext
 
         modelBuilder.Entity<AFCustomerLedger>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__AFCustom__3214EC07175DF11F");
+            entity.HasNoKey();
 
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.Credit).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Debit).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<AFInvoice>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__AFInvoic__3214EC070FE36FF7");
+            entity.HasNoKey();
 
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.DueAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.TransactionDate).HasColumnType("datetime");
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
         });
@@ -155,10 +156,13 @@ public partial class ERPOrganisationSetupContext : DbContext
 
         modelBuilder.Entity<AFJournalVoucher>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__AFJourna__3214EC07FD9C6573");
+            entity.HasNoKey();
 
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.Credit).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Debit).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<CSDepartment>(entity =>
@@ -240,128 +244,70 @@ public partial class ERPOrganisationSetupContext : DbContext
 
         modelBuilder.Entity<vAccountCatagory>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToView("vAccountCatagory");
-
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.HasKey(e => e.Id).HasName("PK__vAccount__3214EC078E23DC11");
         });
 
         modelBuilder.Entity<vAccountType>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToView("vAccountType");
-
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.HasKey(e => e.Id).HasName("PK__vAccount__3214EC07572BD4C1");
         });
 
         modelBuilder.Entity<vAttribute>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToView("vAttribute");
-
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.HasKey(e => e.Id).HasName("PK__vAttribu__3214EC07A4A8A04C");
         });
 
         modelBuilder.Entity<vCity>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToView("vCity");
-
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.HasKey(e => e.Id).HasName("PK__vCity__3214EC0796BB681D");
         });
 
         modelBuilder.Entity<vCountry>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToView("vCountry");
+            entity.HasKey(e => e.Id).HasName("PK__vCountry__3214EC0776834BC7");
         });
 
         modelBuilder.Entity<vFinancialStatement>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToView("vFinancialStatement");
-
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.HasKey(e => e.Id).HasName("PK__vFinanci__3214EC07453601A1");
         });
 
         modelBuilder.Entity<vHSCode>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToView("vHSCode");
-
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.HasKey(e => e.Id).HasName("PK__vHSCode__3214EC0776531CCF");
         });
 
         modelBuilder.Entity<vItemType>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToView("vItemType");
-
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.HasKey(e => e.Id).HasName("PK__vItemTyp__3214EC0757839F2A");
         });
 
         modelBuilder.Entity<vOrganisationType>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToView("vOrganisationType");
-
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
-        });
-
-        modelBuilder.Entity<vOrganizationType>(entity =>
-        {
-            entity
-                .HasNoKey()
-                .ToView("vOrganizationType");
-
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.HasKey(e => e.Id).HasName("PK__vOrganis__3214EC074F2D5E25");
         });
 
         modelBuilder.Entity<vRight>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToView("vRight");
-
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.HasKey(e => e.Id).HasName("PK__vRight__3214EC07A6D604E0");
         });
 
         modelBuilder.Entity<vRole>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToView("vRole");
-
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.HasKey(e => e.Id).HasName("PK__vRole__3214EC07E09D9ECD");
         });
 
         modelBuilder.Entity<vSaleTaxType>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToView("vSaleTaxType");
+            entity.HasKey(e => e.Id).HasName("PK__vSaleTax__3214EC07F21D3FAF");
 
             entity.Property(e => e.AdditionalRate).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.DefaultRate).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
         });
 
         modelBuilder.Entity<vUnit>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToView("vUnit");
-
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.HasKey(e => e.Id).HasName("PK__vUnit__3214EC07AEADDD23");
         });
 
         OnModelCreatingPartial(modelBuilder);

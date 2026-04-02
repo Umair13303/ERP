@@ -21,9 +21,11 @@ public partial class AFInvoice
 
     public string? FBRStamp { get; set; }
 
+    public decimal DueAmount { get; set; }
+
     public int? InvoiceTypeId { get; set; }
-   
-    public int? PostingStatus { get; set; }
+
+    public int? InvoiceStatus { get; set; }
 
     public DateTime? CreatedOn { get; set; }
 

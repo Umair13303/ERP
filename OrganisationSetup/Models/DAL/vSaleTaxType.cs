@@ -12,4 +12,6 @@ public partial class vSaleTaxType
     public decimal? DefaultRate { get; set; }
 
     public decimal? AdditionalRate { get; set; }
+
+    public bool? Status { get; set; }
 }

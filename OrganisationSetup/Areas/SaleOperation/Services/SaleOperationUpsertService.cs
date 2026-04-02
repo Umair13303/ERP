@@ -157,6 +157,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                                                         SOCustomer.insertedId,
                                                         InvoiceDescription,
                                                         postedData.FBRStamp?.Trim(),
+                                                        invoicePI.Sum(x=> x.ChargedAmount),
                                                         (int?)InvoiceType.OBMock,
                                                         (int?)InvoiceStatus.unPaid,
                                                         DateTime.Now,

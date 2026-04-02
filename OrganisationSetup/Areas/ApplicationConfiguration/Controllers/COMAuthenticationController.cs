@@ -17,30 +17,33 @@ namespace OrganisationSetup.Areas.ApplicationConfiguration.Controllers
         private readonly ERPOrganisationSetupContext _eRPOSContext;
         private readonly ISessionService _iSessionService;
         private readonly IConfiguration _configuration;
+
         public COMAuthenticationController(ERPOrganisationSetupContext eRPOSC, ISessionService iSessionService, IConfiguration configuration)
         {
             _eRPOSContext = eRPOSC;
             _iSessionService = iSessionService;
             _configuration = configuration;
         }
+
         public IActionResult Login()
         {
             return View();
         }
+
         public IActionResult Logout()
         {
             Response.Cookies.Delete("ERP_Auth_Token", new CookieOptions
             {
                 Path = "/",
                 HttpOnly = true,
-                Secure = true
+                Secure = true,
+                SameSite = SameSiteMode.None
             });
 
             HttpContext.Session.Clear();
             return RedirectToAction(nameof(Login));
         }
 
-        #region PORTION CONTAIN CODE FOR : DATABASE OPERATION
         [HttpPost]
         public async Task<IActionResult> ValidateCredentials(ACUser postedData)
         {
@@ -49,33 +52,33 @@ namespace OrganisationSetup.Areas.ApplicationConfiguration.Controllers
                 ModelState.AddModelError(string.Empty, SharedUI.Models.Responses.Message.serverResponse((int?)Code.NotFound));
                 return View(nameof(Login), postedData);
             }
+
             var user = await _eRPOSContext.ACUser.FirstOrDefaultAsync(u => u.Description == postedData.Description && u.Password == postedData.Password);
+
             if (user != null)
             {
                 var company = await _eRPOSContext.ACCompany.FirstOrDefaultAsync(c => c.Id == user.CompanyId);
-                var branch = await _eRPOSContext.ACBranch.FirstOrDefaultAsync(b => b.Id == user.BranchId);
-                #region IN CASE: USER LOGIN SUCCESS -- GET RIGHTS
-                if (user != null)
+                var token = GenerateJwtToken(user, company?.Description);
+
+                // --- THE CRITICAL COOKIE FIX ---
+                Response.Cookies.Append("ERP_Auth_Token", token, new CookieOptions
                 {
+                    HttpOnly = true,
+                    Secure = true,               // MUST be true for HTTPS
+                    SameSite = SameSiteMode.None, // MUST be None for cross-site redirects
+                    Expires = DateTime.UtcNow.AddMinutes(120),
+                    Path = "/",
+                    IsEssential = true
+                });
 
-                    var token = GenerateJwtToken(user, company?.Description);
-                    Response.Cookies.Append("ERP_Auth_Token", token, new CookieOptions
-                    {
-                        HttpOnly = true,
-                        Secure = true,
-                        SameSite = SameSiteMode.Lax,
-                        Expires = DateTime.UtcNow.AddMinutes(120),
-                        Path = "/"
-                    });
-
-                    return RedirectToAction(nameof(SetupRoute.Action.DashboardDefault), nameof(SetupRoute.Controller.COMDashboard), new { area = nameof(SetupRoute.Area.ApplicationConfiguration) });
-                }
-                #endregion
+                // Redirecting to Dashboard
+                return RedirectToAction(nameof(SetupRoute.Action.DashboardDefault), nameof(SetupRoute.Controller.COMDashboard), new { area = nameof(SetupRoute.Area.ApplicationConfiguration) });
             }
+
             ModelState.AddModelError(string.Empty, SharedUI.Models.Responses.Message.serverResponse((int?)Code.BadRequest));
             return View(nameof(Login), postedData);
         }
-        #endregion
+
         private string GenerateJwtToken(ACUser user, string? companyName)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
@@ -89,8 +92,7 @@ namespace OrganisationSetup.Areas.ApplicationConfiguration.Controllers
                 new Claim("BranchId", user.BranchId.ToString()),
                 new Claim("CompanyId", user.CompanyId.ToString()),
                 new Claim("CompanyName", companyName ?? ""),
-                new Claim("AllowedBranchIds", user.AllowedBranchIds.ToString() ?? "")
-
+                new Claim("AllowedBranchIds", user.AllowedBranchIds?.ToString() ?? "")
             };
 
             var token = new JwtSecurityToken(
@@ -103,6 +105,5 @@ namespace OrganisationSetup.Areas.ApplicationConfiguration.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
     }
 }

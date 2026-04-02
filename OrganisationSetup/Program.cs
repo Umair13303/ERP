@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
+using System.IO;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -15,19 +18,34 @@ using SharedUI.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<ERPOrganisationSetupContext>(options =>    options.UseSqlServer(builder.Configuration.GetConnectionString("ERPOrganisationSetupConnection")));
+
+// --- FIX A: FORWARDED HEADERS (Fixes the "Unsafe Attempt" / Protocol mismatch) ---
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
+// --- FIX B: DATA PROTECTION (Fixes 401 on Free Tier) ---
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "keys")))
+    .SetApplicationName("OrganisationSetup");
+
+builder.Services.AddDbContext<ERPOrganisationSetupContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ERPOrganisationSetupConnection")));
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]!);
-#region ADD REFERANCE FOR VIEWS
+
 builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.Add<MenuFilter>();
 })
-.AddApplicationPart(typeof(SharedUI.Models.ViewModels.VMMenu).Assembly); builder.Services.AddHttpContextAccessor();
-#endregion
+.AddApplicationPart(typeof(SharedUI.Models.ViewModels.VMMenu).Assembly);
 
-#region ADD SERVICES
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -35,6 +53,8 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -43,17 +63,30 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(secretKey)
+        IssuerSigningKey = new SymmetricSecurityKey(secretKey),
+        ClockSkew = TimeSpan.Zero
     };
+
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
         {
-            context.Token = context.Request.Cookies["ERP_Auth_Token"];
+            var token = context.Request.Cookies["ERP_Auth_Token"];
+            if (!string.IsNullOrEmpty(token))
+            {
+                context.Token = token;
+            }
+            return Task.CompletedTask;
+        },
+        OnAuthenticationFailed = context =>
+        {
+            context.Response.Headers.Append("Token-Error", context.Exception.Message);
             return Task.CompletedTask;
         }
     };
 });
+
+// Services (Keep your existing Scoped services here)
 builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddScoped<IMenuService, MenuService>();
 builder.Services.AddScoped<IOSDataLayer, OSDataLayerRepository>();
@@ -61,37 +94,35 @@ builder.Services.AddScoped<ICommon, CommonServices>();
 builder.Services.AddScoped<IApplicationConfigurationUpsert, ApplicationConfigurationUpsertService>();
 builder.Services.AddScoped<IApplicationConfigurationValidation, ApplicationConfigurationValidationService>();
 builder.Services.AddScoped<IApplicationConfigurationRetriever, ApplicationConfigurationRetrieverService>();
-
 builder.Services.AddScoped<IAccountNfinanceUpsert, AccountNfinanceUpsertService>();
 builder.Services.AddScoped<IAccountNfinanceValidation, AccountNfinanceValidationService>();
 builder.Services.AddScoped<IAccountNfinanceRetriever, AccountNfinanceRetrieverService>();
-
 builder.Services.AddScoped<ICompanySetupUpsert, CompanySetupUpsertService>();
 builder.Services.AddScoped<ICompanySetupValidation, CompanySetupValidationService>();
 builder.Services.AddScoped<ICompanySetupRetriever, CompanySetupRetriever>();
-
 builder.Services.AddScoped<IInventoryUpsert, InventoryUpsertService>();
 builder.Services.AddScoped<IInventoryValidation, InventoryValidationService>();
 builder.Services.AddScoped<IInventoryRetriever, InventoryRetrieverService>();
-
 builder.Services.AddScoped<ISaleOperationUpsert, SaleOperationUpsertService>();
 builder.Services.AddScoped<ISaleOperationValidation, SaleOperationValidationService>();
 builder.Services.AddScoped<ISaleOperationRetriever, SaleOperationRetrieverService>();
 
-
-#endregion
 var app = builder.Build();
+
+// PathBase
 var pathBase = builder.Configuration["PathBase"];
 if (!string.IsNullOrEmpty(pathBase))
 {
     app.UsePathBase(pathBase);
-
-    app.Use((context, next) =>
-    {
+    app.Use((context, next) => {
         context.Request.PathBase = pathBase;
         return next();
     });
 }
+
+// ORDER IS CRITICAL
+app.UseForwardedHeaders(); // Must be first
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -101,6 +132,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
