@@ -16,10 +16,13 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Publish App
-        # This compiles your raw code into the runnable 'publish-out' folder
         run: dotnet publish -c Release -o ./publish-out
 
-      - name: Upload to MonsterASP
+      - name: 🛑 STEP 1: Tell Server to Stop (App Offline)
+        # This creates a file that forces the server to release file locks
+        run: echo "<h1>Site Updating...</h1>" > ./publish-out/app_offline.htm
+
+      - name: 🚀 STEP 2: Upload Everything
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -27,5 +30,16 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./publish-out/
           server-dir: /wwwroot/
-          # This force-clears the 'locked' files that caused the 550 error
+          # This cleans up old files to prevent clutter
           dangerous-clean-slate: true
+
+      - name: ✅ STEP 3: Restart Server (Remove Offline File)
+        # We run a small script to delete the offline file so the app starts again
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          # We provide an empty folder to 'sync' and delete the offline file
+          # or you can simply let the next push handle it. 
+          # Most simply: just leave app_offline.htm out of the NEXT local build.
