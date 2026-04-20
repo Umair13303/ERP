@@ -7,6 +7,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
     public interface IAccountNfinanceValidation
     {
         Task<bool> isAFChartOfAccountValid(string? operationType, Guid? guID, string? description);
+        Task<bool> isAFInvoiceValid(string? operationType, Guid? guID, string? description);
     }
 
     public class AccountNfinanceValidationService : IAccountNfinanceValidation
@@ -29,6 +30,25 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
 
                 case nameof(OperationType.UPDATE_DATA_INTO_DB):
                     bool exists = await _eRPOSContext.AFChartOfAccount.AnyAsync(x => x.GuID == guID);
+
+                    return exists;
+
+                default:
+                    return false;
+            }
+        }
+
+        public async Task<bool> isAFInvoiceValid(string? operationType, Guid? guID, string? description)
+        {
+            if (string.IsNullOrEmpty(operationType)) return false;
+            switch (operationType)
+            {
+                case nameof(OperationType.INSERT_DATA_INTO_DB):
+                    return !await _eRPOSContext.AFInvoice
+                        .AnyAsync(x => x.Description!.Trim().ToLower() == description!.Trim().ToLower());
+
+                case nameof(OperationType.UPDATE_DATA_INTO_DB):
+                    bool exists = await _eRPOSContext.AFInvoice.AnyAsync(x => x.GuID == guID);
 
                     return exists;
 

@@ -1,7 +1,7 @@
 ﻿
 namespace SharedUI.Models.TVP
 {
-    public class AFInvoiceProduct_TVP
+    public class AFInvoiceProductPricing_TVP
     {
         public int Id { get; set; }
         public Guid? GuID { get; set; }

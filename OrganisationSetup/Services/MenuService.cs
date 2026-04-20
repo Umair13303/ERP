@@ -8,16 +8,18 @@ namespace OrganisationSetup.Services
 {
     public class MenuService:IMenuService
     {
+        private readonly TempUser _currentUser;
         private readonly ERPOrganisationSetupContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public MenuService(ERPOrganisationSetupContext context, IHttpContextAccessor httpContextAccessor)
+        public MenuService(TempUser currentUser,ERPOrganisationSetupContext context, IHttpContextAccessor httpContextAccessor)
         {
+            _currentUser = currentUser;
             _context = context;
             _httpContextAccessor = httpContextAccessor;
         }
         public async Task<List<VMMenu>> getMenuForUserRole()
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
             if (!userInfo.IsAuthenticated || string.IsNullOrEmpty(userInfo.RoleId))
             {
                 return new List<VMMenu>();

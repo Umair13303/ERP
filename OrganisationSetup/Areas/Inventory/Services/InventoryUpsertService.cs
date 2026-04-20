@@ -24,13 +24,15 @@ namespace OrganisationSetup.Areas.Inventory.Services
     }
     public class InventoryUpsertService : IInventoryUpsert
     {
+        private readonly TempUser _currentUser;
         private readonly IOSDataLayer _repo;
         private readonly string _connectionString;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IInventoryValidation _validationService;
         private readonly ERPOrganisationSetupContext _eRPOSContext;
-        public InventoryUpsertService(IOSDataLayer repo, ERPOrganisationSetupContext context, IHttpContextAccessor httpContextAccessor ,IInventoryValidation validationService, ERPOrganisationSetupContext eRPOSC)
+        public InventoryUpsertService(TempUser currentUser, IOSDataLayer repo, ERPOrganisationSetupContext context, IHttpContextAccessor httpContextAccessor ,IInventoryValidation validationService, ERPOrganisationSetupContext eRPOSC)
         {
+            _currentUser = currentUser;
             _repo = repo;
             _connectionString = context.Database.GetDbConnection().ConnectionString;
             _httpContextAccessor = httpContextAccessor;
@@ -39,7 +41,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         }
         public async Task<ServiceResult> updateInsertDataInto_ISection(PostedData postedData)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
 
             if (!userInfo.IsAuthenticated)
                 return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
@@ -106,7 +108,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         }
         public async Task<ServiceResult> updateInsertDataInto_ICategory(PostedData postedData)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
 
             if (!userInfo.IsAuthenticated)
                 return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
@@ -175,7 +177,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         }
         public async Task<ServiceResult> updateInsertDataInto_ISubCategory(PostedData postedData)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
 
             if (!userInfo.IsAuthenticated)
                 return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
@@ -245,7 +247,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         }
         public async Task<ServiceResult> updateInsertDataInto_IBrand(PostedData postedData)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
 
             if (!userInfo.IsAuthenticated)
                 return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
@@ -312,7 +314,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         }
         public async Task<ServiceResult> updateInsertDataInto_IProduct(PostedData postedData)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
 
             if (!userInfo.IsAuthenticated)
                 return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
@@ -417,7 +419,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         
         public async Task<ServiceResult> updateInsertDataInto_IProductATI(PostedData postedData)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
 
             if (!userInfo.IsAuthenticated)
                 return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);

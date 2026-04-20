@@ -16,16 +16,19 @@ namespace SharedUI.Filters
     {
         private readonly ISessionService _iSessionService;
         private readonly IMenuService _iMenuService;
+        private readonly TempUser _currentUser;
 
-        public MenuFilter(ISessionService iSessionService, IMenuService iMenuService)
+
+        public MenuFilter(TempUser currentUser,ISessionService iSessionService, IMenuService iMenuService)
         {
+            _currentUser = currentUser;
             _iSessionService = iSessionService;
             _iMenuService = iMenuService;
         }
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
             var accessor = context.HttpContext.RequestServices.GetRequiredService<IHttpContextAccessor>();
-            var userInfo = TempUser.Fill(accessor);
+            var userInfo = _currentUser;
 
             if (userInfo.IsAuthenticated)
             {

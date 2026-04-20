@@ -43,13 +43,16 @@ namespace SharedUI.Models.SQLParameters
         public decimal OpeningBalance { get; set; }
         public decimal Credit { get; set; }
         public decimal Debit { get; set; }
+        public decimal DueAmount { get; set; }
         public DateTime? TransactionDate { get; set; }
         public DateTime? CreatedOn { get; set; }
         public int? CreatedBy { get; set; }
         public DateTime? UpdatedOn { get; set; }
         public int? UpdatedBy { get; set; }
         public int? DocType { get; set; }
+        public int? InvoiceTypeId { get; set; }
         public int? DocumentStatus { get; set; }
+        public int? InvoiceStatus { get; set; }
         public bool? IsFavorite { get; set; }
         public bool? IsSaleTaxExclusive { get; set; }
         public bool? Status { get; set; }

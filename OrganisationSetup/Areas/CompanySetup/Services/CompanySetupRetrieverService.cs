@@ -16,13 +16,15 @@ namespace OrganisationSetup.Areas.CompanySetup.Services
     }
     public class CompanySetupRetriever : ICompanySetupRetriever
     {
+        private readonly TempUser _currentUser;
         private readonly ERPOrganisationSetupContext _eRPOSContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ICommon _commonsServices;
 
 
-        public CompanySetupRetriever(ERPOrganisationSetupContext eRPOSC, IHttpContextAccessor httpContextAccessor, ICommon commonsServices)
+        public CompanySetupRetriever(TempUser currentUser,ERPOrganisationSetupContext eRPOSC, IHttpContextAccessor httpContextAccessor, ICommon commonsServices)
         {
+            _currentUser = currentUser;
             _eRPOSContext = eRPOSC;
             _httpContextAccessor = httpContextAccessor;
             _commonsServices = commonsServices;
@@ -30,7 +32,7 @@ namespace OrganisationSetup.Areas.CompanySetup.Services
         }
         public async Task<List<CSDepartment>> populateDepartmentByParam(string? operationType, int? filterConditionId)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
             if (!userInfo.IsAuthenticated)
             {
                 return new List<CSDepartment>();

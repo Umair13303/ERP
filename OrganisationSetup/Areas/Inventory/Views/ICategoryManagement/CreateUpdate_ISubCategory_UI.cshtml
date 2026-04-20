@@ -28,6 +28,24 @@
     <form id="ISubCategoryForm">
         @Html.Hidden("OperationType", (string)ViewBag.OperationType)
         @Html.Hidden("GuID")
+        @{
+            if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row mb-0">
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group">
+                                    @Html.Label("DropDownListDocument", "Document (Sub Category)", new { @class = "col-form-label" })
+                                    @Html.DropDownList("DocumentGuID", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListDocument" })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+
 
         <div class="card">
             <div class="card-body">

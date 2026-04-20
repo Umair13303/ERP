@@ -20,16 +20,18 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
     {
         private readonly ERPOrganisationSetupContext _eRPOSContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly TempUser _currentUser;
 
-        public AccountNfinanceRetrieverService(ERPOrganisationSetupContext eRPOSC, IHttpContextAccessor httpContextAccessor)
+        public AccountNfinanceRetrieverService(TempUser currentUser,ERPOrganisationSetupContext eRPOSC, IHttpContextAccessor httpContextAccessor)
         {
+            _currentUser = currentUser;
             _eRPOSContext = eRPOSC;
             _httpContextAccessor = httpContextAccessor;
 
         }
         public async Task<List<AFChartOfAccount>> populateChartOfAccountByParam(string? operationType, int? filterConditionId, int? accountCatagoryId)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
             if (!userInfo.IsAuthenticated)
             {
                 return new List<AFChartOfAccount>();

@@ -26,12 +26,14 @@ namespace OrganisationSetup.Services
     }
     public class CommonServices : ICommon
     {
+        private readonly TempUser _currentUser;
         private readonly ERPOrganisationSetupContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
 
-        public CommonServices( ERPOrganisationSetupContext context, IHttpContextAccessor httpContextAccessor)
+        public CommonServices(TempUser currentUser, ERPOrganisationSetupContext context, IHttpContextAccessor httpContextAccessor)
         {
+            _currentUser = currentUser;
             _context = context;
             _httpContextAccessor = httpContextAccessor;
         }
@@ -102,7 +104,7 @@ namespace OrganisationSetup.Services
         }
         public async Task<List<osvChartOfAccount>> populateOSvChartOfAccountByParam(string? operationType, int? filterConditionId, int? accountCatagoryId)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
             if (!userInfo.IsAuthenticated)
             {
                 return new List<osvChartOfAccount>();

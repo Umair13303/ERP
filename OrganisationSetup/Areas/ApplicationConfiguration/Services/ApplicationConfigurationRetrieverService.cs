@@ -21,10 +21,13 @@ namespace OrganisationSetup.Areas.ApplicationConfiguration.Services
         private readonly ERPOrganisationSetupContext _eRPOSContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ICommon _commonsServices;
+        private readonly TempUser _currentUser;
 
 
-        public ApplicationConfigurationRetrieverService(ERPOrganisationSetupContext eRPOSC, IHttpContextAccessor httpContextAccessor, ICommon commonsServices)
+
+        public ApplicationConfigurationRetrieverService(TempUser currentUser,ERPOrganisationSetupContext eRPOSC, IHttpContextAccessor httpContextAccessor, ICommon commonsServices)
         {
+            _currentUser = currentUser;
             _eRPOSContext = eRPOSC;
             _httpContextAccessor = httpContextAccessor;
             _commonsServices = commonsServices;
@@ -32,7 +35,7 @@ namespace OrganisationSetup.Areas.ApplicationConfiguration.Services
         }
         public async Task<List<ACCompany>> populateCompanyByParam(string? operationType, int? filterConditionId)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
             if (!userInfo.IsAuthenticated)
             {
                 return new List<ACCompany>();
@@ -57,7 +60,7 @@ namespace OrganisationSetup.Areas.ApplicationConfiguration.Services
         }
         public async Task<List<ACBranch>> populateBranchByParam(string? operationType, int? filterConditionId, int? companyId)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
             if (!userInfo.IsAuthenticated)
             {
                 return new List<ACBranch>();
@@ -97,7 +100,7 @@ namespace OrganisationSetup.Areas.ApplicationConfiguration.Services
         }
         public async Task<List<ACSaleUnit>> populateSaleUnitByParam(string? operationType, int? filterConditionId)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
             if (!userInfo.IsAuthenticated)
             {
                 return new List<ACSaleUnit>();

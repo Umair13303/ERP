@@ -21,12 +21,14 @@ namespace OrganisationSetup.Areas.ApplicationConfiguration.Services
     }
     public class ApplicationConfigurationUpsertService : IApplicationConfigurationUpsert
     {
+        private readonly TempUser _currentUser;
         private readonly IOSDataLayer _repo;
         private readonly string _connectionString;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IApplicationConfigurationValidation _validationService;
-        public ApplicationConfigurationUpsertService(IOSDataLayer repo, ERPOrganisationSetupContext context, IHttpContextAccessor httpContextAccessor ,IApplicationConfigurationValidation validationService)
+        public ApplicationConfigurationUpsertService(TempUser currentUser,IOSDataLayer repo, ERPOrganisationSetupContext context, IHttpContextAccessor httpContextAccessor ,IApplicationConfigurationValidation validationService)
         {
+            _currentUser=  currentUser;
             _repo = repo;
             _connectionString = context.Database.GetDbConnection().ConnectionString;
             _httpContextAccessor = httpContextAccessor;
@@ -34,7 +36,7 @@ namespace OrganisationSetup.Areas.ApplicationConfiguration.Services
         }
         public async Task<ServiceResult> updateInsertDataInto_ACCompany(PostedData postedData)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
 
             if (!userInfo.IsAuthenticated)
                 return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
@@ -111,7 +113,7 @@ namespace OrganisationSetup.Areas.ApplicationConfiguration.Services
         }
         public async Task<ServiceResult> updateInsertDataInto_ACBranch(PostedData postedData)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
 
             if (!userInfo.IsAuthenticated)
                 return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
@@ -186,7 +188,7 @@ namespace OrganisationSetup.Areas.ApplicationConfiguration.Services
         }
         public async Task<ServiceResult> updateInsertDataInto_ACUser(PostedData postedData)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
 
             if (!userInfo.IsAuthenticated)
                 return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);

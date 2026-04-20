@@ -20,13 +20,15 @@ namespace OrganisationSetup.Areas.Inventory.Services
     }
     public class InventoryRetrieverService : IInventoryRetriever
     {
+        private readonly TempUser _currentUser;
         private readonly ERPOrganisationSetupContext _eRPOSContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ICommon _commonsServices;
 
 
-        public InventoryRetrieverService(ERPOrganisationSetupContext eRPOSC, IHttpContextAccessor httpContextAccessor, ICommon commonsServices)
+        public InventoryRetrieverService(TempUser currentUser,ERPOrganisationSetupContext eRPOSC, IHttpContextAccessor httpContextAccessor, ICommon commonsServices)
         {
+            _currentUser = currentUser;
             _eRPOSContext = eRPOSC;
             _httpContextAccessor = httpContextAccessor;
             _commonsServices = commonsServices;
@@ -34,7 +36,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         }
         public async Task<List<ISection>> populateSectionByParam(string? operationType, int? filterConditionId, int? departmentId)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
             if (!userInfo.IsAuthenticated)
             {
                 return new List<ISection>();
@@ -62,7 +64,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         }
         public async Task<List<ICategory>> populateCategoryByParam(string? operationType, int? filterConditionId, int? sectionId)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
             if (!userInfo.IsAuthenticated)
             {
                 return new List<ICategory>();
@@ -90,7 +92,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         }
         public async Task<List<ISubCategory>> populateSubCategoryByParam(string? operationType, int? filterConditionId, int? categoryId)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
             if (!userInfo.IsAuthenticated)
             {
                 return new List<ISubCategory>();
@@ -118,7 +120,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         }
         public async Task<List<IBrand>> populateBrandByParam(string? operationType, int? filterConditionId)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
             if (!userInfo.IsAuthenticated)
             {
                 return new List<IBrand>();
@@ -145,7 +147,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         }
         public async Task<List<DTObject.SubCategory_List>> populateSubCategoryByParam()
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
 
             if (!userInfo.IsAuthenticated)
             {

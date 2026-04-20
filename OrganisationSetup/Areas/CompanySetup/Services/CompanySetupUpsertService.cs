@@ -17,12 +17,14 @@ namespace OrganisationSetup.Areas.CompanySetup.Services
     }
     public class CompanySetupUpsertService : ICompanySetupUpsert
     {
+        private readonly TempUser _currentUser;
         private readonly IOSDataLayer _repo;
         private readonly string _connectionString;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ICompanySetupValidation _validationService;
-        public CompanySetupUpsertService(IOSDataLayer repo, ERPOrganisationSetupContext context, IHttpContextAccessor httpContextAccessor ,ICompanySetupValidation validationService)
+        public CompanySetupUpsertService(TempUser currentUser,IOSDataLayer repo, ERPOrganisationSetupContext context, IHttpContextAccessor httpContextAccessor ,ICompanySetupValidation validationService)
         {
+            _currentUser = currentUser;
             _repo = repo;
             _connectionString = context.Database.GetDbConnection().ConnectionString;
             _httpContextAccessor = httpContextAccessor;
@@ -30,7 +32,7 @@ namespace OrganisationSetup.Areas.CompanySetup.Services
         }
         public async Task<ServiceResult> updateInsertDataInto_CSDepartment(PostedData postedData)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
 
             if (!userInfo.IsAuthenticated)
                 return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);

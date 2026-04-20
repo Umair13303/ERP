@@ -13,20 +13,52 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
 {
     public interface ISaleOperationRetriever
     {
+        Task<List<Customer_List>> populateCustomerByParam(string? operationType, int? filterConditionId);
     }
     public class SaleOperationRetrieverService : ISaleOperationRetriever
     {
+        private readonly TempUser _currentUser;
         private readonly ERPOrganisationSetupContext _eRPOSContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ICommon _commonsServices;
 
 
-        public SaleOperationRetrieverService(ERPOrganisationSetupContext eRPOSC, IHttpContextAccessor httpContextAccessor, ICommon commonsServices)
+        public SaleOperationRetrieverService(TempUser currentUser, ERPOrganisationSetupContext eRPOSC, IHttpContextAccessor httpContextAccessor, ICommon commonsServices)
         {
+            _currentUser = currentUser;
             _eRPOSContext = eRPOSC;
             _httpContextAccessor = httpContextAccessor;
             _commonsServices = commonsServices;
 
+        }
+
+        public async Task<List<Customer_List>> populateCustomerByParam(string? operationType, int? filterConditionId)
+        {
+            var userInfo = _currentUser;
+            if (!userInfo.IsAuthenticated)
+            {
+                return new List<Customer_List>();
+            }
+
+            int?[]? documentStatusIds = await _commonsServices.getDocumentStatusByParam(operationType);
+            if (documentStatusIds == null) return new List<Customer_List>();
+            switch (filterConditionId)
+            {
+                case ((int?)FilterConditions.SOCustomer_Operation_ByCompany):
+                    return await _eRPOSContext.SOCustomer.AsNoTracking()
+                        .Where(x =>
+                        x.CompanyId == userInfo.CompanyId
+                        && x.BranchId == userInfo.BranchId
+                        && x.Status == true
+                        && documentStatusIds.Contains(x.DocumentStatus)).Select(x => new Customer_List
+                        {
+                            Id = x.Id,
+                            CustomerName = x.Description,
+                            ContactNumber = x.Contact,
+                        }).ToListAsync();
+                default:
+                    return new List<Customer_List>();
+            }
         }
     }
 

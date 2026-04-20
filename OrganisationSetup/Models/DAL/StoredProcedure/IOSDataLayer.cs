@@ -27,7 +27,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
         Task<int?> UpsertInto_IProductATI(string? operationType, Guid? guId,  int? productId, int? inventoryAccountId, int? saleRevenueAccountId, int? costOfSaleAccountId, int? itemTypeId, int? hsCodeId, int? saleTaxTypeId, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, SqlConnection con, SqlTransaction trans);
         Task<(int? response, int? insertedId)> UpsertInto_SOCustomer(string? operationType, Guid? guId, string? description, string? contact, string? email, string? cnicNumber, string? address, string? additionalDetail, int? receivableAccountId, decimal? openingBalance, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId, SqlConnection con, SqlTransaction trans);
         Task<(int? response, int? insertedId)> UpsertInto_AFChartOfAccount(string? operationType, Guid? guId,string? description,int? accountCategoryId,int? financialStatementId, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId, SqlConnection con, SqlTransaction trans);
-        Task<(int? response, int? insertedId,string? documentCode)> UpsertInto_AFInvoice(string? operationType, Guid? guId, int? locationId, DateTime? transactionDate, int? customerId, string? description, string? fbrStamp,decimal dueAmount, int? invoiceTypeId, int? invoiceStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId, List<AFInvoiceProduct_TVP> invoicePI, SqlConnection con, SqlTransaction trans);
+        Task<(int? response, int? insertedId,string? documentCode)> UpsertInto_AFInvoice(string? operationType, Guid? guId, int? locationId, DateTime? transactionDate, int? customerId, string? description, string? fbrStamp,decimal dueAmount, int? invoiceTypeId, int? invoiceStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId, List<AFInvoiceProductPricing_TVP> invoicePPI, SqlConnection con, SqlTransaction trans);
         Task<(int? response,int? insertedId, string? documentCode)> UpsertInto_AFCustomerLedger(string? operationType, int? companyId, List<AFCustomerLedger> customerLedger, SqlConnection con, SqlTransaction trans);
         Task<int?> UpsertInto_AFJournalVoucher(string? operationType, int? companyId, List<AFJournalVoucher> journalVoucher, SqlConnection con, SqlTransaction trans);
 
@@ -356,7 +356,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             await cmd.ExecuteNonQueryAsync();
             return (response: responseParam.Value == DBNull.Value ? null : (int?)responseParam.Value, insertedId: insertedIdParam.Value == DBNull.Value ? null : (int?)insertedIdParam.Value);
         }
-        public async Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_AFInvoice(string? operationType, Guid? guId, int? locationId,DateTime? transactionDate, int? customerId,string? description,string? fbrStamp,decimal dueAmount, int? invoiceTypeId, int? invoiceStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId,List<AFInvoiceProduct_TVP> invoicePI, SqlConnection con, SqlTransaction trans)
+        public async Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_AFInvoice(string? operationType, Guid? guId, int? locationId,DateTime? transactionDate, int? customerId,string? description,string? fbrStamp,decimal dueAmount, int? invoiceTypeId, int? invoiceStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId,List<AFInvoiceProductPricing_TVP> invoicePPI, SqlConnection con, SqlTransaction trans)
         {
             using var cmd = new SqlCommand("AFInvoice_Upsert", con, trans);
             cmd.CommandType = CommandType.StoredProcedure;
@@ -396,7 +396,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             table.Columns.Add("DocumentStatus", typeof(int));
             table.Columns.Add("Status", typeof(bool));
 
-            foreach (var item in invoicePI)
+            foreach (var item in invoicePPI)
             {
                 table.Rows.Add(
                     item.Id,

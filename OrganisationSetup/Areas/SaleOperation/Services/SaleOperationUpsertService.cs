@@ -22,14 +22,16 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
     }
     public class SaleOperationUpsertService : ISaleOperationUpsert
     {
+        private readonly TempUser _currentUser;
         private readonly IOSDataLayer _repo;
         private readonly string _connectionString;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ISaleOperationValidation _validationService;
         private readonly ICommon _cService;
         private readonly ERPOrganisationSetupContext _eRPOSContext;
-        public SaleOperationUpsertService(IOSDataLayer repo, ERPOrganisationSetupContext context, IHttpContextAccessor httpContextAccessor ,ISaleOperationValidation validationService, ERPOrganisationSetupContext eRPOSC, ICommon cService)
+        public SaleOperationUpsertService(TempUser currentUser,IOSDataLayer repo, ERPOrganisationSetupContext context, IHttpContextAccessor httpContextAccessor ,ISaleOperationValidation validationService, ERPOrganisationSetupContext eRPOSC, ICommon cService)
         {
+            _currentUser = currentUser;
             _repo = repo;
             _connectionString = context.Database.GetDbConnection().ConnectionString;
             _httpContextAccessor = httpContextAccessor;
@@ -40,7 +42,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
 
         public async Task<ServiceResult> updateInsertDataInto_SOCustomer(PostedData postedData)
         {
-            var userInfo = TempUser.Fill(_httpContextAccessor);
+            var userInfo = _currentUser;
 
             if (!userInfo.IsAuthenticated)
                 return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
@@ -120,15 +122,16 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                                                     userInfo.CompanyId,
                                                     con, transaction);
                     #endregion
-                    if(postedData.OpeningBalance > 0)
+
+                    if (postedData.OpeningBalance > 0)
                     {
                         #region PRE-PARE DOCUMENTS IN CASE OPENING BALANCE > 0
 
                         #region PORTION FOR :: FILL & UPSERT Invoice
                         string InvoiceDescription = "Opening Balance Till: " + DateTime.Now.ToString("dd-MMM-yyyy") + " . ";
-                        List<AFInvoiceProduct_TVP> invoicePI = new List<AFInvoiceProduct_TVP>
+                        List<AFInvoiceProductPricing_TVP> invoicePI = new List<AFInvoiceProductPricing_TVP>
                         {
-                            new AFInvoiceProduct_TVP
+                            new AFInvoiceProductPricing_TVP
                             {
                                 Id = 0,
                                 GuID = Guid.NewGuid(),
@@ -157,7 +160,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                                                         SOCustomer.insertedId,
                                                         InvoiceDescription,
                                                         postedData.FBRStamp?.Trim(),
-                                                        invoicePI.Sum(x=> x.ChargedAmount),
+                                                        invoicePI.Sum(x => x.ChargedAmount),
                                                         (int?)InvoiceType.OBMock,
                                                         (int?)InvoiceStatus.unPaid,
                                                         DateTime.Now,
@@ -203,83 +206,20 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                             }
                         };
 
-                        #region PORTION FOR :: UPSERT INTO dbo.AFInvoice
+                        #region PORTION FOR :: UPSERT INTO dbo.AFCustomerLedger
                         var AFCustomerLedger = await _repo.UpsertInto_AFCustomerLedger(
                                                     postedData.OperationType,
                                                     userInfo.CompanyId,
                                                     customerLedger,
-                                                    con,transaction);
-
-                        #endregion
-
-                        #endregion
-
-                        #region PORTION FOR :: FILL & UPSERT JournalVoucher
-                        var osvChartOfAccountInfo = await _cService.populateOSvChartOfAccountByParam(postedData.OperationType,(int?)FilterConditions.osvChartOfAccount_Operation_ByDefaultSetting,(int?)AccountCategory.EQUITY_RETAINED_EARNINGS);
-                        List<AFJournalVoucher> journalVoucher = new List<AFJournalVoucher>
-                        {
-                            new AFJournalVoucher
-                            {
-                                Id = 0,
-                                GuID = journalVoucherCreditGuID,
-                                Code="",
-                                LocationId = userInfo.BranchId,
-                                RefDocumentType=(int?)DocumentType.customerLedgerRecord,
-                                RefDocumentId = AFCustomerLedger.insertedId,
-                                Description = "Opening Balance Debit for " + postedData.Description,
-                                ChartOfAccountId= AFChartOfAccount.insertedId,
-                                Credit= 0,
-                                Debit= (decimal)postedData.OpeningBalance,
-                                PostingStatus=(int)PostingStatus.pending,
-                                CreatedOn = DateTime.Now,
-                                CreatedBy = userInfo.UserId,
-                                UpdatedOn = DateTime.Now,
-                                UpdatedBy = userInfo.UserId,
-                                DocumentType = (int?)DocumentType.journalVoucher,
-                                DocumentStatus = (int?)DocumentStatus.active,
-                                Status = true,
-                                BranchId= userInfo.BranchId,
-                                CompanyId = userInfo.CompanyId
-                            },
-                            new AFJournalVoucher
-                            {
-                                Id = 0,
-                                GuID = journalVoucherDebitGuID,
-                                Code="",
-                                LocationId = userInfo.BranchId,
-                                RefDocumentType=(int?)DocumentType.customerLedgerRecord,
-                                RefDocumentId = AFCustomerLedger.insertedId,
-                                Description = "Equity Offset for " + postedData.Description + " Opening Balance",
-                                ChartOfAccountId= (int?)osvChartOfAccountInfo?.FirstOrDefault()?.Id,
-                                Credit= (decimal)postedData.OpeningBalance,
-                                Debit= 0,
-                                PostingStatus=(int)PostingStatus.pending,
-                                CreatedOn = DateTime.Now,
-                                CreatedBy = userInfo.UserId,
-                                UpdatedOn = DateTime.Now,
-                                UpdatedBy = userInfo.UserId,
-                                DocumentType = (int?)DocumentType.journalVoucher,
-                                DocumentStatus = (int?)DocumentStatus.active,
-                                Status = true,
-                                BranchId= userInfo.BranchId,
-                                CompanyId = userInfo.CompanyId
-                            },
-                        };
-
-                        #region PORTION FOR :: UPSERT INTO dbo.AFJournalVoucher
-                        var AFJournalVoucher = await _repo.UpsertInto_AFJournalVoucher(
-                                                    postedData.OperationType,
-                                                    userInfo.CompanyId,
-                                                    journalVoucher,
                                                     con, transaction);
 
                         #endregion
-                        #endregion
-
-                        SOCustomer.response = AFJournalVoucher.Value;
 
                         #endregion
 
+                        SOCustomer.response = AFCustomerLedger.response!.Value;
+
+                        #endregion
                     }
 
                     #region PORTION FOR :: HANLDE TRANSACTION
@@ -289,7 +229,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                         case (int)Code.Created:
                         case (int)Code.Accepted:
                             await transaction.CommitAsync();
-                            return ServiceResult.success(Message.serverResponse(SOCustomer.response), (int)SOCustomer.response);
+                            return ServiceResult.internalSuccess(Message.serverResponse(SOCustomer.response), (int)SOCustomer.response,SOCustomer.insertedId);
                         default:
                             await transaction.RollbackAsync();
                             return ServiceResult.failure(Message.serverResponse((int?)Code.BadRequest), (int)Code.BadRequest);

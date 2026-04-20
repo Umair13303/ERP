@@ -14,6 +14,11 @@ namespace SharedUI.Models.ViewModels
             public string? Category { get; set; }
             public string? SubCategory { get; set; }
         }
-
+        public class Customer_List
+        {
+            public int? Id { get; set; }
+            public string? CustomerName { get; set; }
+            public string? ContactNumber { get; set; }
+        }
     }
 }

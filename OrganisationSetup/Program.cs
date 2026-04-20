@@ -1,7 +1,6 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
-using System.IO;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using OrganisationSetup.Areas.AccountNfinance.Services;
@@ -14,7 +13,9 @@ using OrganisationSetup.Models.DAL.StoredProcedure;
 using OrganisationSetup.Services;
 using SharedUI.Filters;
 using SharedUI.Interfaces;
+using SharedUI.Models.Contexts;
 using SharedUI.Services;
+using System.IO;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -106,6 +107,7 @@ builder.Services.AddScoped<IInventoryRetriever, InventoryRetrieverService>();
 builder.Services.AddScoped<ISaleOperationUpsert, SaleOperationUpsertService>();
 builder.Services.AddScoped<ISaleOperationValidation, SaleOperationValidationService>();
 builder.Services.AddScoped<ISaleOperationRetriever, SaleOperationRetrieverService>();
+builder.Services.AddScoped<TempUser>();
 
 var app = builder.Build();
 
@@ -119,6 +121,7 @@ if (!string.IsNullOrEmpty(pathBase))
         return next();
     });
 }
+
 
 
 // ORDER IS CRITICAL

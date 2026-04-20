@@ -3,12 +3,12 @@
 @using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
 @{
-    var EnableIProductATI = Configuration.GetValue<bool>(ClientSettingKey.EnableIProductATI.ToString());
-    bool IsDisabled = !EnableIProductATI;
-   
+    var ShowProductAccountSetting = Configuration.GetValue<string>("ShowProductAccountSetting");
+    var IsDisabled = true;
 }
 @{
     Layout = "LayoutOne";
+
 }
 <div class="container-fluid py-2">
 
@@ -171,6 +171,8 @@
                         </div>
                     </div>
                 </div>
+                <div id="DivAccountTaxInformation" style="display:@ShowProductAccountSetting">
+
                 <div class="col-12 mt-4">
                     <div class="bg-light rounded-2 border-start border-primary border-4 p-2">
                         <span class="fw-bold text-primary small"><i class="fa-solid fa-cogs me-2"></i> ACCOUNTS & TAX INFORMATION</span>
@@ -197,7 +199,7 @@
                     </div>
                 </div>
 
-                    <div class="row mb-0">
+                <div class="row mb-0">
                         <div class="col-sm-12 col-md-4">
                             <div class="form-group">
                                 @Html.Label("DropDownListItemType", "Item Type", new { @class = "col-form-label" })
@@ -217,6 +219,7 @@
                             </div>
                         </div>
                     </div>
+            </div>
             </div>
         </div>
 
