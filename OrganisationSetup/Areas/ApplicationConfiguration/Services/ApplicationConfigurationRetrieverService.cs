@@ -15,7 +15,7 @@ namespace OrganisationSetup.Areas.ApplicationConfiguration.Services
         Task<List<ACCompany>> populateCompanyByParam(string? operationType, int? filterConditionId);
         Task<List<ACBranch>> populateBranchByParam(string? operationType, int? filterConditionId, int? companyId);
         Task<List<ACSaleUnit>> populateSaleUnitByParam(string? operationType, int? filterConditionId);
-        }
+    }
     public class ApplicationConfigurationRetrieverService : IApplicationConfigurationRetriever
     {
         private readonly ERPOrganisationSetupContext _eRPOSContext;
