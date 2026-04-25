@@ -135,8 +135,8 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                             {
                                 Id = 0,
                                 GuID = Guid.NewGuid(),
-                                ProductId = 0,
                                 InvoiceId = 0,
+                                ProductId = 1,
                                 Quantity = 0,
                                 ActualAmount = (decimal)postedData.OpeningBalance!,
                                 DiscountAmount = 0,

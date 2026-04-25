@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OrganisationSetup.Areas.AccountNfinance.Services;
 using OrganisationSetup.Areas.ApplicationConfiguration.Services;
 using OrganisationSetup.Areas.CompanySetup.Services;
 using OrganisationSetup.Areas.SaleOperation.Services;
@@ -22,14 +23,16 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
         private readonly ICommon _commonsServices;
         private readonly ISaleOperationRetriever _sorService;
         private readonly IApplicationConfigurationRetriever _acrService;
+        private readonly IAccountNfinanceRetriever _anfrService;
         private readonly TempUser _currentUser;
 
 
-        public AFInvoiceManagementController(ICommon commonsServices,ISaleOperationRetriever sorService, IApplicationConfigurationRetriever acrService, TempUser currentUser)
+        public AFInvoiceManagementController(ICommon commonsServices,ISaleOperationRetriever sorService, IApplicationConfigurationRetriever acrService, IAccountNfinanceRetriever anfrService, TempUser currentUser)
         {
             _commonsServices = commonsServices;
             _sorService = sorService;
             _acrService = acrService;
+            _anfrService = anfrService;
             _currentUser = currentUser;
         }
         #region PORTION CONTAIN CODE TO: RENDER VIEW
@@ -59,9 +62,10 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
 
         #region PORTION CONTAIN CODE TO: RETURN RECORD LIST
         [HttpGet]
-        public async Task<IActionResult> populateInvoiceListByParam(int? customerId,int?[] invoiceStatusIds)
+        public async Task<IActionResult> populateInvoiceListByParam(string operationType,Guid? guid, int? customerId, int?[] invoiceStatus)
         {
-            return Json(200);
+            var result = await _anfrService.populateInvoiceListByParam(operationType, guid, customerId, invoiceStatus);
+            return Json(new { data = result });
         }    
         #endregion
     }

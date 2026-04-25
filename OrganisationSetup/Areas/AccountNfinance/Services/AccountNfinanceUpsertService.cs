@@ -25,18 +25,14 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
     {
         private readonly IOSDataLayer _repo;
         private readonly string _connectionString;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IAccountNfinanceValidation _validationService;
-        private readonly IAccountNfinanceRetriever _retrieverService;
         private readonly TempUser _currentUser;
-        public AccountNfinanceUpsertService(TempUser currentUser,IOSDataLayer repo, ERPOrganisationSetupContext context, IHttpContextAccessor httpContextAccessor, IAccountNfinanceValidation validationService, IAccountNfinanceRetriever retrieverService)
+        public AccountNfinanceUpsertService(TempUser currentUser,IOSDataLayer repo, ERPOrganisationSetupContext _eRPOSContext, IHttpContextAccessor httpContextAccessor, IAccountNfinanceValidation validationService, IAccountNfinanceRetriever retrieverService)
         {
             _currentUser = currentUser;
             _repo = repo;
-            _connectionString = context.Database.GetDbConnection().ConnectionString;
-            _httpContextAccessor = httpContextAccessor;
+            _connectionString = _eRPOSContext.Database.GetDbConnection().ConnectionString;
             _validationService = validationService;
-            _retrieverService = retrieverService;
         }
         public async Task<ServiceResult> updateInsertDataInto_AFChartOfAccount(PostedData postedData, bool? isCustomerAutoAccount)
         {

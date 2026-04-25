@@ -31,7 +31,6 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
             _commonsServices = commonsServices;
 
         }
-
         public async Task<List<Customer_List>> populateCustomerByParam(string? operationType, int? filterConditionId)
         {
             var userInfo = _currentUser;
@@ -53,8 +52,8 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                         && documentStatusIds.Contains(x.DocumentStatus)).Select(x => new Customer_List
                         {
                             Id = x.Id,
-                            CustomerName = x.Description,
-                            ContactNumber = x.Contact,
+                            Description = x.Description,
+                            Contact = x.Contact,
                         }).ToListAsync();
                 default:
                     return new List<Customer_List>();

@@ -2,6 +2,46 @@
 @{
     Layout = "LayoutOne";
 }
+<!-- DataTables -->
+<style>
+    /* Custom DataTable Styling */
+    #InvoiceDataTable {
+        border-collapse: collapse !important;
+        border-spacing: 0 !important;
+    }
+
+        #InvoiceDataTable thead th {
+            background-color: #f8f9fa;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            color: #495057;
+            padding: 12px 15px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        #InvoiceDataTable tbody td {
+            padding: 12px 15px;
+            font-size: 0.875rem;
+            border-bottom: 1px solid #f2f2f2;
+        }
+
+    /* Customizing the Search Input */
+    .dataTables_filter input {
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        padding: 5px 10px;
+        margin-left: 10px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+        .dataTables_filter input:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+</style>
 
 <div class="container-fluid py-2">
     <div class="d-flex justify-content-between align-items-center border-bottom mb-4 pb-3">
@@ -47,14 +87,15 @@
             }
         }
 
-        <div class="card shadow-sm mb-3">
-            <div class="card-header py-2 bg-light">
-                <span class="fw-semibold small text-secondary">
-                    <i class="fa-solid fa-building me-1 text-primary"></i> PAYMENT DETAILS
-                </span>
-            </div>
-            <div class="card-body py-3">
-                <div class="row g-3 mb-2">
+        <div class="card">
+            <div class="card-body">
+                <div class="col-12 mt-4">
+                    <div class="bg-light rounded-2 border-start border-primary border-4 p-2">
+                        <span class="fw-bold text-primary small"><i class="fa-solid fa-building me-2"></i> PAYMENT INFORMATION</span>
+                    </div>
+                </div>
+
+                <div class="row  mb-0">
                     <div class="col-sm-12 col-md-3">
                         <div class="form-group">
                             @Html.Label("TextBoxTransactionDate", "Transaction Date", new { @class = "col-form-label col-form-label-sm" })
@@ -85,100 +126,35 @@
                         </div>
                     </div>
                 </div>
+                
                 <div class="row g-3">
+
                     <div class="col-sm-12 col-md-4">
                         <div class="form-group">
-                            <label class="col-form-label col-form-label-sm" for="TextBoxReferenceNo">Reference / Cheque No.</label>
-                            <input type="text" class="form-control form-control-sm" id="TextBoxReferenceNo" name="ReferenceNo" placeholder="e.g. CHQ-00123" />
+                            @Html.Label("TextBoxReferance", "Referance", new { @class = "col-form-label col-form-label-sm" })
+                            @Html.TextBox("Referance", null, new { @class = "form-control form-control-sm", required = "required", placeholder = "Payment Referance", @id = "TextBoxReferance" })
                         </div>
                     </div>
                     <div class="col-sm-12 col-md-8">
                         <div class="form-group">
-                            <label class="col-form-label col-form-label-sm" for="TextBoxRemarks">Remarks</label>
-                            <input type="text" class="form-control form-control-sm" id="TextBoxRemarks" name="Remarks" placeholder="Optional note..." />
+                            @Html.Label("TextBoxAdditionalDetail", "Additional Detail", new { @class = "col-form-label col-form-label-sm" })
+                            @Html.TextArea("AdditionalDetail", null, new { @class = "form-control form-control-sm", rows = "2", placeholder = "Provide additional details", @id = "TextBoxAdditionalDetail" })
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
+                <div class="row g-3">
 
-        <div class="card shadow-sm mb-3">
-            <div class="card-header py-2 bg-light d-flex align-items-center justify-content-between">
-                <span class="fw-semibold small text-secondary">
-                    <i class="fa-solid fa-list-check me-1 text-primary"></i> PENDING INVOICE LIST
-                </span>
-                <span class="badge bg-primary rounded-pill" id="BadgeInvoiceCount">0</span>
-            </div>
-            <div class="card-body py-3">
-
-                <div class="row g-2 mb-3">
-                    <div class="col-sm-12 col-md-5">
-                        <input type="text" class="form-control form-control-sm" id="TextBoxSearchInvoice"
-                               placeholder="Search by customer or invoice no..." />
-                    </div>
-                    <div class="col-sm-12 col-md-2">
-                        <select class="form-select form-select-sm" id="DropDownListStatusFilter">
-                            <option value="">All Statuses</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Partial">Partial</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered table-hover align-middle" id="TablePendingInvoices" style="width:100%">
-                        <thead class="table-light">
-                            <tr>
-                                <th style="width:3%;text-align:center">#</th>
-                                <th style="width:18%">Invoice No.</th>
-                                <th style="width:10%">Date</th>
-                                <th style="width:9%;text-align:right">Total</th>
-                                <th style="width:8%;text-align:right">Sale Tax</th>
-                                <th style="width:8%;text-align:right">Addl. Tax</th>
-                                <th style="width:9%;text-align:right">Gross</th>
-                                <th style="width:8%;text-align:right">Discount</th>
-                                <th style="width:9%;text-align:right">Net Amount</th>
-                                <th style="width:8%;text-align:right">Paid</th>
-                                <th style="width:8%;text-align:right">Balance</th>
-                                <th style="width:8%;text-align:center">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="TBodyPendingInvoices">
+                <div class="bootstrap-admin-panel-content">
+                    <table class="table table-bordered table-sm order-column stripe table-hover" style="width: 100%" id="TableInvoice">
+                        <tbody id="TableBodyInvoice">
                         </tbody>
                     </table>
                 </div>
-                <div class="text-muted small mt-1" id="LabelDataTableInfo"></div>
-
-                <div class="row g-2 mt-3">
-                    <div class="col-6 col-md-3">
-                        <div class="bg-light rounded-2 p-3 text-center">
-                            <div class="text-muted small mb-1">Total Invoices</div>
-                            <div class="fw-bold fs-5" id="SumTotalInvoices">0</div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="bg-light rounded-2 p-3 text-center">
-                            <div class="text-muted small mb-1">Gross Amount</div>
-                            <div class="fw-bold fs-5" id="SumGrossAmount">Rs. 0</div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="bg-light rounded-2 p-3 text-center">
-                            <div class="text-muted small mb-1">Total Paid</div>
-                            <div class="fw-bold fs-5 text-success" id="SumTotalPaid">Rs. 0</div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="bg-light border border-primary rounded-2 p-3 text-center">
-                            <div class="text-muted small mb-1">Total Balance</div>
-                            <div class="fw-bold fs-5 text-primary" id="SumTotalBalance">Rs. 0</div>
-                        </div>
-                    </div>
                 </div>
+
 
             </div>
         </div>
-
     </form>
 </div>
 

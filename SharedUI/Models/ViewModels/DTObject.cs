@@ -22,16 +22,17 @@ namespace SharedUI.Models.ViewModels
         }
         public class Invoice_List
         {
-            public Guid? GuID { get; set; }
             public string? CustomerName { get; set; }
             public string? Code { get; set; }
             public string? TransactionDate { get; set; }
             public decimal GrossAmount { get; set; }
             public decimal DiscountAmount { get; set; }
-            public decimal NetAmount { get; set; }
-            public decimal SalesTaxAmount { get; set; }
+            public decimal TaxableAmount { get; set; }
+            public decimal SaleTaxAmount { get; set; }
             public decimal AdditionalTaxAmount { get; set; }
+            public decimal NetAmount { get; set; }
             public decimal DueAmount { get; set; }
+            public Guid? GuID { get; set; }
             public int? InvoiceTypeId { get; set; }
             public int? InvoiceStatus { get; set; }
 
