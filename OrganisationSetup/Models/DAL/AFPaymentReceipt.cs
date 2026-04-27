@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace OrganisationSetup.Models.DAL;
 
-public partial class AFCustomerLedger
+public partial class AFPaymentReceipt
 {
     public int Id { get; set; }
 
@@ -17,17 +17,17 @@ public partial class AFCustomerLedger
 
     public int? CustomerId { get; set; }
 
-    public int? RefDocumentType { get; set; }
-
-    public int? RefDocumentId { get; set; }
+    public int? InvoiceId { get; set; }
 
     public string? Description { get; set; }
 
-    public decimal Debit { get; set; }
+    public int? PaymentMethodId { get; set; }
 
-    public decimal Credit { get; set; }
+    public string? Reference { get; set; }
 
-    public int? ReconcillationStatus { get; set; }
+    public decimal ReceiptAmount { get; set; }
+
+    public int? PaymentStatus { get; set; }
 
     public DateTime? CreatedOn { get; set; }
 

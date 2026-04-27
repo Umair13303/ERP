@@ -16,6 +16,10 @@ namespace SharedUI.Models.TVP
 
         public int? LocationId { get; set; }
 
+        public DateTime? TransactionDate { get; set; }
+
+        public int? CustomerId { get; set; }
+
         public int? RefDocumentType { get; set; }
 
         public int? RefDocumentId { get; set; }

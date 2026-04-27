@@ -25,15 +25,17 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
         private readonly IApplicationConfigurationRetriever _acrService;
         private readonly IAccountNfinanceRetriever _anfrService;
         private readonly TempUser _currentUser;
+        private readonly IAccountNfinanceUpsert _anfuService;
 
 
-        public AFInvoiceManagementController(ICommon commonsServices,ISaleOperationRetriever sorService, IApplicationConfigurationRetriever acrService, IAccountNfinanceRetriever anfrService, TempUser currentUser)
+        public AFInvoiceManagementController(ICommon commonsServices,ISaleOperationRetriever sorService, IApplicationConfigurationRetriever acrService, IAccountNfinanceRetriever anfrService, TempUser currentUser, IAccountNfinanceUpsert anfuService)
         {
             _commonsServices = commonsServices;
             _sorService = sorService;
             _acrService = acrService;
             _anfrService = anfrService;
             _currentUser = currentUser;
+            _anfuService = anfuService;
         }
         #region PORTION CONTAIN CODE TO: RENDER VIEW
         public IActionResult CreateUpdate_AFOBInvoice_UI(UISetting ui)
@@ -66,7 +68,23 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
         {
             var result = await _anfrService.populateInvoiceListByParam(operationType, guid, customerId, invoiceStatus);
             return Json(new { data = result });
-        }    
+        }
+        #endregion
+
+
+        #region PORTION CONTAIN CODE TO: ADD/EDIT/DELETE DOCUMENT
+        [HttpPost]
+        public async Task<IActionResult> createUpdatePaymentReceipt([FromBody] PostedData postedData)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors);
+            }
+            if (!ModelState.IsValid) return View(postedData);
+
+            var result = await _anfuService.updateInsertDataInto_AFPaymentReceipt(postedData);
+            return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message });
+        }
         #endregion
     }
 }

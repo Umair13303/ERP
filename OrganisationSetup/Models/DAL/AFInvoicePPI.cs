@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace OrganisationSetup.Models.DAL;
 
-public partial class AFInvoiceProduct
+public partial class AFInvoicePPI
 {
     public int Id { get; set; }
 

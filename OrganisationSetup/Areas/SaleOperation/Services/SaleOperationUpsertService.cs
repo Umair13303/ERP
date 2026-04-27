@@ -125,6 +125,8 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
 
                     if (postedData.OpeningBalance > 0)
                     {
+                        DateTime transactionDate = DateTime.Now;
+                        int? customerId = SOCustomer.insertedId;
                         #region PRE-PARE DOCUMENTS IN CASE OPENING BALANCE > 0
 
                         #region PORTION FOR :: FILL & UPSERT Invoice
@@ -136,7 +138,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                                 Id = 0,
                                 GuID = Guid.NewGuid(),
                                 InvoiceId = 0,
-                                ProductId = 1,
+                                ProductId = 3,
                                 Quantity = 0,
                                 ActualAmount = (decimal)postedData.OpeningBalance!,
                                 DiscountAmount = 0,
@@ -156,8 +158,8 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                                                         postedData.OperationType,
                                                         invoiceGuID,
                                                         userInfo.BranchId,
-                                                        DateTime.Now,
-                                                        SOCustomer.insertedId,
+                                                        transactionDate,
+                                                        customerId,
                                                         InvoiceDescription,
                                                         postedData.FBRStamp?.Trim(),
                                                         invoicePI.Sum(x => x.ChargedAmount),
@@ -180,18 +182,20 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
 
                         #region PORTION FOR :: FILL & UPSERT CustomerLedger
                         string customerLedgerDescription = InvoiceDescription + "Recorded as OB invoice having document control code: " + AFInvoice.documentCode + " .";
-                        List<AFCustomerLedger> customerLedger = new List<AFCustomerLedger>
+                        List<AFCustomerLedger_TVP> customerLedger = new List<AFCustomerLedger_TVP>
                         {
-                            new AFCustomerLedger
+                            new AFCustomerLedger_TVP
                             {
                                 Id = 0,
                                 GuID = customerLedgerGuID,
                                 Code= "",
                                 LocationId = userInfo.BranchId,
+                                TransactionDate= transactionDate,
+                                CustomerId = customerId,
                                 RefDocumentType = (int?)DocumentType.invoice,
                                 RefDocumentId=AFInvoice.insertedId,
                                 Description= customerLedgerDescription,
-                                Debit= (decimal)postedData.OpeningBalance,
+                                Debit= (decimal)AFInvoice.totalInvoiceAmount,
                                 Credit =0,
                                 ReconcillationStatus= (int?)ReconcileStatus.unreconciled,
                                 CreatedOn = DateTime.Now,

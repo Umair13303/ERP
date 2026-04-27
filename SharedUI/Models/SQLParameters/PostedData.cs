@@ -26,6 +26,8 @@ namespace SharedUI.Models.SQLParameters
         public int? SectionId { get; set; }
         public int? CategoryId { get; set; }
         public int? SubCategoryId { get; set; }
+        public int? InvoiceId { get; set; }
+        public int? PaymentMethodId { get; set; }
         public string? Contact { get; set; }
         public string? Email { get; set; }
         public string? Address { get; set; }
@@ -39,11 +41,13 @@ namespace SharedUI.Models.SQLParameters
         public string? AdditionalDetail { get; set; }
         public string? AttributeIds { get; set; }
         public string? CNICNumber { get; set; }
+        public string? Reference { get; set; }
         public decimal CriticalLimit { get; set; }
         public decimal OpeningBalance { get; set; }
         public decimal Credit { get; set; }
         public decimal Debit { get; set; }
         public decimal DueAmount { get; set; }
+        public decimal ReceiptAmount { get; set; }
         public DateTime? TransactionDate { get; set; }
         public DateTime? CreatedOn { get; set; }
         public int? CreatedBy { get; set; }

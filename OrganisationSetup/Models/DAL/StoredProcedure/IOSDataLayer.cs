@@ -32,10 +32,10 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
         Task<int?> UpsertInto_IProductATI(string? operationType, Guid? guId, int? productId, int? inventoryAccountId, int? saleRevenueAccountId, int? costOfSaleAccountId, int? itemTypeId, int? hsCodeId, int? saleTaxTypeId, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, SqlConnection con, SqlTransaction trans);
         Task<(int? response, int? insertedId)> UpsertInto_SOCustomer(string? operationType, Guid? guId, string? description, string? contact, string? email, string? cnicNumber, string? address, string? additionalDetail, int? receivableAccountId, decimal? openingBalance, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId, SqlConnection con, SqlTransaction trans);
         Task<(int? response, int? insertedId)> UpsertInto_AFChartOfAccount(string? operationType, Guid? guId, string? description, int? accountCategoryId, int? financialStatementId, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId, SqlConnection con, SqlTransaction trans);
-        Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_AFInvoice(string? operationType, Guid? guId, int? locationId, DateTime? transactionDate, int? customerId, string? description, string? fbrStamp, decimal dueAmount, int? invoiceTypeId, int? invoiceStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId, List<AFInvoiceProductPricing_TVP> invoicePPI, SqlConnection con, SqlTransaction trans);
-        Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_AFCustomerLedger(string? operationType, int? companyId, List<AFCustomerLedger> customerLedger, SqlConnection con, SqlTransaction trans);
+        Task<(int? response, int? insertedId, string? documentCode, decimal? totalInvoiceAmount)> UpsertInto_AFInvoice(string? operationType, Guid? guId, int? locationId, DateTime? transactionDate, int? customerId, string? description, string? fbrStamp, decimal dueAmount, int? invoiceTypeId, int? invoiceStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId, List<AFInvoiceProductPricing_TVP> invoicePPI, SqlConnection con, SqlTransaction trans);
+        Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_AFCustomerLedger(string? operationType, int? companyId, List<AFCustomerLedger_TVP> customerLedger, SqlConnection con, SqlTransaction trans);
         Task<int?> UpsertInto_AFJournalVoucher(string? operationType, int? companyId, List<AFJournalVoucher> journalVoucher, SqlConnection con, SqlTransaction trans);
-
+        Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_AFPaymentReceipt(string? operationType, Guid? guId, int? locationId, DateTime? transactionDate, int? customerId, int? invoiceId, string? description, int? paymentMethodId, string? reference, decimal? receiptAmount, int? paymentStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId, SqlConnection con, SqlTransaction trans);
         #endregion
 
         #region RETRIEVE OPERATION
@@ -368,7 +368,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             await cmd.ExecuteNonQueryAsync();
             return (response: responseParam.Value == DBNull.Value ? null : (int?)responseParam.Value, insertedId: insertedIdParam.Value == DBNull.Value ? null : (int?)insertedIdParam.Value);
         }
-        public async Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_AFInvoice(string? operationType, Guid? guId, int? locationId, DateTime? transactionDate, int? customerId, string? description, string? fbrStamp, decimal dueAmount, int? invoiceTypeId, int? invoiceStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId, List<AFInvoiceProductPricing_TVP> invoicePPI, SqlConnection con, SqlTransaction trans)
+        public async Task<(int? response, int? insertedId, string? documentCode, decimal? totalInvoiceAmount)> UpsertInto_AFInvoice(string? operationType, Guid? guId, int? locationId, DateTime? transactionDate, int? customerId, string? description, string? fbrStamp, decimal dueAmount, int? invoiceTypeId, int? invoiceStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId, List<AFInvoiceProductPricing_TVP> invoicePPI, SqlConnection con, SqlTransaction trans)
         {
             using var cmd = new SqlCommand("AFInvoice_Upsert", con, trans);
             cmd.CommandType = CommandType.StoredProcedure;
@@ -436,17 +436,19 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             };
 
             var documentCodeParam = new SqlParameter("@DocumentCode", SqlDbType.NVarChar, -1) { Direction = ParameterDirection.Output };
+            var totalInvoiceAmountParam = new SqlParameter("@TotalInvoiceAmount", SqlDbType.Decimal) { Direction = ParameterDirection.Output,Precision = 18,Scale = 2};
             var insertedIdParam = new SqlParameter("@InsertedId", SqlDbType.Int) { Direction = ParameterDirection.Output };
             var responseParam = new SqlParameter("@Response", SqlDbType.Int) { Direction = ParameterDirection.Output };
             cmd.Parameters.Add(tableValuedParam);
             cmd.Parameters.Add(documentCodeParam);
+            cmd.Parameters.Add(totalInvoiceAmountParam);
             cmd.Parameters.Add(insertedIdParam);
             cmd.Parameters.Add(responseParam);
 
             await cmd.ExecuteNonQueryAsync();
-            return (response: responseParam.Value == DBNull.Value ? null : (int?)responseParam.Value, insertedId: insertedIdParam.Value == DBNull.Value ? null : (int?)insertedIdParam.Value, documentCode: documentCodeParam.Value == DBNull.Value ? null : (string?)documentCodeParam.Value);
+            return (response: responseParam.Value == DBNull.Value ? null : (int?)responseParam.Value, insertedId: insertedIdParam.Value == DBNull.Value ? null : (int?)insertedIdParam.Value, documentCode: documentCodeParam.Value == DBNull.Value ? null : (string?)documentCodeParam.Value, totalInvoiceAmount: totalInvoiceAmountParam.Value == DBNull.Value ? null : Convert.ToDecimal(totalInvoiceAmountParam.Value));
         }
-        public async Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_AFCustomerLedger(string? operationType, int? companyId, List<AFCustomerLedger> customerLedger, SqlConnection con, SqlTransaction trans)
+        public async Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_AFCustomerLedger(string? operationType, int? companyId, List<AFCustomerLedger_TVP> customerLedger, SqlConnection con, SqlTransaction trans)
         {
             using var cmd = new SqlCommand("AFCustomerLedger_Upsert", con, trans);
             cmd.CommandType = CommandType.StoredProcedure;
@@ -457,6 +459,8 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             table.Columns.Add("GuID", typeof(Guid));
             table.Columns.Add("Code", typeof(string));
             table.Columns.Add("LocationId", typeof(int));
+            table.Columns.Add("TransactionDate", typeof(DateTime));
+            table.Columns.Add("CustomerId", typeof(int));
             table.Columns.Add("RefDocumentType", typeof(int));
             table.Columns.Add("RefDocumentId", typeof(int));
             table.Columns.Add("Description", typeof(string));
@@ -480,6 +484,8 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                     item.GuID,
                     (object?)item.Code ?? DBNull.Value,
                     (object?)item.LocationId ?? DBNull.Value,
+                    (object?)item.TransactionDate ?? DBNull.Value,
+                    (object?)item.CustomerId ?? DBNull.Value,
                     (object?)item.RefDocumentType ?? DBNull.Value,
                     (object?)item.RefDocumentId ?? DBNull.Value,
                     (object?)item.Description ?? DBNull.Value,
@@ -579,7 +585,49 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             return responseParam.Value == DBNull.Value ? null : (int?)responseParam.Value;
 
         }
+        public async Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_AFPaymentReceipt(string? operationType,Guid? guId,int? locationId,DateTime? transactionDate,int? customerId,int? invoiceId,string? description,int? paymentMethodId,string? reference,decimal? receiptAmount,int? paymentStatus,DateTime? createdOn,int? createdBy,DateTime? updatedOn,int? updatedBy,int? documentType,int? documentStatus,int? branchId,int? companyId,SqlConnection con,SqlTransaction trans)
+        {
+            using var cmd = new SqlCommand("AFPaymentReceipt_Upsert", con, trans);
+            cmd.CommandType = CommandType.StoredProcedure;
 
+            cmd.Parameters.AddWithValue("@DB_OperationType", (object)operationType! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@GuID", (object)guId! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@LocationId", (object)locationId! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@TransactionDate", (object)transactionDate! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@CustomerId", (object)customerId! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@InvoiceId", (object)invoiceId! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Description", (object)description! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@PaymentMethodId", (object)paymentMethodId! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Reference", (object)reference! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ReceiptAmount", (object)receiptAmount! ?? 0);
+            cmd.Parameters.AddWithValue("@PaymentStatus", (object)paymentStatus! ?? DBNull.Value);
+
+            cmd.Parameters.AddWithValue("@CreatedOn", (object)createdOn! ?? DateTime.Now);
+            cmd.Parameters.AddWithValue("@CreatedBy", (object)createdBy! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@UpdatedOn", (object)updatedOn! ?? DateTime.Now);
+            cmd.Parameters.AddWithValue("@UpdatedBy", (object)updatedBy! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@DocumentType", (object)documentType! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@DocumentStatus", (object)documentStatus! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Status", true);
+            cmd.Parameters.AddWithValue("@BranchId", (object)branchId! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@CompanyId", (object)companyId! ?? DBNull.Value);
+
+            var insertedIdParam = new SqlParameter("@InsertedId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+            var documentCodeParam = new SqlParameter("@DocumentCode", SqlDbType.NVarChar, -1) { Direction = ParameterDirection.Output };
+            var responseParam = new SqlParameter("@Response", SqlDbType.Int) { Direction = ParameterDirection.Output };
+
+            cmd.Parameters.Add(insertedIdParam);
+            cmd.Parameters.Add(documentCodeParam);
+            cmd.Parameters.Add(responseParam);
+
+            await cmd.ExecuteNonQueryAsync();
+
+            return (
+                response: responseParam.Value == DBNull.Value ? null : (int?)responseParam.Value,
+                insertedId: insertedIdParam.Value == DBNull.Value ? null : (int?)insertedIdParam.Value,
+                documentCode: documentCodeParam.Value == DBNull.Value ? null : (string?)documentCodeParam.Value
+            );
+        }
         #endregion
 
         #region RETRIEVE OPERATION SP

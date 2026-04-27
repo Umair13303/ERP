@@ -2,47 +2,6 @@
 @{
     Layout = "LayoutOne";
 }
-<!-- DataTables -->
-<style>
-    /* Custom DataTable Styling */
-    #InvoiceDataTable {
-        border-collapse: collapse !important;
-        border-spacing: 0 !important;
-    }
-
-        #InvoiceDataTable thead th {
-            background-color: #f8f9fa;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.05em;
-            font-weight: 700;
-            color: #495057;
-            padding: 12px 15px;
-            border-bottom: 2px solid #dee2e6;
-        }
-
-        #InvoiceDataTable tbody td {
-            padding: 12px 15px;
-            font-size: 0.875rem;
-            border-bottom: 1px solid #f2f2f2;
-        }
-
-    /* Customizing the Search Input */
-    .dataTables_filter input {
-        border: 1px solid #ced4da;
-        border-radius: 6px;
-        padding: 5px 10px;
-        margin-left: 10px;
-        outline: none;
-        transition: border-color 0.2s;
-    }
-
-        .dataTables_filter input:focus {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-        }
-</style>
-
 <div class="container-fluid py-2">
     <div class="d-flex justify-content-between align-items-center border-bottom mb-4 pb-3">
         <div>
@@ -98,16 +57,17 @@
                 <div class="row  mb-0">
                     <div class="col-sm-12 col-md-3">
                         <div class="form-group">
-                            @Html.Label("TextBoxTransactionDate", "Transaction Date", new { @class = "col-form-label col-form-label-sm" })
-                            @Html.TextBox("TransactionDate", null, new { @class = "form-control form-control-sm",required = "required",placeholder = "YYYY-MM-DD",@id = "TextBoxTransactionDate",@type = "date"   })
-                        </div>
-                    </div>
-                    <div class="col-sm-12 col-md-3">
-                        <div class="form-group">
                             @Html.Label("DropDownListLocation", "Location", new { @class = "col-form-label col-form-label-sm" })
                             @Html.DropDownList("LocationId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListLocation", required = "required" })
                         </div>
                     </div>
+                    <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("TextBoxTransactionDate", "Transaction Date", new { @class = "col-form-label col-form-label-sm" })
+                            @Html.TextBox("TransactionDate", null, new { @class = "form-control form-control-sm",required = "required",placeholder = "YYYY-MM-DD",@id = "TextBoxTransactionDate",@type = "date"   })
+                        </div>
+                    </div>
+
                     <div class="col-sm-12 col-md-3">
                         <div class="form-group">
                             @Html.Label("DropDownListCustomer", "Customer", new { @class = "col-form-label col-form-label-sm" })
@@ -116,12 +76,12 @@
                     </div>
                     <div class="col-sm-12 col-md-3">
                         <div class="form-group">
-                            <label class="col-form-label col-form-label-sm" for="DropDownListPaymentMode">Payment Mode <span class="text-danger">*</span></label>
-                            <select class="form-select form-select-sm select2" id="DropDownListPaymentMode" name="PaymentMode" required>
+                            <label class="col-form-label col-form-label-sm" for="DropDownListPaymentMethod">Payment Mode</label>
+                            <select class="form-select form-select-sm select2" id="DropDownListPaymentMethod" name="PaymentMode" required>
                                 <option value="">Select an option</option>
-                                <option value="CASH">Cash</option>
-                                <option value="BANK">Bank Transfer</option>
-                                <option value="CHEQUE">Cheque</option>
+                                <option value="1">Cash</option>
+                                <option value="2">Bank Transfer</option>
+                                <option value="3">Cheque</option>
                             </select>
                         </div>
                     </div>
@@ -131,19 +91,12 @@
 
                     <div class="col-sm-12 col-md-4">
                         <div class="form-group">
-                            @Html.Label("TextBoxReferance", "Referance", new { @class = "col-form-label col-form-label-sm" })
-                            @Html.TextBox("Referance", null, new { @class = "form-control form-control-sm", required = "required", placeholder = "Payment Referance", @id = "TextBoxReferance" })
-                        </div>
-                    </div>
-                    <div class="col-sm-12 col-md-8">
-                        <div class="form-group">
-                            @Html.Label("TextBoxAdditionalDetail", "Additional Detail", new { @class = "col-form-label col-form-label-sm" })
-                            @Html.TextArea("AdditionalDetail", null, new { @class = "form-control form-control-sm", rows = "2", placeholder = "Provide additional details", @id = "TextBoxAdditionalDetail" })
+                            @Html.Label("TextBoxReference", "Reference", new { @class = "col-form-label col-form-label-sm" })
+                            @Html.TextBox("Reference", null, new { @class = "form-control form-control-sm", required = "required", placeholder = "Payment Reference", @id = "TextBoxReference" })
                         </div>
                     </div>
                 </div>
                 <div class="row g-3">
-
                 <div class="bootstrap-admin-panel-content">
                     <table class="table table-bordered table-sm order-column stripe table-hover" style="width: 100%" id="TableInvoice">
                         <tbody id="TableBodyInvoice">
@@ -151,8 +104,6 @@
                     </table>
                 </div>
                 </div>
-
-
             </div>
         </div>
     </form>

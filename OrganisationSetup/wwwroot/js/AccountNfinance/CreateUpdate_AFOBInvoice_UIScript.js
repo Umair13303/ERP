@@ -5,10 +5,12 @@ var customerList = [];
 var invoiceTable = "";
 /* ------ DOM Elements ------ */
 function domInvoiceTable() {
-    var ParentGroupColumn = 1;
     invoiceTable = $('#TableInvoice').DataTable({
         "processing": true,
         "serverSide": false,
+        "responsive": true,
+        "ordering": false,
+        "searching": false,
         "oLanguage": {
             "oPaginate": {
                 "sPrevious": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>',
@@ -19,9 +21,6 @@ function domInvoiceTable() {
             "sSearchPlaceholder": "Search...",
             "sLengthMenu": "Results :  _MENU_"
         },
-        "responsive": true,
-        "ordering": true,
-        "searching":false,
         "lengthMenu": [5, 10, 25, 50, 75, 100],
         "columns": [
             { "data": null, "title": "#" },
@@ -44,15 +43,28 @@ function domInvoiceTable() {
             },
             { "data": "dueAmount", "title": "Receivable" },
             {
+                "title": "Description",
+                "data": null,
+                "render": function (data, type, row) {
+                    return '<input type="text" class="form-control" id="TextBoxDescription_'+data.guID+'" value="Payment Received For Invoice Code: '+ data.code + '" />'
+                }
+            },
+            {
                 "title": "Payment",
                 "data": null,
                 "render": function (data, type, row) {
-                    return '<input type="number" class="form-control" id="TextBoxPaidAmount_'+data.guID+'" value="0" />'
+                    return '<input type="number" class="form-control" id="TextBoxReceiptAmount_'+data.guID+'" value="0" />'
                 }
             },
 
-            { "data": "dueAmount", "title": "Due" },
-            { "data": "invoiceStatus", "title": "Status" },
+            { "data": "invoiceStatus", "title": "Invoice Status" },
+            {
+                "title": "Action(s)",
+                "data": null,
+                "render": function (data, type, row) {
+                    return '<input type="button" class="btn btn-sm btn-success"onclick="createUpdateDataIntoDB(this)" id="ButtomSubmitPayment' + data.guID + '" value="Record Payment" />'
+                }
+            },
             { "data": "guID", "title": "GuID", visible:false },
         ],
         columnDefs: [
@@ -115,13 +127,14 @@ function getCustomerList(customerId) {
 }
 function getInvoiceList(customerId) {
     invoiceTable.clear().draw();
+    invoiceTable.ajax.url((window.basePath + "AccountNfinance/AFInvoiceManagement/populateInvoiceListByParam?customerId=" + customerId + "&operationType=" + operationType)).load();
 
 }
 /* ------ Change Cases DDL's ------ */
 function changeEventHandler() {
     $("#DropDownListCustomer").on("change", function () {
         var customerId = $("#DropDownListCustomer :selected").val();
-        invoiceTable.ajax.url((window.basePath + "AccountNfinance/AFInvoiceManagement/populateInvoiceListByParam?customerId=" + customerId + "&operationType=" + operationType)).load();
+        getInvoiceList(customerId);
     });
     $("#ButtonSaveData, #ButtonUpdateData").on("click", function (e) {
         if (validater()) {
@@ -162,38 +175,47 @@ function validater() {
 }
 
 /* ------ Add/Edit/Delete Operation ------ */
-function createUpdateDataIntoDB() {
-    var operationType = $("#OperationType").val();
-    var guID = $("#GuID").val();
-    var description = $("#TextBoxDescription").val();
-    var departmentId = $("#DropDownListDepartment :selected").val();
-    var sectionId = $("#DropDownListSection :selected").val();
-    var categoryId = $("#DropDownListCategory :selected").val();
+function createUpdateDataIntoDB(btnElement) {
+    if (!validater()) return;
+
+    var tr = $(btnElement).closest('tr');
+    var rowData = invoiceTable.row(tr).data();
+    var guID = rowData.guID;
+
+    var receiptAmount = parseFloat($('#TextBoxReceiptAmount_' + guID).val());
+    if (!receiptAmount || receiptAmount <= 0) {
+        toastr.warning("Please enter a valid payment amount.");
+        return;
+    }
 
     var jsonData = {
-        OperationType: operationType,
-        GuID: guID ? guID : null,
-        Description: description,
-        DepartmentId: departmentId,
-        SectionId: sectionId,
-        CategoryId: categoryId,
-
+        OperationType: $("#OperationType").val(),
+        LocationId: $("#DropDownListLocation :selected").val(),
+        TransactionDate: $("#TextBoxTransactionDate").val(),
+        CustomerId: $("#DropDownListCustomer :selected").val(),
+        PaymentMethodId: $("#DropDownListPaymentMethod :selected").val(),
+        Reference: $("#TextBoxReference").val(),
+        InvoiceGuID: guID,
+        Description: $('#TextBoxDescription_' + guID).val(),
+        ReceiptAmount: receiptAmount
     };
+    console.log(jsonData)
     $.ajax({
-        url: window.basePath + "Inventory/ICategoryManagement/createUpdateSubCategory",
+        url: window.basePath + "AccountNfinance/AFInvoiceManagement/createUpdatePaymentReceipt",
         type: "POST",
         data: JSON.stringify(jsonData),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         beforeSend: function () {
             initLoading();
+            $(btnElement).prop("disabled", true);
         },
         success: function (response) {
-            if (response.IsSuccess == true) {
+            if (response.isSuccess) {
                 toastr.success(response.message);
-                $("#ICategoryForm").removeClass('was-validated');
-            }
-            else {
+                $("#AFPaymentReceipt").removeClass("was-validated");
+                getInvoiceList(jsonData.customerId);
+            } else {
                 toastr.info(response.message);
             }
         },
@@ -202,7 +224,7 @@ function createUpdateDataIntoDB() {
         },
         complete: function () {
             stopLoading();
-            clearInputFields();
+            $(btnElement).prop("disabled", false);
         }
     });
 }

@@ -17,6 +17,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
     {
         Task<ServiceResult> updateInsertDataInto_AFChartOfAccount(PostedData postedData, bool? isCustomerAutoAccount);
         Task<ServiceResult> updateInsertDataInto_AFInvoice(PostedData postedData, List<AFInvoiceProductPricing_TVP> invoicePPI);
+        Task<ServiceResult> updateInsertDataInto_AFPaymentReceipt(PostedData postedData);
 
 
 
@@ -27,10 +28,13 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
         private readonly string _connectionString;
         private readonly IAccountNfinanceValidation _validationService;
         private readonly TempUser _currentUser;
-        public AccountNfinanceUpsertService(TempUser currentUser,IOSDataLayer repo, ERPOrganisationSetupContext _eRPOSContext, IHttpContextAccessor httpContextAccessor, IAccountNfinanceValidation validationService, IAccountNfinanceRetriever retrieverService)
+        private readonly ERPOrganisationSetupContext _eRPOSContext;
+
+        public AccountNfinanceUpsertService(TempUser currentUser,IOSDataLayer repo, ERPOrganisationSetupContext eRPOSContext, IHttpContextAccessor httpContextAccessor, IAccountNfinanceValidation validationService, IAccountNfinanceRetriever retrieverService)
         {
             _currentUser = currentUser;
             _repo = repo;
+            _eRPOSContext = eRPOSContext;
             _connectionString = _eRPOSContext.Database.GetDbConnection().ConnectionString;
             _validationService = validationService;
         }
@@ -179,5 +183,115 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                 return ServiceResult.failure(Message.serverResponse((int?)Code.Conflict), (int)Code.Conflict);
             }
         }
+
+        public async Task<ServiceResult> updateInsertDataInto_AFPaymentReceipt(PostedData postedData)
+        {
+            var userInfo = _currentUser;
+
+            if (!userInfo.IsAuthenticated)
+                return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
+
+            #region PORTION FOR :: DOCUMENT SETTING ON BASIS OF OperationType
+            Guid? paymentReceiptGuID = Guid.Empty;
+            if (postedData.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB))
+            {
+                paymentReceiptGuID = Guid.NewGuid();
+            }
+            else
+            {
+                paymentReceiptGuID = postedData.GuID;
+            }
+            bool? isOperationPermitted = true;
+            //bool? isOperationPermitted = await _validationService.isAFPaymentReceiptValid(postedData.OperationType, paymentReceiptGuID);
+            #endregion
+
+            if (isOperationPermitted == true)
+            {
+                var con = (SqlConnection)_eRPOSContext.Database.GetDbConnection();
+                await con.OpenAsync();
+                using var transaction = con.BeginTransaction();
+                try
+                {
+                    await _eRPOSContext.Database.UseTransactionAsync(transaction);
+
+                    #region PORTION FOR :: UPSERT INTO dbo.AFPaymentReceipt
+                    var AFPaymentReceipt = await _repo.UpsertInto_AFPaymentReceipt(
+                                                      postedData.OperationType,
+                                                      paymentReceiptGuID,
+                                                      postedData.LocationId,
+                                                      postedData.TransactionDate,
+                                                      postedData.CustomerId,
+                                                      postedData.InvoiceId,
+                                                      postedData.Description,
+                                                      postedData.PaymentMethodId,
+                                                      postedData.Reference,
+                                                      postedData.ReceiptAmount,
+                                                      (int?)PaymentStatus.verified,
+                                                      DateTime.Now,
+                                                      userInfo.UserId,
+                                                      DateTime.Now,
+                                                      userInfo.UserId,
+                                                      (int?)DocumentType.paymentReceipt,
+                                                      (int?)DocumentStatus.active,
+                                                      userInfo.BranchId,
+                                                      userInfo.CompanyId,
+                                                      con, transaction);
+                    #endregion
+
+                    #region PORTION FOR :: UPDATE OUTSTANDING DUE AMOUNT ON dbo.AFInvoice
+                    var totalPaidAgainstInvoice = 0;
+                        //await _eRPOSContext.AFPaymentReceipt
+                        //                                             .Where(x => x.InvoiceId == postedData.InvoiceId && x.Status == true)
+                        //                                             .SumAsync(x => x.ReceiptAmount);
+
+                    var AFInvoice = await _eRPOSContext.AFInvoice
+                                                       .Where(x => x.Id == postedData.InvoiceId && x.Status == true)
+                                                       .FirstOrDefaultAsync();
+                    if (AFInvoice!=null)
+                    {
+
+                        AFInvoice.DueAmount = AFInvoice.DueAmount - postedData.ReceiptAmount;
+                        AFInvoice.DueAmount = AFInvoice.DueAmount < 0 ? 0 : AFInvoice.DueAmount;
+                        _eRPOSContext.Entry(AFInvoice).Property(x => x.DueAmount).IsModified = true;
+                        await _eRPOSContext.SaveChangesAsync();
+                    }
+                    else
+                    {
+
+                        AFPaymentReceipt.response = (int)Code.NotFound;
+                    }
+
+                    #endregion
+
+                    #region PORTION FOR :: HANDLE TRANSACTION
+                    switch (AFPaymentReceipt.response)
+                    {
+                        case (int)Code.Created:
+                        case (int)Code.Accepted:
+                            await transaction.CommitAsync();
+                            return ServiceResult.success(Message.serverResponse(AFPaymentReceipt.response), (int)AFPaymentReceipt.response);
+                        default:
+                            await transaction.RollbackAsync();
+                            return ServiceResult.failure(Message.serverResponse((int?)Code.BadRequest), (int)Code.BadRequest);
+                    }
+                    #endregion
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return ServiceResult.failure(Message.serverResponse((int?)Code.InternalServerError), (int)Code.InternalServerError);
+                }
+                finally
+                {
+                    if (con.State == System.Data.ConnectionState.Open)
+                        await con.CloseAsync();
+                }
+            }
+            else
+            {
+                return ServiceResult.failure(Message.serverResponse((int?)Code.Conflict), (int)Code.Conflict);
+            }
+        }
+
     }
 }

@@ -41,6 +41,8 @@ namespace SharedUI.Models.Enums
         invoiceProductCustomerOB= 30,
         customerLedgerRecord= 31,
         journalVoucher= 32,
+        paymentReceipt=33,
+
 
     }
 }
