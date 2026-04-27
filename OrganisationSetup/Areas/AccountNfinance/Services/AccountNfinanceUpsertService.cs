@@ -193,9 +193,11 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
 
             #region PORTION FOR :: DOCUMENT SETTING ON BASIS OF OperationType
             Guid? paymentReceiptGuID = Guid.Empty;
+            Guid? customerLedgerGuID = Guid.Empty;
             if (postedData.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB))
             {
                 paymentReceiptGuID = Guid.NewGuid();
+                customerLedgerGuID = Guid.NewGuid();
             }
             else
             {
@@ -238,11 +240,49 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                       con, transaction);
                     #endregion
 
+                    #region PORTION FOR :: FILL & UPSERT CustomerLedger
+                    string customerLedgerDescription = postedData.Description;
+                    List<AFCustomerLedger_TVP> customerLedger = new List<AFCustomerLedger_TVP>
+                        {
+                            new AFCustomerLedger_TVP
+                            {
+                                Id = 0,
+                                GuID = customerLedgerGuID,
+                                Code= "",
+                                LocationId = userInfo.BranchId,
+                                TransactionDate= postedData.TransactionDate,
+                                CustomerId = postedData.CustomerId,
+                                RefDocumentType = (int?)DocumentType.paymentReceipt,
+                                RefDocumentId=AFPaymentReceipt.insertedId,
+                                Description= customerLedgerDescription,
+                                Debit=0,
+                                Credit =postedData.ReceiptAmount,
+                                ReconcillationStatus= (int?)ReconcileStatus.unreconciled,
+                                CreatedOn = DateTime.Now,
+                                CreatedBy = userInfo.UserId,
+                                UpdatedOn = DateTime.Now,
+                                UpdatedBy = userInfo.UserId,
+                                DocumentType = (int?)DocumentType.customerLedgerRecord,
+                                DocumentStatus = (int?)DocumentStatus.active,
+                                Status = true,
+                                BranchId= userInfo.BranchId,
+                                CompanyId = userInfo.CompanyId
+                            }
+                        };
+
+                    #region PORTION FOR :: UPSERT INTO dbo.AFCustomerLedger
+                    var AFCustomerLedger = await _repo.UpsertInto_AFCustomerLedger(
+                                                postedData.OperationType,
+                                                userInfo.CompanyId,
+                                                customerLedger,
+                                                con, transaction);
+
+                    #endregion
+
+                    #endregion
+
+
                     #region PORTION FOR :: UPDATE OUTSTANDING DUE AMOUNT ON dbo.AFInvoice
-                    var totalPaidAgainstInvoice = 0;
-                        //await _eRPOSContext.AFPaymentReceipt
-                        //                                             .Where(x => x.InvoiceId == postedData.InvoiceId && x.Status == true)
-                        //                                             .SumAsync(x => x.ReceiptAmount);
 
                     var AFInvoice = await _eRPOSContext.AFInvoice
                                                        .Where(x => x.Id == postedData.InvoiceId && x.Status == true)

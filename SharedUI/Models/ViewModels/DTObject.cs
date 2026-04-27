@@ -35,6 +35,7 @@ namespace SharedUI.Models.ViewModels
             public Guid? GuID { get; set; }
             public int? InvoiceTypeId { get; set; }
             public int? InvoiceStatus { get; set; }
+            public int? InvoiceId { get; set; }
 
         }
 

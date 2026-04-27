@@ -66,6 +66,7 @@ function domInvoiceTable() {
                 }
             },
             { "data": "guID", "title": "GuID", visible:false },
+            { "data": "invoiceId", "title": "InvoiceId", visible: false },
         ],
         columnDefs: [
         ],
@@ -181,6 +182,7 @@ function createUpdateDataIntoDB(btnElement) {
     var tr = $(btnElement).closest('tr');
     var rowData = invoiceTable.row(tr).data();
     var guID = rowData.guID;
+    var invoiceId = rowData.invoiceId;
 
     var receiptAmount = parseFloat($('#TextBoxReceiptAmount_' + guID).val());
     if (!receiptAmount || receiptAmount <= 0) {
@@ -195,7 +197,7 @@ function createUpdateDataIntoDB(btnElement) {
         CustomerId: $("#DropDownListCustomer :selected").val(),
         PaymentMethodId: $("#DropDownListPaymentMethod :selected").val(),
         Reference: $("#TextBoxReference").val(),
-        InvoiceGuID: guID,
+        InvoiceId: invoiceId,
         Description: $('#TextBoxDescription_' + guID).val(),
         ReceiptAmount: receiptAmount
     };
