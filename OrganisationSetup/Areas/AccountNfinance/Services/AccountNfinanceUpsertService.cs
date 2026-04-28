@@ -16,7 +16,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
     public interface IAccountNfinanceUpsert
     {
         Task<ServiceResult> updateInsertDataInto_AFChartOfAccount(PostedData postedData, bool? isCustomerAutoAccount);
-        Task<ServiceResult> updateInsertDataInto_AFInvoice(PostedData postedData, List<AFInvoiceProductPricing_TVP> invoicePPI);
+        Task<ServiceResult> updateInsertDataInto_AFInvoice(PostedData postedData, List<AFInvoicPPI_TVP> invoicePPI);
         Task<ServiceResult> updateInsertDataInto_AFPaymentReceipt(PostedData postedData);
 
 
@@ -108,7 +108,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
 
         }
 
-        public async Task<ServiceResult> updateInsertDataInto_AFInvoice(PostedData postedData, List<AFInvoiceProductPricing_TVP> invoicePPI)
+        public async Task<ServiceResult> updateInsertDataInto_AFInvoice(PostedData postedData, List<AFInvoicPPI_TVP> invoicePPI)
         {
             var userInfo = _currentUser;
 
@@ -241,7 +241,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                     #endregion
 
                     #region PORTION FOR :: FILL & UPSERT CustomerLedger
-                    string customerLedgerDescription = postedData.Description;
+                    string? customerLedgerDescription = postedData.Description;
                     List<AFCustomerLedger_TVP> customerLedger = new List<AFCustomerLedger_TVP>
                         {
                             new AFCustomerLedger_TVP
@@ -257,7 +257,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                 Description= customerLedgerDescription,
                                 Debit=0,
                                 Credit =postedData.ReceiptAmount,
-                                ReconcillationStatus= (int?)ReconcileStatus.unreconciled,
+                                ReconcillationStatus= (int?)ReconcileStatus.reconciled,
                                 CreatedOn = DateTime.Now,
                                 CreatedBy = userInfo.UserId,
                                 UpdatedOn = DateTime.Now,
@@ -281,7 +281,6 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
 
                     #endregion
 
-
                     #region PORTION FOR :: UPDATE OUTSTANDING DUE AMOUNT ON dbo.AFInvoice
 
                     var AFInvoice = await _eRPOSContext.AFInvoice
@@ -289,15 +288,21 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                        .FirstOrDefaultAsync();
                     if (AFInvoice!=null)
                     {
-
                         AFInvoice.DueAmount = AFInvoice.DueAmount - postedData.ReceiptAmount;
                         AFInvoice.DueAmount = AFInvoice.DueAmount < 0 ? 0 : AFInvoice.DueAmount;
+                        if(postedData.ReceiptAmount < AFInvoice.DueAmount)
+                        {
+                            AFInvoice.InvoiceStatus = (int?)InvoiceStatus.partialPaid;
+                        }
+                        else if(postedData.ReceiptAmount == AFInvoice.DueAmount)
+                        {
+                            AFInvoice.InvoiceStatus = (int?)InvoiceStatus.paid;
+                        }
                         _eRPOSContext.Entry(AFInvoice).Property(x => x.DueAmount).IsModified = true;
                         await _eRPOSContext.SaveChangesAsync();
                     }
                     else
                     {
-
                         AFPaymentReceipt.response = (int)Code.NotFound;
                     }
 

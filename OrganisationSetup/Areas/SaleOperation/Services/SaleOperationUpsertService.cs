@@ -131,14 +131,14 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
 
                         #region PORTION FOR :: FILL & UPSERT Invoice
                         string InvoiceDescription = "Opening Balance Till: " + DateTime.Now.ToString("dd-MMM-yyyy") + " . ";
-                        List<AFInvoiceProductPricing_TVP> invoicePI = new List<AFInvoiceProductPricing_TVP>
+                        List<AFInvoicPPI_TVP> invoicePI = new List<AFInvoicPPI_TVP>
                         {
-                            new AFInvoiceProductPricing_TVP
+                            new AFInvoicPPI_TVP
                             {
                                 Id = 0,
                                 GuID = Guid.NewGuid(),
                                 InvoiceId = 0,
-                                ProductId = 3,
+                                ProductId = 0,
                                 Quantity = 0,
                                 ActualAmount = (decimal)postedData.OpeningBalance!,
                                 DiscountAmount = 0,
@@ -197,7 +197,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                                 Description= customerLedgerDescription,
                                 Debit= (decimal)AFInvoice.totalInvoiceAmount,
                                 Credit =0,
-                                ReconcillationStatus= (int?)ReconcileStatus.unreconciled,
+                                ReconcillationStatus= (int?)ReconcileStatus.reconciled,
                                 CreatedOn = DateTime.Now,
                                 CreatedBy = userInfo.UserId,
                                 UpdatedOn = DateTime.Now,

@@ -89,3 +89,23 @@ window.onbeforeunload = () => {
     const l = document.getElementById('top-loader');
     if (l) l.style.width = "50%";
 };
+
+function GetInvoiceStatus(InvoiceStatus) {
+    var Badge = "";
+    switch (InvoiceStatus) {
+        case 1:
+            BadgeColor = "warning";
+            Display = "Un-Paid";
+            break;
+        case 2:
+            BadgeColor = "primary";
+            Display = "Partial-Paid";
+            break;
+        case 3:
+            BadgeColor = "suscess";
+            Display = "Paid";
+            break;
+    }
+    var Label = '<td> <span class="label label-' + BadgeColor + '">' + Display + '</span></td>';
+    return Label;
+}

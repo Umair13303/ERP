@@ -30,12 +30,7 @@ function domInvoiceTable() {
                 "title": "Invoice Summary",
                 "data": null,
                 "render": function (data, type, row) {
-                    var totalTax = data.saleTaxAmount + data.additionalTaxAmount;
-                    return "<b>Gross Amount:</b> " + data.grossAmount.toFixed(2) + "<br>" +
-                        "<b>Discount:</b> " + data.discountAmount.toFixed(2) + "<br>" +
-                        "<hr style='margin: 5px 0;'>" +
-                        "<b>Actual Cost:</b> " + data.taxableAmount.toFixed(2) + "<br>" +
-                        "<b>Total Tax(s):</b> " + totalTax.toFixed(2) + "<br>" +
+                    return "<b>Actual Cost:</b> " + data.taxableAmount.toFixed(2) + "<br>" +
                         "<hr style='margin: 5px 0;'>" +
                         "<b>Net Total:</b> " + data.netAmount.toFixed(2);
 
@@ -56,8 +51,13 @@ function domInvoiceTable() {
                     return '<input type="number" class="form-control" id="TextBoxReceiptAmount_'+data.guID+'" value="0" />'
                 }
             },
-
-            { "data": "invoiceStatus", "title": "Invoice Status" },
+            {
+                "title": "Invoice Status",
+                "data": null,
+                "render": function (data, type, row) {
+                    return GetInvoiceStatus(data.invoiceStatus)
+                }
+            },
             {
                 "title": "Action(s)",
                 "data": null,
@@ -82,7 +82,7 @@ function domInvoiceTable() {
 /* ------ Depending DDL's ------ */
 function getBranchList() {
     $.ajax({
-        url: window.basePath + "AccountNfinance/AFInvoiceManagement/populateBranchListByParam",
+        url: window.basePath + "AccountNfinance/AFPaymentReceiptManagement/populateBranchListByParam",
         type: "GET",
         dataType: "json",
         data: { operationType: operationType },
@@ -105,7 +105,7 @@ function getBranchList() {
 }
 function getCustomerList(customerId) {
     $.ajax({
-        url: window.basePath + "AccountNfinance/AFInvoiceManagement/populateCustomerListByParam",
+        url: window.basePath + "AccountNfinance/AFPaymentReceiptManagement/populateCustomerListByParam",
         type: "GET",
         dataType: "json",
         data: { operationType: operationType },
@@ -126,9 +126,32 @@ function getCustomerList(customerId) {
         }
     });
 }
+function getPaymentMethodList() {
+    $.ajax({
+        url: window.basePath + "AccountNfinance/AFPaymentReceiptManagement/populatevPaymentMethodListByParam",
+        type: "GET",
+        dataType: "json",
+        data: { operationType: operationType },
+        beforeSend: function () {
+
+        },
+        success: function (data) {
+            $("#DropDownListPaymentMethod").empty().append(dropDownListInitOption);
+            $.each(data, function (index, item) {
+                $("#DropDownListPaymentMethod").append(new Option(item.description, item.id));
+            });
+        },
+        complete: function () {
+
+        },
+        error: function (xhr, status, error) {
+            console.error("Error: " + error);
+        }
+    });
+}
 function getInvoiceList(customerId) {
     invoiceTable.clear().draw();
-    invoiceTable.ajax.url((window.basePath + "AccountNfinance/AFInvoiceManagement/populateInvoiceListByParam?customerId=" + customerId + "&operationType=" + operationType)).load();
+    invoiceTable.ajax.url((window.basePath + "AccountNfinance/AFPaymentReceiptManagement/populateInvoiceListByParam?customerId=" + customerId + "&operationType=" + operationType)).load();
 
 }
 /* ------ Change Cases DDL's ------ */
@@ -149,6 +172,7 @@ function changeEventHandler() {
 function initialize() {
     getBranchList();
     getCustomerList();
+    getPaymentMethodList();
     domInvoiceTable();
     const intputMasking = new UIMasking();
     intputMasking.initialize();
@@ -201,9 +225,8 @@ function createUpdateDataIntoDB(btnElement) {
         Description: $('#TextBoxDescription_' + guID).val(),
         ReceiptAmount: receiptAmount
     };
-    console.log(jsonData)
     $.ajax({
-        url: window.basePath + "AccountNfinance/AFInvoiceManagement/createUpdatePaymentReceipt",
+        url: window.basePath + "AccountNfinance/AFPaymentReceiptManagement/createUpdatePaymentReceipt",
         type: "POST",
         data: JSON.stringify(jsonData),
         contentType: "application/json; charset=utf-8",

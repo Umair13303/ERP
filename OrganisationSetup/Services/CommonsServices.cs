@@ -22,6 +22,7 @@ namespace OrganisationSetup.Services
         Task<List<vHSCode>> populateHSCodeByParam();
         Task<List<vSaleTaxType>> populateSaleTaxTypeByParam();
         Task<List<osvChartOfAccount>> populateOSvChartOfAccountByParam(string? operationType, int? filterConditionId, int? accountCatagoryId);
+        Task<List<vPaymentMethod>> populatevPaymentMethodByParam();
 
     }
     public class CommonServices : ICommon
@@ -100,6 +101,11 @@ namespace OrganisationSetup.Services
         public async Task<List<vSaleTaxType>> populateSaleTaxTypeByParam()
         {
             var result = await _context.vSaleTaxType.AsNoTracking().ToListAsync();
+            return result;
+        }
+        public async Task<List<vPaymentMethod>> populatevPaymentMethodByParam()
+        {
+            var result = await _context.vPaymentMethod.AsNoTracking().ToListAsync();
             return result;
         }
         public async Task<List<osvChartOfAccount>> populateOSvChartOfAccountByParam(string? operationType, int? filterConditionId, int? accountCatagoryId)

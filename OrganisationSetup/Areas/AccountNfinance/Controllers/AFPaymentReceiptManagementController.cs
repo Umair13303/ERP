@@ -17,7 +17,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
 
     [Authorize]
     [Area(nameof(SetupRoute.Area.AccountNfinance))]
-    public class AFInvoiceManagementController : Controller
+    public class AFPaymentReceiptManagementController : Controller
     {
 
         private readonly ICommon _commonsServices;
@@ -28,7 +28,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
         private readonly IAccountNfinanceUpsert _anfuService;
 
 
-        public AFInvoiceManagementController(ICommon commonsServices,ISaleOperationRetriever sorService, IApplicationConfigurationRetriever acrService, IAccountNfinanceRetriever anfrService, TempUser currentUser, IAccountNfinanceUpsert anfuService)
+        public AFPaymentReceiptManagementController(ICommon commonsServices,ISaleOperationRetriever sorService, IApplicationConfigurationRetriever acrService, IAccountNfinanceRetriever anfrService, TempUser currentUser, IAccountNfinanceUpsert anfuService)
         {
             _commonsServices = commonsServices;
             _sorService = sorService;
@@ -38,7 +38,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
             _anfuService = anfuService;
         }
         #region PORTION CONTAIN CODE TO: RENDER VIEW
-        public IActionResult CreateUpdate_AFOBInvoice_UI(UISetting ui)
+        public IActionResult CreateUpdate_AFPaymentReceipt_UI(UISetting ui)
         {
             ViewBag.OperationType = ui.OperationType;
             ViewBag.DisplayName = ui.DisplayName;
@@ -58,6 +58,12 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
         public async Task<IActionResult> populateCustomerListByParam(string operationType)
         {
             var result = await _sorService.populateCustomerByParam(operationType, (int?)FilterConditions.SOCustomer_Operation_ByCompany);
+            return Json(result);
+        }
+        [HttpGet]
+        public async Task<IActionResult> populatevPaymentMethodListByParam(string operationType)
+        {
+            var result = await _commonsServices.populatevPaymentMethodByParam();
             return Json(result);
         }
         #endregion

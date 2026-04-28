@@ -54,7 +54,7 @@
                     </div>
                 </div>
 
-                <div class="row  mb-0">
+                <div class="row mb-0">
                     <div class="col-sm-12 col-md-3">
                         <div class="form-group">
                             @Html.Label("DropDownListLocation", "Location", new { @class = "col-form-label col-form-label-sm" })
@@ -71,25 +71,20 @@
                     <div class="col-sm-12 col-md-3">
                         <div class="form-group">
                             @Html.Label("DropDownListCustomer", "Customer", new { @class = "col-form-label col-form-label-sm" })
-                            @Html.DropDownList("CustomerId", Enumerable.Empty<SelectListItem>(), "All Customers", new { @class = "form-select form-select-sm select2", @id = "DropDownListCustomer" })
+                            @Html.DropDownList("CustomerId", Enumerable.Empty<SelectListItem>(), "Select An Option", new { @class = "form-select form-select-sm select2", @id = "DropDownListCustomer" })
                         </div>
                     </div>
-                    <div class="col-sm-12 col-md-3">
+                       <div class="col-sm-12 col-md-3">
                         <div class="form-group">
-                            <label class="col-form-label col-form-label-sm" for="DropDownListPaymentMethod">Payment Mode</label>
-                            <select class="form-select form-select-sm select2" id="DropDownListPaymentMethod" name="PaymentMode" required>
-                                <option value="">Select an option</option>
-                                <option value="1">Cash</option>
-                                <option value="2">Bank Transfer</option>
-                                <option value="3">Cheque</option>
-                            </select>
+                            @Html.Label("DropDownListPaymentMethod", "Payment Method", new { @class = "col-form-label col-form-label-sm" })
+                            @Html.DropDownList("PaymentMethodId", Enumerable.Empty<SelectListItem>(), "Select An Option", new { @class = "form-select form-select-sm select2", @id = "DropDownListPaymentMethod" })
                         </div>
                     </div>
                 </div>
+                <label class="badge badge"></label>
                 
-                <div class="row g-3">
-
-                    <div class="col-sm-12 col-md-4">
+                <div class="row mb-0">
+                    <div class="col-sm-12 col-md-3">
                         <div class="form-group">
                             @Html.Label("TextBoxReference", "Reference", new { @class = "col-form-label col-form-label-sm" })
                             @Html.TextBox("Reference", null, new { @class = "form-control form-control-sm", required = "required", placeholder = "Payment Reference", @id = "TextBoxReference" })
@@ -109,4 +104,4 @@
     </form>
 </div>
 
-<script src="~/js/accountnfinance/createupdate_afobinvoice_uiscript.js"></script>
+<script src="~/js/accountnfinance/CreateUpdate_AFPaymentReceipt_UIScript.js"></script>

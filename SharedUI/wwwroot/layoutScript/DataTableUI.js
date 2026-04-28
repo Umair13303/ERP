@@ -60,4 +60,9 @@
             currentVisibleIndex++;
         }
     }
+
+    static HTML_INPUT_BTN(ElementId, Class, FunctionCall,Display) {
+        const Btn = '<input type="button" class="btn btn-sm btn-success' + Class + '" onclick="createUpdateDataIntoDB(this)" id="' + ElementId + '" value="' + Display + '" />'
+        return Btn;
+    }
 }
