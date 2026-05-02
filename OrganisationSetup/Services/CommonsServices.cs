@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OrganisationSetup.Models.DAL;
 using OrganisationSetup.Models.DAL.StoredProcedure;
+using SharedUI.Models.Configurations;
 using SharedUI.Models.Contexts;
 using SharedUI.Models.Enums;
 using SharedUI.Models.ViewModels;
@@ -9,7 +10,9 @@ namespace OrganisationSetup.Services
 {
     public interface ICommon
     {
-        Task<int?[]?> getDocumentStatusByParam(string? operationType);
+        Task<int?[]?> getDocumentStatusByParam(string? operationType); 
+        Task<int?[]?> getPaymentStatusByParam();
+        Task<int?[]?> getInvoiceStatusByParam();
         Task<List<vOrganisationType>> populateOrganisationTypeByParam();
         Task<List<vCountry>> populateCountryByParam();
         Task<List<vCity>> populateCityByParam(int? countryId);
@@ -22,31 +25,43 @@ namespace OrganisationSetup.Services
         Task<List<vHSCode>> populateHSCodeByParam();
         Task<List<vSaleTaxType>> populateSaleTaxTypeByParam();
         Task<List<osvChartOfAccount>> populateOSvChartOfAccountByParam(string? operationType, int? filterConditionId, int? accountCatagoryId);
-        Task<List<vPaymentMethod>> populatevPaymentMethodByParam();
-
+        Task<List<vPaymentMethod>> populatePaymentMethodByParam();
+        Task<List<vProductType>> populateProductTypeByParam();
+        Task<Dictionary<string, FieldConfig>> fetchProductSetting();
     }
     public class CommonServices : ICommon
     {
         private readonly TempUser _currentUser;
         private readonly ERPOrganisationSetupContext _context;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IConfiguration _conf;
 
 
-        public CommonServices(TempUser currentUser, ERPOrganisationSetupContext context, IHttpContextAccessor httpContextAccessor)
+        public CommonServices(TempUser currentUser, ERPOrganisationSetupContext context, IConfiguration conf)
         {
             _currentUser = currentUser;
             _context = context;
-            _httpContextAccessor = httpContextAccessor;
+            _conf = conf;
         }
         public async Task<int?[]?> getDocumentStatusByParam(string? operationType)
         {
             int?[]? documentStatusIds = operationType switch
             {
                 nameof(OperationType.INSERT_DATA_INTO_DB) => [(int?)DocumentStatus.active],
+                nameof(OperationType.MPO_LIST) => [(int?)DocumentStatus.active],
                 nameof(OperationType.UPDATE_DATA_INTO_DB) => [(int?)DocumentStatus.active, (int?)DocumentStatus.inactive, (int?)DocumentStatus.deleted],
                 _ => null
             };
             return await Task.FromResult(documentStatusIds);
+        }
+        public async Task<int?[]?> getPaymentStatusByParam()
+        {
+            int?[]? paymentStatusIds = [(int?)PaymentStatus.declined, (int?)PaymentStatus.verified, (int?)PaymentStatus.underProcess];
+            return await Task.FromResult(paymentStatusIds);
+        }
+        public async Task<int?[]?> getInvoiceStatusByParam()
+        {
+            int?[]? invoiceStatusIds = [(int?)InvoiceStatus.unPaid, (int?)InvoiceStatus.partialPaid, (int?)InvoiceStatus.paid, (int?)InvoiceStatus.overDue, (int?)InvoiceStatus.cancelled];
+            return await Task.FromResult(invoiceStatusIds);
         }
         public async Task<List<vOrganisationType>> populateOrganisationTypeByParam()
         {
@@ -85,7 +100,7 @@ namespace OrganisationSetup.Services
         }
         public async Task<List<vAttribute>> populateAttributeByParam()
         {
-            var result = await _context.vAttribute.AsNoTracking().ToListAsync();
+            var result = await _context.vAttribute.AsNoTracking().Where(x => x.Status == true).ToListAsync();
             return result;
         }
         public async Task<List<vItemType>> populateItemTypeByParam()
@@ -103,9 +118,14 @@ namespace OrganisationSetup.Services
             var result = await _context.vSaleTaxType.AsNoTracking().ToListAsync();
             return result;
         }
-        public async Task<List<vPaymentMethod>> populatevPaymentMethodByParam()
+        public async Task<List<vPaymentMethod>> populatePaymentMethodByParam()
         {
             var result = await _context.vPaymentMethod.AsNoTracking().ToListAsync();
+            return result;
+        }
+        public async Task<List<vProductType>> populateProductTypeByParam()
+        {
+            var result = await _context.vProductType.AsNoTracking().Where(x=> x.Status == true).ToListAsync();
             return result;
         }
         public async Task<List<osvChartOfAccount>> populateOSvChartOfAccountByParam(string? operationType, int? filterConditionId, int? accountCatagoryId)
@@ -135,6 +155,52 @@ namespace OrganisationSetup.Services
                 default:
                     return new List<osvChartOfAccount>();
             }
+        }
+        public async Task<Dictionary<string, FieldConfig>> fetchProductSetting()
+        {
+            var clientKEY = _conf.GetValue<int>("ClientKEY");
+            var settingList = await _context.confClientProductSetting.AsNoTracking().Where(x => x.Status == true && x.ClientKEY == clientKEY).FirstOrDefaultAsync();
+
+            var result = new Dictionary<string, FieldConfig>
+            {
+                { nameof(ProductConfig.MachineNumberConf), new FieldConfig {
+                    Display = (settingList.EnableMachineNumber ?? false) ? "block" : "none",
+                    DefaultValue = Guid.NewGuid().ToString().Replace("-","")
+                }},
+                { nameof(ProductConfig.SKUConf), new FieldConfig {
+                    Display = (settingList.EnableSKU ?? false) ? "block" : "none",
+                    DefaultValue = Guid.NewGuid().ToString().Replace("-","")
+                }},
+
+                { nameof(ProductConfig.AttributeConf), new FieldConfig {
+                    Display = (settingList.EnableAttribute ?? false) ? "block" : "none",
+                    DefaultValue = ""
+                }},
+                { nameof(ProductConfig.FavoriteConf), new FieldConfig {
+                    Display = (settingList.EnableFavorite ?? false) ? "block" : "none",
+                    DefaultValue = false
+                }},
+                { nameof(ProductConfig.SaleTaxConf), new FieldConfig {
+                    Display = (settingList.EnableTaxSetting ?? false) ? "block" : "none",
+                    DefaultValue = false
+                }},
+                { nameof(ProductConfig.ExpiryConf), new FieldConfig {
+                    Display = (settingList.EnableExpiry ?? false) ? "block" : "none",
+                    DefaultValue = false
+                }},
+                { nameof(ProductConfig.ATIConf), new FieldConfig {
+                    Display = (settingList.EnableATI ?? false) ? "block" : "none",
+                    DefaultValue = ""
+                }},
+                { nameof(ProductConfig.ProductTypeConf), new FieldConfig {
+                    Label = settingList.ProductTypeLabel ?? "Product Type"
+                }},
+                { nameof(ProductConfig.DepartmentConfig), new FieldConfig {
+                    Display = (settingList.EnableDepartment ?? false) ? "block" : "none",
+                    DefaultValue = ""
+                }},
+            }; 
+            return result;
         }
 
     }

@@ -10,6 +10,19 @@
     Layout = "LayoutOne";
 
 }
+@{
+    var productSettings = ViewBag.ProductSetting as Dictionary<string, FieldConfig>;
+    var machineNo = productSettings.ContainsKey(nameof(ProductConfig.MachineNumberConf)) ? productSettings[nameof(ProductConfig.MachineNumberConf)] : new FieldConfig { Display = "none" };
+    var sku = productSettings.ContainsKey(nameof(ProductConfig.SKUConf)) ? productSettings[nameof(ProductConfig.SKUConf)] : new FieldConfig { Display = "none" };
+    var prodattribute = productSettings.ContainsKey(nameof(ProductConfig.AttributeConf)) ? productSettings[nameof(ProductConfig.AttributeConf)] : new FieldConfig { Display = "none" };
+    var favorite = productSettings.ContainsKey(nameof(ProductConfig.FavoriteConf)) ? productSettings[nameof(ProductConfig.FavoriteConf)] : new FieldConfig { Display = "none" };
+    var tax = productSettings.ContainsKey(nameof(ProductConfig.SaleTaxConf)) ? productSettings[nameof(ProductConfig.SaleTaxConf)] : new FieldConfig { Display = "none" };
+    var expiry = productSettings.ContainsKey(nameof(ProductConfig.ExpiryConf)) ? productSettings[nameof(ProductConfig.ExpiryConf)] : new FieldConfig { Display = "none" };
+    var ati = productSettings.ContainsKey(nameof(ProductConfig.ATIConf)) ? productSettings[nameof(ProductConfig.ATIConf)] : new FieldConfig { Display = "none" };
+    var productType = productSettings.ContainsKey(nameof(ProductConfig.ProductTypeConf)) ? productSettings[nameof(ProductConfig.ProductTypeConf)] : new FieldConfig { Label = "Product Type" };
+    var department = productSettings.ContainsKey(nameof(ProductConfig.DepartmentConfig)) ? productSettings[nameof(ProductConfig.DepartmentConfig)] : new FieldConfig { Display = "none" };
+    
+}
 <div class="container-fluid py-2">
 
     <div class="d-flex justify-content-between align-items-center border-bottom mb-4 pb-3">
@@ -71,30 +84,31 @@
                     <div class="col-sm-12 col-md-8">
                         <div class="form-group">
                             @Html.Label("TextBoxDescription", "Description", new { @class = "col-form-label" })
-                            @Html.TextBox("Description", null, new { @class = "form-control form-control-sm", required = "required", placeholder = "Provide Description!", @id = "TextBoxDescription" })
+                            @Html.TextBox("Description", null, new { @class = "form-control form-control-sm", required = "required", placeholder = "Product Name!", @id = "TextBoxDescription" })
                         </div>
                     </div>
-                    <div class="col-sm-12 col-md-6">
+                    <div class="col-sm-12 col-md-6" style="display:@machineNo.Display">
                         <div class="form-group">
                             @Html.Label("TextBoxMachineNumber", "Machine Number", new { @class = "col-form-label" })
-                            @Html.TextBox("MachineNumber", null, new { @class = "form-control form-control-sm", required = "required", placeholder = "Provide Machine Number!", @id = "TextBoxMachineNumber" })
+                            @Html.TextBox("MachineNumber",null, new { @class = "form-control form-control-sm",  placeholder = "Provide Machine Number!", @id = "TextBoxMachineNumber" })
                         </div>
                     </div>
-                    <div class="col-sm-12 col-md-6">
+                    <div class="col-sm-12 col-md-6" style="display:@sku.Display">
                         <div class="form-group">
                             @Html.Label("TextBoxSKU", "SKU (Stock Keeping Unit)", new { @class = "col-form-label" })
-                            @Html.TextBox("SKU", null, new { @class = "form-control form-control-sm", required = "required", placeholder = "Provide SKU (Stock Keeping Unit)!", @id = "TextBoxSKU" })
+                            @Html.TextBox("SKU", null, new { @class = "form-control form-control-sm", placeholder = "Provide SKU (Stock Keeping Unit)!", @id = "TextBoxSKU" })
                         </div>
                     </div>
                 </div>
                 <div class="row mb-0">
-                    <div class="col-sm-12 col-md-6">
+                    <div class="col-sm-12 col-md-4">
                         <div class="form-group">
                             @Html.Label("TextBoxAdditionalDetail", "Additional Detail", new { @class = "col-form-label" })
                             @Html.TextArea("AdditionalDetail", null, new { @class = "form-control form-control-sm", rows = "4", placeholder = "Provide additional details", @id = "TextBoxAdditionalDetail" })
                         </div>
                     </div>
-                    <div class="col-sm-12 col-md-3">
+                    
+                    <div class="col-sm-12 col-md-2" style="display:@prodattribute.Display">
                         <div class="form-group">
                             @Html.Label("DropDownListAttribute", "Attributes", new { @class = "col-form-label" })
                             @Html.DropDownList("AttributeIds", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListAttribute",multiple=true })
@@ -106,21 +120,27 @@
                             @Html.DropDownList("BrandId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListBrand" })
                         </div>
                     </div>
+                    <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("DropDownListProductType", (string?)productType.Label, new { @class = "col-form-label" })
+                            @Html.DropDownList("ProductTypeId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListProductType" })
+                        </div>
+                    </div>
                 </div>
                 <div class="row mb-0">
-                    <div class="col-sm-12 col-md-3 d-flex align-items-center">
+                    <div class="col-sm-12 col-md-3 d-flex align-items-center" style="display: @favorite.Display !important">
                         <div class="form-check mt-3">
                             @Html.Label("CheckBoxIsFavorite", "Is Favorite", new { @class = "form-check-label" })
-                            @Html.CheckBox("IsFavorite", false, new { @id = "CheckBoxIsFavorite", @class = "form-check-input" })
+                            @Html.CheckBox("IsFavorite", (bool?)favorite.DefaultValue, new { @id = "CheckBoxIsFavorite", @class = "form-check-input" })
                         </div>
                     </div>
-                    <div class="col-sm-12 col-md-3 d-flex align-items-center">
+                    <div class="col-sm-12 col-md-3 d-flex align-items-center" style="display: @tax.Display !important">
                         <div class="form-check mt-3">
                             @Html.Label("CheckBoxIsSaleTaxExclusive", "Is Sale Tax Exclusive", new { @class = "form-check-label" })
-                            @Html.CheckBox("IsSaleTaxExclusive", false, new { @id = "CheckBoxIsSaleTaxExclusive", @class = "form-check-input" })
+                            @Html.CheckBox("IsSaleTaxExclusive", (bool?)tax.DefaultValue, new { @id = "CheckBoxIsSaleTaxExclusive", @class = "form-check-input" })
                         </div>
                     </div>
-                    <div class="col-sm-12 col-md-3">
+                    <div class="col-sm-12 col-md-3" style="display: @department.Display  !important">
                         <div class="form-group">
                             @Html.Label("DropDownListDepartment", "Department", new { @class = "col-form-label" })
                             @Html.DropDownList("DepartmentId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListDepartment" })
@@ -158,6 +178,13 @@
                 </div>
 
                 <div class="row mb-0">
+                    <div class="col-sm-12 col-md-3 d-flex align-items-center" style="display: @expiry.Display !important">
+                        <div class="form-check mt-3">
+                            @Html.Label("CheckBoxIsExpiryApplicable", "Is Expiry Applicable", new { @class = "form-check-label" })
+                            @Html.CheckBox("IsExpiryApplicable", (bool?)expiry.DefaultValue, new { @id = "CheckBoxIsExpiryApplicable", @class = "form-check-input" })
+                        </div>
+                    </div>
+
                     <div class="col-sm-12 col-md-3">
                         <div class="form-group">
                             @Html.Label("TextBoxCriticalLimit", "Critical Limit", new { @class = "col-form-label" })
@@ -171,7 +198,7 @@
                         </div>
                     </div>
                 </div>
-                <div id="DivAccountTaxInformation" style="display:@ShowProductAccountSetting">
+                <div id="DivAccountTaxInformation" style="display:@ati.Display">
 
                 <div class="col-12 mt-4">
                     <div class="bg-light rounded-2 border-start border-primary border-4 p-2">

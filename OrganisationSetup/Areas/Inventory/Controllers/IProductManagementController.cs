@@ -4,6 +4,7 @@ using OrganisationSetup.Areas.AccountNfinance.Services;
 using OrganisationSetup.Areas.ApplicationConfiguration.Services;
 using OrganisationSetup.Areas.CompanySetup.Services;
 using OrganisationSetup.Areas.Inventory.Services;
+using OrganisationSetup.Models.DAL;
 using OrganisationSetup.Services;
 using SharedUI.Models.Configurations;
 using SharedUI.Models.Enums;
@@ -32,13 +33,15 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
         }
 
         #region PORTION CONTAIN CODE TO: RENDER VIEW
-        public IActionResult CreateUpdate_IProduct_UI(UISetting ui)
+        public async Task<IActionResult> CreateUpdate_IProduct_UI(UISetting ui)
         {
             ViewBag.OperationType = ui.OperationType;
             ViewBag.DisplayName = ui.DisplayName;
+            ViewBag.ProductSetting = await _IcService.fetchProductSetting();
             return View();
         }
         #endregion
+
 
 
         #region PORTION CONTAIN CODE TO: RETURN DEPENDING DDL
@@ -55,9 +58,15 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
             return Json(result);
         }
         [HttpGet]
+        public async Task<IActionResult> populateProductTypeListByParam()
+        {
+            var result = await _IcService.populateProductTypeByParam();
+            return Json(result);
+        }
+        [HttpGet]
         public async Task<IActionResult> populateDepartmentListByParam(string operationType)
         {
-            var result = await _CSrService.populateDepartmentByParam(operationType, (int?)FilterConditions.CSDepartment_Operation_ByCompany);
+            var result = await _CSrService.populateDepartmentByParam(operationType, (int?)FilterConditions.CSDepartment_Operation_ForSale);
             return Json(result);
         }
         [HttpGet]

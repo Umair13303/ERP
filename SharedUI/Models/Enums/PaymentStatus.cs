@@ -13,4 +13,10 @@ namespace SharedUI.Models.Enums
         declined=3,
     }
     
+    public enum PaymentType
+    {
+        invoiceWise=1,
+        onAccount=2,
+    }
+    
 }

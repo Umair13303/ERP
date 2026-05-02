@@ -23,6 +23,8 @@ public partial class IProduct
 
     public int? BrandId { get; set; }
 
+    public int? ProductTypeId { get; set; }
+
     public bool? IsFavorite { get; set; }
 
     public bool? IsSaleTaxExclusive { get; set; }
@@ -34,6 +36,8 @@ public partial class IProduct
     public int? CategoryId { get; set; }
 
     public int? SubCategoryId { get; set; }
+
+    public bool? IsExpiryApplicable { get; set; }
 
     public decimal CriticalLimit { get; set; }
 

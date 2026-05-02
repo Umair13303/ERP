@@ -38,7 +38,14 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
             _anfuService = anfuService;
         }
         #region PORTION CONTAIN CODE TO: RENDER VIEW
-        public IActionResult CreateUpdate_AFPaymentReceipt_UI(UISetting ui)
+        public IActionResult CreateUpdate_AFPaymentReceipt_INVW_UI(UISetting ui)
+        {
+            ViewBag.OperationType = ui.OperationType;
+            ViewBag.DisplayName = ui.DisplayName;
+            ViewBag.LocationId = _currentUser.BranchId; 
+            return View();
+        }
+        public IActionResult CreateUpdate_AFPaymentReceipt_ACCW_UI(UISetting ui)
         {
             ViewBag.OperationType = ui.OperationType;
             ViewBag.DisplayName = ui.DisplayName;
@@ -63,7 +70,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
         [HttpGet]
         public async Task<IActionResult> populatevPaymentMethodListByParam(string operationType)
         {
-            var result = await _commonsServices.populatevPaymentMethodByParam();
+            var result = await _commonsServices.populatePaymentMethodByParam();
             return Json(result);
         }
         #endregion
@@ -72,7 +79,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
         [HttpGet]
         public async Task<IActionResult> populateInvoiceListByParam(string operationType,Guid? guid, int? customerId, int?[] invoiceStatus)
         {
-            var result = await _anfrService.populateInvoiceListByParam(operationType, guid, customerId, invoiceStatus);
+            var result = await _anfrService.populateInvoiceByParam(operationType, guid, customerId, invoiceStatus);
             return Json(new { data = result });
         }
         #endregion

@@ -15,7 +15,7 @@
                     <i class="fa-solid fa-cloud-arrow-up me-1"></i> Save
                 </button>
             }
-            else
+            else if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
             {
                 <button type="button" id="ButtonUpdateData" class="btn btn-success px-4 shadow-sm">
                     <i class="fa-solid fa-cloud-arrow-up me-1"></i> Update
@@ -28,6 +28,7 @@
     <form id="AFPaymentReceipt">
         @Html.Hidden("OperationType", (string)ViewBag.OperationType)
         @Html.Hidden("GuID")
+        @Html.Hidden("PaymentTypeId", (int)PaymentType.invoiceWise)
         @{
             if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
             {
@@ -53,7 +54,10 @@
                         <span class="fw-bold text-primary small"><i class="fa-solid fa-building me-2"></i> PAYMENT INFORMATION</span>
                     </div>
                 </div>
-
+                @{
+                    if (ViewBag.OperationType == nameof(OperationType.MPO_LIST))
+                    {
+                        
                 <div class="row mb-0">
                     <div class="col-sm-12 col-md-3">
                         <div class="form-group">
@@ -98,10 +102,13 @@
                         </tbody>
                     </table>
                 </div>
-                </div>
+                </div>                        
+                    }
+                }
+
             </div>
         </div>
     </form>
 </div>
 
-<script src="~/js/accountnfinance/CreateUpdate_AFPaymentReceipt_UIScript.js"></script>
+<script src="~/js/accountnfinance/CreateUpdate_AFPaymentReceipt_INVW_UIScript.js"></script>

@@ -23,6 +23,8 @@ public partial class AFPaymentReceipt
 
     public int? PaymentMethodId { get; set; }
 
+    public int? PaymentTypeId { get; set; }
+
     public string? Reference { get; set; }
 
     public decimal ReceiptAmount { get; set; }

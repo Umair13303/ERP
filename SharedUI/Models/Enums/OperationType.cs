@@ -10,6 +10,7 @@ namespace SharedUI.Models.Enums
     {
         INSERT_DATA_INTO_DB = 1,
         UPDATE_DATA_INTO_DB = 2,
-        DELETE_DATA_INTO_DB = 3
+        DELETE_DATA_INTO_DB = 3,
+        MPO_LIST=4
     }
 }

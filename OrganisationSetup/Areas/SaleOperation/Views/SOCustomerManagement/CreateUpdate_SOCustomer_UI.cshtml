@@ -60,63 +60,80 @@
                         <span class="fw-bold text-primary small"><i class="fa-solid fa-building me-2"></i> CUSTOMER INFORMATION</span>
                     </div>
                 </div>
+                @{
+                    if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB) ||ViewBag.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB) )
+                    {
 
-                <div class="row mb-0">
-                    <div class="col-sm-12 col-md-8">
-                        <div class="form-group">
-                            @Html.Label("TextBoxDescription", "Description", new { @class = "col-form-label" })
-                            @Html.TextBox("Description", null, new { @class = "form-control form-control-sm", required = "required", placeholder = "Provide Description!", @id = "TextBoxDescription" })
+                        <div class="row mb-0">
+                            <div class="col-sm-12 col-md-8">
+                                <div class="form-group">
+                                    @Html.Label("TextBoxDescription", "Description", new { @class = "col-form-label" })
+                                    @Html.TextBox("Description", null, new { @class = "form-control form-control-sm", required = "required", placeholder = "Provide Description!", @id = "TextBoxDescription" })
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                        <div class="row mb-0">
+                            <div class="col-sm-12 col-md-3">
+                                <div class="form-group">
+                                    @Html.Label("TextBoxContact", "Contact", new { @class = "col-form-label" })
+                                    @Html.TextBox("Contact", null, new { @class = "form-control form-control-sm contact", required = "required", placeholder = "Provide Contact!", @id = "TextBoxContact" })
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-3">
+                                <div class="form-group">
+                                    @Html.Label("TextBoxEmail", "Email", new { @class = "col-form-label" })
+                                    @Html.TextBox("Email", null, new { @class = "form-control form-control-sm email", placeholder = "Provide Email!", @id = "TextBoxEmail" })
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-3">
+                                <div class="form-group">
+                                    @Html.Label("TextBoxCNICNumber", "CNIC", new { @class = "col-form-label" })
+                                    @Html.TextBox("CNICNumber", null, new { @class = "form-control form-control-sm cnic", placeholder = "Provide CNIC Number!", @id = "TextBoxCNICNumber" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-0">
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group">
+                                    @Html.Label("TextBoxAddress", "Address", new { @class = "col-form-label" })
+                                    @Html.TextArea("Address", null, new { @class = "form-control form-control-sm", rows = "4", placeholder = "Provide Address", @id = "TextBoxAddress" })
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group">
+                                    @Html.Label("TextBoxAdditionalDetail", "Additional Detail", new { @class = "col-form-label" })
+                                    @Html.TextArea("AdditionalDetail", null, new { @class = "form-control form-control-sm", rows = "4", placeholder = "Provide additional details", @id = "TextBoxAdditionalDetail" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-0">
+                            <div class="col-sm-12 col-md-3 d-flex align-items-center">
+                                <div class="form-check mt-3">
+                                    @Html.Label("CheckBoxIsAutoChartOfAccount", "Auto Chart Of Account", new { @class = "form-check-label" })
+                                    @Html.CheckBox("CheckBoxIsAutoChartOfAccount", true, new { @id = "CheckBoxIsAutoChartOfAccount", disabled = true, @class = "form-check-input" })
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-3">
+                                <div class="form-group">
+                                    @Html.Label("TextBoxOpeningBalance", "Opening Balance", new { @class = "col-form-label" })
+                                    @Html.TextBox("OpeningBalance", 0.00, new { @class = "form-control form-control-sm numberOnly", placeholder = "Provide Opening Balance!", @id = "TextBoxOpeningBalance", type = "number", min = "0" })
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    if(ViewBag.OperationType == nameof(OperationType.MPO_LIST))
+                    {
+                        <div class="row g-3">
+                            <div class="bootstrap-admin-panel-content">
+                                <table class="table table-bordered table-sm order-column stripe table-hover" style="width: 100%" id="TableCustomerSummary">
+                                    <tbody id="TableBodyCustomerSummary">
+                        </tbody>
+                    </table>
                 </div>
-                <div class="row mb-0">
-                    <div class="col-sm-12 col-md-3">
-                        <div class="form-group">
-                            @Html.Label("TextBoxContact", "Contact", new { @class = "col-form-label" })
-                            @Html.TextBox("Contact", null, new { @class = "form-control form-control-sm contact", required = "required", placeholder = "Provide Contact!", @id = "TextBoxContact" })
-                        </div>
-                    </div>
-                    <div class="col-sm-12 col-md-3">
-                        <div class="form-group">
-                            @Html.Label("TextBoxEmail", "Email", new { @class = "col-form-label" })
-                            @Html.TextBox("Email", null, new { @class = "form-control form-control-sm email", placeholder = "Provide Email!", @id = "TextBoxEmail" })
-                        </div>
-                    </div>
-                    <div class="col-sm-12 col-md-3">
-                        <div class="form-group">
-                            @Html.Label("TextBoxCNICNumber", "CNIC", new { @class = "col-form-label" })
-                            @Html.TextBox("CNICNumber", null, new { @class = "form-control form-control-sm cnic", placeholder = "Provide CNIC Number!", @id = "TextBoxCNICNumber" })
-                        </div>
-                    </div>
                 </div>
-                <div class="row mb-0">
-                    <div class="col-sm-12 col-md-6">
-                        <div class="form-group">
-                            @Html.Label("TextBoxAddress", "Address", new { @class = "col-form-label" })
-                            @Html.TextArea("Address", null, new { @class = "form-control form-control-sm", rows = "4", placeholder = "Provide Address", @id = "TextBoxAddress" })
-                        </div>
-                    </div>
-                    <div class="col-sm-12 col-md-6">
-                        <div class="form-group">
-                            @Html.Label("TextBoxAdditionalDetail", "Additional Detail", new { @class = "col-form-label" })
-                            @Html.TextArea("AdditionalDetail", null, new { @class = "form-control form-control-sm", rows = "4", placeholder = "Provide additional details", @id = "TextBoxAdditionalDetail" })
-                        </div>
-                    </div>
-                </div>
-                <div class="row mb-0">
-                    <div class="col-sm-12 col-md-3 d-flex align-items-center">
-                        <div class="form-check mt-3">
-                            @Html.Label("CheckBoxIsAutoChartOfAccount", "Auto Chart Of Account", new { @class = "form-check-label" })
-                            @Html.CheckBox("CheckBoxIsAutoChartOfAccount", true, new { @id = "CheckBoxIsAutoChartOfAccount", disabled=true, @class = "form-check-input" })
-                        </div>
-                    </div>
-                    <div class="col-sm-12 col-md-3">
-                        <div class="form-group">
-                            @Html.Label("TextBoxOpeningBalance", "Opening Balance", new { @class = "col-form-label" })
-                            @Html.TextBox("OpeningBalance", 0.00, new { @class = "form-control form-control-sm numberOnly", placeholder = "Provide Opening Balance!", @id = "TextBoxOpeningBalance", type = "number", min = "0" })
-                        </div>
-                    </div>
-                </div>
+                        
+                    }
+                }
             </div>
         </div>
 

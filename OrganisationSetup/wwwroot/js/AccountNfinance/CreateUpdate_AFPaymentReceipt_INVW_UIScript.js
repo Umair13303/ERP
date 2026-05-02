@@ -126,7 +126,7 @@ function getCustomerList(customerId) {
         }
     });
 }
-function getPaymentMethodList() {
+function getvPaymentMethodList() {
     $.ajax({
         url: window.basePath + "AccountNfinance/AFPaymentReceiptManagement/populatevPaymentMethodListByParam",
         type: "GET",
@@ -172,7 +172,7 @@ function changeEventHandler() {
 function initialize() {
     getBranchList();
     getCustomerList();
-    getPaymentMethodList();
+    getvPaymentMethodList();
     domInvoiceTable();
     const intputMasking = new UIMasking();
     intputMasking.initialize();
@@ -223,7 +223,8 @@ function createUpdateDataIntoDB(btnElement) {
         Reference: $("#TextBoxReference").val(),
         InvoiceId: invoiceId,
         Description: $('#TextBoxDescription_' + guID).val(),
-        ReceiptAmount: receiptAmount
+        ReceiptAmount: receiptAmount,
+        PaymentTypeId: $("#PaymentTypeId").val(),
     };
     $.ajax({
         url: window.basePath + "AccountNfinance/AFPaymentReceiptManagement/createUpdatePaymentReceipt",

@@ -27,6 +27,15 @@ namespace OrganisationSetup.Areas.ApplicationConfiguration.Controllers
 
         public IActionResult Login()
         {
+            var token = Request.Cookies["ERP_Auth_Token"];
+            if (!string.IsNullOrEmpty(token) && User.Identity?.IsAuthenticated == true)
+            {
+                return RedirectToAction(
+                    nameof(SetupRoute.Action.DashboardDefault),
+                    nameof(SetupRoute.Controller.COMDashboard),
+                    new { area = nameof(SetupRoute.Area.ApplicationConfiguration) }
+                );
+            }
             return View();
         }
 
@@ -59,19 +68,16 @@ namespace OrganisationSetup.Areas.ApplicationConfiguration.Controllers
             {
                 var company = await _eRPOSContext.ACCompany.FirstOrDefaultAsync(c => c.Id == user.CompanyId);
                 var token = GenerateJwtToken(user, company?.Description);
-
-                // --- THE CRITICAL COOKIE FIX ---
                 Response.Cookies.Append("ERP_Auth_Token", token, new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true,               // MUST be true for HTTPS
-                    SameSite = SameSiteMode.None, // MUST be None for cross-site redirects
-                    Expires = DateTime.UtcNow.AddMinutes(120),
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Expires = DateTime.UtcNow.AddMinutes(240),
                     Path = "/",
                     IsEssential = true
                 });
 
-                // Redirecting to Dashboard
                 return RedirectToAction(nameof(SetupRoute.Action.DashboardDefault), nameof(SetupRoute.Controller.COMDashboard), new { area = nameof(SetupRoute.Area.ApplicationConfiguration) });
             }
 

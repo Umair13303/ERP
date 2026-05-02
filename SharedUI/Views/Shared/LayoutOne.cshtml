@@ -124,9 +124,13 @@
                                     @foreach (var right in sub.Rights)
                                     {
                                         var gatewayUrl = right.Url.StartsWith("/") ? right.Url : "/" + right.Url + "?DisplayName=" + right.DisplayName + "&OperationType="+right.OperationType;
-
-                                        <a href="@gatewayUrl" class="form-link menu-item-source" data-name="@right.DisplayName">
-                                            <i class="fa-solid fa-circle-dot" style="font-size: 6px; opacity: 0.5;"></i> @right.DisplayName
+                                        <a href="@gatewayUrl"
+                                           class="form-link menu-item-source"
+                                           data-name="@right.DisplayName"
+                                           data-url="@gatewayUrl"
+                                           onclick="navigateMenu(event, this)">
+                                            <i class="fa-solid fa-circle-dot" style="font-size: 6px; opacity: 0.5;"></i>
+                                            @right.DisplayName
                                         </a>
                                     }
                                 </div>
@@ -156,7 +160,9 @@
                 &copy; @DateTime.Now.Year <strong>IMS</strong>. All rights reserved.
             </div>
             <div class="footer-right">
-                Developed by <a href="#" class="text-decoration-none fw-bold" style="color: var(--primary);">Muhammad Umair Akbar</a>
+                Developed by <a href="#" class="text-decoration-none fw-bold" style="color: var(--primary);">Muhammad Umair Akbar</a><br />
+                    Contact: +92-327-5328495
+                    Email: umair13303@gmail.com
             </div>
         </div>
     </footer>
@@ -181,3 +187,4 @@
 
 <script src="~/_content/SharedUI/layoutscript/datatableui.js"></script>
 <script src="~/_content/SharedUI/layoutScript/LayoutOneScript.js"></script>
+<script src="~/_content/SharedUI/layoutScript/InventoryConfiguration.js"></script>

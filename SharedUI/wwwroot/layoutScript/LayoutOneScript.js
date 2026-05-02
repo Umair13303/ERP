@@ -22,13 +22,8 @@
                 const name = link.getAttribute('data-name');
                 if (name && name.toLowerCase().includes(val)) {
                     const clone = link.cloneNode(true);
-
-                    // Fix path logic for cloned links
-                    let originalHref = link.getAttribute('href');
-                    // Ensure we don't double up slashes
-                    if (originalHref.startsWith('/')) originalHref = originalHref.substring(1);
-                    clone.href = window.basePath + originalHref;
-
+                    const safeUrl = link.getAttribute('data-url');
+                    clone.setAttribute('href', safeUrl);
                     clone.style.display = 'flex';
                     searchResultList.appendChild(clone);
                     matches++;
@@ -108,4 +103,9 @@ function GetInvoiceStatus(InvoiceStatus) {
     }
     var Label = '<td> <span class="label label-' + BadgeColor + '">' + Display + '</span></td>';
     return Label;
+}
+function navigateMenu(e, el) {
+    e.preventDefault();
+    const url = el.getAttribute('data-url');
+    if (url) window.location.href = url;
 }

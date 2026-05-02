@@ -14,13 +14,13 @@ namespace OrganisationSetup.Areas.SaleOperation.Controllers
     [Area(nameof(SetupRoute.Area.SaleOperation))]
     public class SOCustomerManagementController : Controller
     {
-        private readonly ICommon _commonsServices;
         private readonly ISaleOperationUpsert _souService;
+        private readonly ISaleOperationRetriever _sorService;
 
-        public SOCustomerManagementController( ICommon commonsServices, ISaleOperationUpsert souService)
+        public SOCustomerManagementController(ISaleOperationUpsert souService, ISaleOperationRetriever sorService)
         {
-            _commonsServices = commonsServices;
             _souService = souService;
+            _sorService = sorService;
         }
         #region PORTION CONTAIN CODE TO: RENDER VIEW
         public IActionResult CreateUpdate_SOCustomer_UI(UISetting ui)
@@ -30,18 +30,20 @@ namespace OrganisationSetup.Areas.SaleOperation.Controllers
             return View();
         }
         #endregion
-        #region PORTION CONTAIN CODE TO: RETURN DEPENDING DDL
+
+        #region PORTION CONTAIN CODE TO: RETURN RECORD LIST
         [HttpGet]
-        public async Task<IActionResult> populatevCountryListByParam()
+        public async Task<IActionResult> populateCustomerSummListByParam(string operationType)
         {
-            var result = await _commonsServices.populateCountryByParam();
-            return Json(result);
-        }
-        [HttpGet]
-        public async Task<IActionResult> populatevCityListByParam(int? countryId)
-        {
-            var result = await _commonsServices.populateCityByParam(countryId);
-            return Json(result);
+            try
+            {
+                var result = await _sorService.populateCustomerSummByParam(operationType);
+                return Json(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { data = new List<object>(), message = ex.Message });
+            }
         }
         #endregion
 

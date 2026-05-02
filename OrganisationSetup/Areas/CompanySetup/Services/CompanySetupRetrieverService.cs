@@ -53,6 +53,17 @@ namespace OrganisationSetup.Areas.CompanySetup.Services
                             GuID = x.GuID,
                             Description = x.Description
                         }).ToListAsync();
+                case ((int?)FilterConditions.CSDepartment_Operation_ForSale):
+                    return await _eRPOSContext.CSDepartment.AsNoTracking()
+                        .Where(d => _eRPOSContext.ICategory.Any(c => c.DepartmentId == d.Id)
+                        && d.CompanyId == userInfo.CompanyId
+                        && d.Status == true
+                        && documentStatusIds.Contains(d.DocumentStatus)).Select(x => new CSDepartment
+                        {
+                            Id = x.Id,
+                            GuID = x.GuID,
+                            Description = x.Description
+                        }).ToListAsync();
                 default:
                     return new List<CSDepartment>();
             }

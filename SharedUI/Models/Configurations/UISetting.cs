@@ -12,4 +12,10 @@ namespace SharedUI.Models.Configurations
         public string? OperationType { get; set; }
 
     }
+    public class FieldConfig
+    {
+        public string? Display { get; set; }
+        public object? DefaultValue { get; set; }
+        public object? Label { get; set; }
+    }
 }

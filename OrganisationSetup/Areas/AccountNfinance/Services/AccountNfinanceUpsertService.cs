@@ -226,6 +226,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                       postedData.InvoiceId,
                                                       postedData.Description,
                                                       postedData.PaymentMethodId,
+                                                      postedData.PaymentTypeId,
                                                       postedData.Reference,
                                                       postedData.ReceiptAmount,
                                                       (int?)PaymentStatus.verified,
@@ -281,32 +282,39 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
 
                     #endregion
 
-                    #region PORTION FOR :: UPDATE OUTSTANDING DUE AMOUNT ON dbo.AFInvoice
 
-                    var AFInvoice = await _eRPOSContext.AFInvoice
-                                                       .Where(x => x.Id == postedData.InvoiceId && x.Status == true)
-                                                       .FirstOrDefaultAsync();
-                    if (AFInvoice!=null)
+                    switch (postedData.PaymentTypeId)
                     {
-                        AFInvoice.DueAmount = AFInvoice.DueAmount - postedData.ReceiptAmount;
-                        AFInvoice.DueAmount = AFInvoice.DueAmount < 0 ? 0 : AFInvoice.DueAmount;
-                        if(postedData.ReceiptAmount < AFInvoice.DueAmount)
-                        {
-                            AFInvoice.InvoiceStatus = (int?)InvoiceStatus.partialPaid;
-                        }
-                        else if(postedData.ReceiptAmount == AFInvoice.DueAmount)
-                        {
-                            AFInvoice.InvoiceStatus = (int?)InvoiceStatus.paid;
-                        }
-                        _eRPOSContext.Entry(AFInvoice).Property(x => x.DueAmount).IsModified = true;
-                        await _eRPOSContext.SaveChangesAsync();
-                    }
-                    else
-                    {
-                        AFPaymentReceipt.response = (int)Code.NotFound;
-                    }
+                        case (int)PaymentType.invoiceWise:
+                            #region PORTION FOR :: UPDATE OUTSTANDING DUE AMOUNT ON dbo.AFInvoice
 
-                    #endregion
+                            var AFInvoice = await _eRPOSContext.AFInvoice
+                                                               .Where(x => x.Id == postedData.InvoiceId && x.Status == true)
+                                                               .FirstOrDefaultAsync();
+                            if (AFInvoice != null)
+                            {
+                                AFInvoice.DueAmount = AFInvoice.DueAmount - postedData.ReceiptAmount;
+                                AFInvoice.DueAmount = AFInvoice.DueAmount < 0 ? 0 : AFInvoice.DueAmount;
+                                if (postedData.ReceiptAmount < AFInvoice.DueAmount)
+                                {
+                                    AFInvoice.InvoiceStatus = (int?)InvoiceStatus.partialPaid;
+                                }
+                                else if (postedData.ReceiptAmount == AFInvoice.DueAmount)
+                                {
+                                    AFInvoice.InvoiceStatus = (int?)InvoiceStatus.paid;
+                                }
+                                _eRPOSContext.Entry(AFInvoice).Property(x => x.DueAmount).IsModified = true;
+                                await _eRPOSContext.SaveChangesAsync();
+                            }
+                            else
+                            {
+                                AFPaymentReceipt.response = (int)Code.NotFound;
+                            }
+                            #endregion
+                            break;
+                        case (int)PaymentType.onAccount:
+                                break;
+                    }
 
                     #region PORTION FOR :: HANDLE TRANSACTION
                     switch (AFPaymentReceipt.response)

@@ -36,8 +36,16 @@ namespace SharedUI.Models.ViewModels
             public int? InvoiceTypeId { get; set; }
             public int? InvoiceStatus { get; set; }
             public int? InvoiceId { get; set; }
-
         }
-
+        public class Customer_List_Spec
+        {
+            public int? CustomerId { get; set; }
+            public string? Code { get; set; }
+            public string? Description { get; set; }
+            public string? Contact { get; set; }
+            public decimal Receivable { get; set; }
+            public decimal Receipt { get; set; }
+            public decimal Due { get; set; }
+        }
     }
 }

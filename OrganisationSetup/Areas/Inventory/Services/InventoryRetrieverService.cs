@@ -56,6 +56,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                         {
                             Id = x.Id,
                             GuID = x.GuID,
+                            DepartmentId= x.DepartmentId,
                             Description = x.Description
                         }).ToListAsync();
                 default:

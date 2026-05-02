@@ -15,23 +15,21 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
     {
         Task<List<AFChartOfAccount>> populateChartOfAccountByParam(string? operationType, int? filterConditionId, int? accountCatagoryId);
         Task<AFChartOfAccount> populateChartOfAccountInfo(Guid? guid);
-        Task<IEnumerable<DTObject.Invoice_List>> populateInvoiceListByParam(string operationType, Guid? guid, int? customerId, int?[]invoiceStatus);
+        Task<IEnumerable<DTObject.Invoice_List>> populateInvoiceByParam(string operationType, Guid? guid, int? customerId, int?[]invoiceStatus);
     }
     public class AccountNfinanceRetrieverService : IAccountNfinanceRetriever
     {
         private readonly ERPOrganisationSetupContext _eRPOSContext;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly TempUser _currentUser;
         private readonly ICommon _commonsServices;
         private readonly IOSDataLayer _repo;
         private readonly string _connectionString;
 
 
-        public AccountNfinanceRetrieverService(TempUser currentUser,ERPOrganisationSetupContext eRPOSC, IHttpContextAccessor httpContextAccessor, ICommon commonsServices, IOSDataLayer repo)
+        public AccountNfinanceRetrieverService(TempUser currentUser,ERPOrganisationSetupContext eRPOSC,ICommon commonsServices, IOSDataLayer repo)
         {
             _currentUser = currentUser;
             _eRPOSContext = eRPOSC;
-            _httpContextAccessor = httpContextAccessor;
             _commonsServices = commonsServices;
             _repo = repo;
             _connectionString = _eRPOSContext.Database.GetDbConnection().ConnectionString;
@@ -83,20 +81,19 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                 }).FirstOrDefaultAsync() ?? new AFChartOfAccount();
         }
         
-        public async Task<IEnumerable<DTObject.Invoice_List>> populateInvoiceListByParam(string operationType, Guid? guId, int? customerId, int?[] invoiceStatus)
+        public async Task<IEnumerable<DTObject.Invoice_List>> populateInvoiceByParam(string operationType, Guid? guId, int? customerId, int?[] invoiceStatus)
         {
             var userInfo = _currentUser;
             if (!userInfo.IsAuthenticated) return new List<DTObject.Invoice_List>();
             int?[]? documentStatusIds = await _commonsServices.getDocumentStatusByParam(operationType);
 
-            return await _repo.ret_Invoices_ByCustomer(
+            return await _repo.ret_Invoice_ByParam(
                 guId,
                 customerId,
                 documentStatusIds,
                 invoiceStatus,
                 _connectionString
             );
-
         }
     }
 }

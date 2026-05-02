@@ -21,7 +21,9 @@ namespace SharedUI.Models.Enums
         IBrand_Operation_ByCompany = 11,
         osvChartOfAccount_Operation_ByDefaultSetting = 12,
         ISubCategory_Operation_GroupByCategory=13,
-        SOCustomer_Operation_ByCompany=14
+        SOCustomer_Operation_ByCompany=14,
+        CSDepartment_Operation_ForSale = 15,
+
 
 
 

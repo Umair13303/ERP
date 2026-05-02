@@ -47,6 +47,10 @@ public partial class ERPOrganisationSetupContext : DbContext
 
     public virtual DbSet<SOCustomer> SOCustomer { get; set; }
 
+    public virtual DbSet<confClientProductSetting> confClientProductSetting { get; set; }
+
+    public virtual DbSet<confClientSetting> confClientSetting { get; set; }
+
     public virtual DbSet<osvChartOfAccount> osvChartOfAccount { get; set; }
 
     public virtual DbSet<vAccountCatagory> vAccountCatagory { get; set; }
@@ -68,6 +72,8 @@ public partial class ERPOrganisationSetupContext : DbContext
     public virtual DbSet<vOrganisationType> vOrganisationType { get; set; }
 
     public virtual DbSet<vPaymentMethod> vPaymentMethod { get; set; }
+
+    public virtual DbSet<vProductType> vProductType { get; set; }
 
     public virtual DbSet<vRight> vRight { get; set; }
 
@@ -241,6 +247,25 @@ public partial class ERPOrganisationSetupContext : DbContext
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
         });
 
+        modelBuilder.Entity<confClientProductSetting>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__confClie__3214EC07BF3A289D");
+
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.EnableATI).HasDefaultValue(false);
+            entity.Property(e => e.EnableAttribute).HasDefaultValue(false);
+            entity.Property(e => e.EnableFavorite).HasDefaultValue(false);
+            entity.Property(e => e.EnableMachineNumber).HasDefaultValue(false);
+            entity.Property(e => e.EnableSKU).HasDefaultValue(false);
+            entity.Property(e => e.EnableTaxSetting).HasDefaultValue(false);
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<confClientSetting>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__confClie__3214EC07CF3B99B2");
+        });
+
         modelBuilder.Entity<osvChartOfAccount>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK_CSChartOfAccount");
@@ -297,6 +322,13 @@ public partial class ERPOrganisationSetupContext : DbContext
         modelBuilder.Entity<vPaymentMethod>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__vPayment__3214EC0799BB60D9");
+        });
+
+        modelBuilder.Entity<vProductType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__vProduct__3214EC0744AC60CF");
+
+            entity.Property(e => e.Status).HasDefaultValue(true);
         });
 
         modelBuilder.Entity<vRight>(entity =>

@@ -15,9 +15,11 @@ namespace SharedUI.Models.SQLParameters
         public string? DefaultReceivableAccount { get; set; }
         public string? FBRStamp { get; set; }
         public int? OrganisationTypeId { get; set; }
+        public int? ProductTypeId { get; set; }
         public int? CountryId { get; set; }
         public int? CustomerId { get; set; }
         public int? AccountTypeId { get; set; }
+        public int? PaymentTypeId { get; set; }
         public int? AccountCategoryId { get; set; }
         public int? FinancialStatementId { get; set; }
         public int? CityId { get; set; }
@@ -59,6 +61,7 @@ namespace SharedUI.Models.SQLParameters
         public int? InvoiceStatus { get; set; }
         public bool? IsFavorite { get; set; }
         public bool? IsSaleTaxExclusive { get; set; }
+        public bool IsExpiryApplicable { get; set; }
         public bool? Status { get; set; }
         public int? BranchId { get; set; }
         public int? BrandId { get; set; }
