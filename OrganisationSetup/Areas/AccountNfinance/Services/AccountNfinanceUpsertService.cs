@@ -194,7 +194,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
             #region PORTION FOR :: DOCUMENT SETTING ON BASIS OF OperationType
             Guid? paymentReceiptGuID = Guid.Empty;
             Guid? customerLedgerGuID = Guid.Empty;
-            if (postedData.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB))
+            if (postedData.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB) || postedData.OperationType == nameof(OperationType.MPO_LIST))
             {
                 paymentReceiptGuID = Guid.NewGuid();
                 customerLedgerGuID = Guid.NewGuid();

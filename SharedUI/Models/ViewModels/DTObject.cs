@@ -37,7 +37,7 @@ namespace SharedUI.Models.ViewModels
             public int? InvoiceStatus { get; set; }
             public int? InvoiceId { get; set; }
         }
-        public class Customer_List_Spec
+        public class RptCustomerSummary_List
         {
             public int? CustomerId { get; set; }
             public string? Code { get; set; }
@@ -46,6 +46,19 @@ namespace SharedUI.Models.ViewModels
             public decimal Receivable { get; set; }
             public decimal Receipt { get; set; }
             public decimal Due { get; set; }
+        }
+        public class RptSaleLedger_List
+        {
+            public int? Customer { get; set; }
+            public string? Code { get; set; }
+            public DateTime? TransactionDate { get; set; }
+            public string? Description { get; set; }
+            public decimal? Debit { get; set; }
+            public decimal Credit { get; set; }
+            public int? DocumentType { get; set; }
+            public Guid? GuID { get; set; }
+            public int? CustomerId { get; set; }
+
         }
     }
 }

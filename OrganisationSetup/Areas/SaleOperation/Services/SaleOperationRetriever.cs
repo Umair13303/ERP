@@ -15,7 +15,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
     public interface ISaleOperationRetriever
     {
         Task<List<Customer_List>> populateCustomerByParam(string? operationType, int? filterConditionId);
-        Task<IEnumerable<DTObject.Customer_List_Spec>> populateCustomerSummByParam(string operationType);
+        Task<IEnumerable<DTObject.RptCustomerSummary_List>> populateCustomerSummByParam(string operationType);
     }
     public class SaleOperationRetrieverService : ISaleOperationRetriever
     {
@@ -64,15 +64,15 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                     return new List<Customer_List>();
             }
         }
-        public async Task<IEnumerable<DTObject.Customer_List_Spec>> populateCustomerSummByParam(string operationType)
+        public async Task<IEnumerable<DTObject.RptCustomerSummary_List>> populateCustomerSummByParam(string operationType)
         {
             var userInfo = _currentUser;
-            if (!userInfo.IsAuthenticated) return new List<DTObject.Customer_List_Spec>();
+            if (!userInfo.IsAuthenticated) return new List<DTObject.RptCustomerSummary_List>();
             int?[]? paymentStatusIds = await _commonsServices.getPaymentStatusByParam();
             int?[]? invoiceStatusIds = await _commonsServices.getInvoiceStatusByParam();
             int?[]? documentStatusIds = await _commonsServices.getDocumentStatusByParam(operationType);
 
-            return await _repo.ret_Customer_ByParam(
+            return await _repo.ret_RptCustomerSummary_ByParam(
                 userInfo.BranchId,
                 userInfo.CompanyId,
                 paymentStatusIds,

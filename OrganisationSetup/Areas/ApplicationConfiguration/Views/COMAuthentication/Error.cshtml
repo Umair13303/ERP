@@ -1,0 +1,80 @@
+﻿@{
+    Layout = "LayoutOne";
+    ViewData["Title"] = "Oops! Something went wrong";
+}
+
+<div class="error-container">
+    <div class="error-content">
+        <h1 class="display-1">500</h1>
+        <h2>Houston, we have a problem.</h2>
+        <p>Something unexpected happened on our end. It's not you, it's definitely us.</p>
+       
+        <div class="action-buttons">
+            <a href="/" class="btn-home">Back to Safety</a>
+            <a href="mailto:support@yourdomain.com" class="btn-contact">Report Issue</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .error-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 70vh;
+        text-align: center;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .error-content h1 {
+        font-size: 8rem;
+        font-weight: 900;
+        margin: 0;
+        background: linear-gradient(45deg, #ff416c, #ff4b2b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .error-content h2 {
+        font-size: 2rem;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .error-content p {
+        color: #666;
+        font-size: 1.1rem;
+    }
+
+    .action-buttons {
+        margin-top: 2rem;
+    }
+
+    .btn-home {
+        background-color: #333;
+        color: white;
+        padding: 12px 30px;
+        text-decoration: none;
+        border-radius: 30px;
+        margin-right: 10px;
+        transition: 0.3s ease;
+    }
+
+    .btn-home:hover {
+        background-color: #000;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .btn-contact {
+        border: 2px solid #333;
+        color: #333;
+        padding: 10px 28px;
+        text-decoration: none;
+        border-radius: 30px;
+        transition: 0.3s ease;
+    }
+
+    .btn-contact:hover {
+        background-color: #f8f9fa;
+    }
+</style>

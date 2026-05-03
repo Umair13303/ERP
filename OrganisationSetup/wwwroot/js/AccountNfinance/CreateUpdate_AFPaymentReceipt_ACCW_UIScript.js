@@ -1,11 +1,12 @@
 ﻿/* ------ Global Variable ------ */
 var operationType = $("#OperationType").val();
 var dropDownListInitOption = "<option value='-1' " + (operationType == "INSERT_INTO_DB" ? "selected='selected'" : "") + ">Select an option</option>";
-var customerList = [];
-var invoiceTable = "";
+var customerLedgerTable = "";
+
+
 /* ------ DOM Elements ------ */
-function domInvoiceTable() {
-    invoiceTable = $('#TableInvoice').DataTable({
+function domCustomerLedgerTable() {
+    customerLedgerTable = $('#TableCustomerLedger').DataTable({
         "processing": true,
         "serverSide": false,
         "responsive": true,
@@ -26,57 +27,21 @@ function domInvoiceTable() {
             { "data": null, "title": "#" },
             { "data": "transactionDate", "title": "Date" },
             { "data": "code", "title": "Code" },
-            {
-                "title": "Invoice Summary",
-                "data": null,
-                "render": function (data, type, row) {
-                    return "<b>Actual Cost:</b> " + data.taxableAmount.toFixed(2) + "<br>" +
-                        "<hr style='margin: 5px 0;'>" +
-                        "<b>Net Total:</b> " + data.netAmount.toFixed(2);
-
-                }
-            },
-            { "data": "dueAmount", "title": "Receivable" },
-            {
-                "title": "Description",
-                "data": null,
-                "render": function (data, type, row) {
-                    return '<input type="text" class="form-control" id="TextBoxDescription_'+data.guID+'" value="Payment Received For Invoice Code: '+ data.code + '" />'
-                }
-            },
-            {
-                "title": "Payment",
-                "data": null,
-                "render": function (data, type, row) {
-                    return '<input type="number" class="form-control" id="TextBoxReceiptAmount_'+data.guID+'" value="0" />'
-                }
-            },
-            {
-                "title": "Invoice Status",
-                "data": null,
-                "render": function (data, type, row) {
-                    return GetInvoiceStatus(data.invoiceStatus)
-                }
-            },
-            {
-                "title": "Action(s)",
-                "data": null,
-                "render": function (data, type, row) {
-                    return '<input type="button" class="btn btn-sm btn-success"onclick="createUpdateDataIntoDB(this)" id="ButtomSubmitPayment' + data.guID + '" value="Record Payment" />'
-                }
-            },
-            { "data": "guID", "title": "GuID", visible:false },
-            { "data": "invoiceId", "title": "InvoiceId", visible: false },
+            { "data": "code", "title": "Debit" },
+            { "data": "code", "title": "Credit" },
+            { "data": "code", "title": "Balance" },
         ],
         columnDefs: [
+            {
+                targets: 0,
+                searchable: false,
+                orderable: false,
+                render: function (data, type, row, meta) {
+                    return meta.row + meta.settings._iDisplayStart + 1;
+                }
+            }
         ],
     });
-    invoiceTable.on('order.dt search.dt', function () {
-        invoiceTable.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
-            cell.innerHTML = i + 1;
-        });
-
-    }).draw();
 }
 
 /* ------ Depending DDL's ------ */
@@ -151,16 +116,16 @@ function getvPaymentMethodList() {
         }
     });
 }
-function getInvoiceList(customerId) {
-    invoiceTable.clear().draw();
-    invoiceTable.ajax.url((window.basePath + "AccountNfinance/AFPaymentReceiptManagement/populateInvoiceListByParam?customerId=" + customerId + "&operationType=" + operationType)).load();
+function getInvoiceReceiptList(customerId) {
+    customerLedgerTable.clear().draw();
+    customerLedgerTable.ajax.url((window.basePath + "AccountNfinance/AFPaymentReceiptManagement/populateInvoiceListByParam?customerId=" + customerId + "&operationType=" + operationType)).load();
 
 }
 /* ------ Change Cases DDL's ------ */
 function changeEventHandler() {
     $("#DropDownListCustomer").on("change", function () {
         var customerId = $("#DropDownListCustomer :selected").val();
-        getInvoiceList(customerId);
+        getInvoiceReceiptList(customerId);
     });
     $("#ButtonSaveData, #ButtonUpdateData").on("click", function (e) {
         if (validater()) {
@@ -175,7 +140,7 @@ function initialize() {
     getBranchList();
     getCustomerList();
     getvPaymentMethodList();
-    domInvoiceTable();
+    domCustomerLedgerTable();
     const intputMasking = new UIMasking();
     intputMasking.initialize();
     $('.select2').select2({

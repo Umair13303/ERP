@@ -49,10 +49,13 @@ namespace OrganisationSetup.Areas.ApplicationConfiguration.Controllers
                 SameSite = SameSiteMode.None
             });
 
-            HttpContext.Session.Clear();
             return RedirectToAction(nameof(Login));
         }
 
+        public IActionResult Error()
+        {
+            return View();
+        }
         [HttpPost]
         public async Task<IActionResult> ValidateCredentials(ACUser postedData)
         {

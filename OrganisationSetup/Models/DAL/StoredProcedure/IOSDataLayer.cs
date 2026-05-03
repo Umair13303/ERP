@@ -40,7 +40,8 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
 
         #region RETRIEVE OPERATION
         Task<IReadOnlyList<DTObject.Invoice_List>> ret_Invoice_ByParam(Guid? guId, int? customerId, int?[] documentStatusIds, int?[] invoiceStatusIds,string connStr);
-        Task<IReadOnlyList<DTObject.Customer_List_Spec>> ret_Customer_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] invoiceStatusIds, int?[] documentStatusIds, string connStr);
+        Task<IReadOnlyList<DTObject.RptCustomerSummary_List>> ret_RptCustomerSummary_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] invoiceStatusIds, int?[] documentStatusIds, string connStr);
+        Task<IReadOnlyList<DTObject.RptSaleLedger_List>> ret_RptSaleLedger_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] invoiceStatusIds, int?[] documentStatusIds, string connStr);
         #endregion
 
     }
@@ -654,7 +655,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                 throw ex;
             }
         }
-        public async Task<IReadOnlyList<DTObject.Customer_List_Spec>> ret_Customer_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] invoiceStatusIds, int?[] documentStatusIds, string connStr)
+        public async Task<IReadOnlyList<DTObject.RptCustomerSummary_List>> ret_RptCustomerSummary_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] invoiceStatusIds, int?[] documentStatusIds, string connStr)
         {
             using IDbConnection db = new SqlConnection(connStr);
             var parameters = new
@@ -667,7 +668,30 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             };
             try
             {
-                var result = await db.QueryAsync<DTObject.Customer_List_Spec>("[dbo].[SOCustomer_GLBParam]", parameters, commandType: CommandType.StoredProcedure);
+                var result = await db.QueryAsync<DTObject.RptCustomerSummary_List>("[dbo].[RptCustomerSummary_GLBParam]", parameters, commandType: CommandType.StoredProcedure);
+                return result.ToList().AsReadOnly();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public async Task<IReadOnlyList<DTObject.RptSaleLedger_List>> ret_RptSaleLedger_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] invoiceStatusIds, int?[] documentStatusIds, string connStr)
+        {
+            using IDbConnection db = new SqlConnection(connStr);
+            var parameters = new
+            {
+                CompanyId = companyId,
+                BranchId = branchId,
+                DocumentStatusIds = documentStatusIds != null ? string.Join(",", documentStatusIds) : null,
+                PaymentStatusIds = paymentStatusIds != null ? string.Join(",", paymentStatusIds) : null,
+                InvoiceStatusIds = invoiceStatusIds != null ? string.Join(",", invoiceStatusIds) : null,
+                StartDate = DateTime.Now.AddDays(-60),
+                EndDate = DateTime.Now.AddDays(-60),
+            };
+            try
+            {
+                var result = await db.QueryAsync<DTObject.RptSaleLedger_List>("[dbo].[RptSaleLedger_GLBParam]", parameters, commandType: CommandType.StoredProcedure);
                 return result.ToList().AsReadOnly();
             }
             catch (Exception ex)

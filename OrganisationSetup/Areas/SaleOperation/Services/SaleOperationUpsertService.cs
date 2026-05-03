@@ -130,7 +130,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                         #region PRE-PARE DOCUMENTS IN CASE OPENING BALANCE > 0
 
                         #region PORTION FOR :: FILL & UPSERT Invoice
-                        string InvoiceDescription = "Opening Balance Till: " + DateTime.Now.ToString("dd-MMM-yyyy") + " . ";
+                        string Description = "Opening Balance Till: " + DateTime.Now.ToString("dd-MMM-yyyy") + " . ";
                         List<AFInvoicPPI_TVP> invoicePI = new List<AFInvoicPPI_TVP>
                         {
                             new AFInvoicPPI_TVP
@@ -160,7 +160,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                                                         userInfo.BranchId,
                                                         transactionDate,
                                                         customerId,
-                                                        InvoiceDescription,
+                                                        Description,
                                                         postedData.FBRStamp?.Trim(),
                                                         invoicePI.Sum(x => x.ChargedAmount),
                                                         (int?)InvoiceType.OBMock,
@@ -181,7 +181,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                         #endregion
 
                         #region PORTION FOR :: FILL & UPSERT CustomerLedger
-                        string customerLedgerDescription = InvoiceDescription + "Recorded as OB invoice having document control code: " + AFInvoice.documentCode + " .";
+                        Description = Description+ " Having Document Code:-  "+ AFInvoice.documentCode;
                         List<AFCustomerLedger_TVP> customerLedger = new List<AFCustomerLedger_TVP>
                         {
                             new AFCustomerLedger_TVP
@@ -194,7 +194,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                                 CustomerId = customerId,
                                 RefDocumentType = (int?)DocumentType.invoice,
                                 RefDocumentId=AFInvoice.insertedId,
-                                Description= customerLedgerDescription,
+                                Description= Description,
                                 Debit= (decimal)AFInvoice.totalInvoiceAmount,
                                 Credit =0,
                                 ReconcillationStatus= (int?)ReconcileStatus.reconciled,

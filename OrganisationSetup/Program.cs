@@ -129,9 +129,10 @@ app.UseForwardedHeaders(); // Must be first
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler("/ApplicationConfiguration/COMAuthentication/Error");
     app.UseHsts();
 }
+app.UseStatusCodePagesWithReExecute("/ApplicationConfiguration/COMAuthentication/Error", "?statusCode={0}");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
