@@ -17,7 +17,7 @@ namespace SharedUI.Models.ViewModels
         public class Customer_List
         {
             public int? Id { get; set; }
-            public string? Description { get; set; }
+            public string? Text { get; set; }
             public string? Contact { get; set; }
         }
         public class Invoice_List

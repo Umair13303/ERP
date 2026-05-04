@@ -111,20 +111,23 @@ function getCustomerList(customerId) {
         type: "GET",
         dataType: "json",
         data: { operationType: operationType },
-        beforeSend: function () {
-
-        },
         success: function (data) {
-            $("#DropDownListCustomer").empty().append(dropDownListInitOption);
-            $.each(data, function (index, item) {
-                var selectedOption = (item.id == customerId);
-                $("#DropDownListCustomer").append(new Option(item.description, item.id, selectedOption, selectedOption));
+            customerList = data;
+            var $ddl = $("#DropDownListCustomer");
+            $ddl.select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: 'Search customer...',
+                allowClear: true,
+                data: customerList,
+                minimumInputLength: 1,
             });
-        },
-        complete: function () {
+            if (customerId) {
+                $ddl.val(customerId).trigger('change');
+            }
         },
         error: function (xhr, status, error) {
-            console.error("Error: " + error);
+            console.error("Customer load failed: " + error);
         }
     });
 }
@@ -173,15 +176,15 @@ function changeEventHandler() {
 /* ------ Call Initial Components ------ */
 function initialize() {
     getBranchList();
-    getCustomerList();
     getvPaymentMethodList();
     domInvoiceTable();
     const intputMasking = new UIMasking();
     intputMasking.initialize();
-    $('.select2').select2({
+    $('.select2:not(#DropDownListCustomer)').select2({
         theme: 'bootstrap-5',
         width: '100%'
     });
+    getCustomerList(null);
     changeEventHandler();
 }
 /* ------ Validation for user input ------ */
@@ -239,13 +242,7 @@ function createUpdateDataIntoDB(btnElement) {
             $(btnElement).prop("disabled", true);
         },
         success: function (response) {
-            if (response.isSuccess) {
-                toastr.success(response.message);
                 $("#AFPaymentReceipt").removeClass("was-validated");
-                getInvoiceList(jsonData.customerId);
-            } else {
-                toastr.info(response.message);
-            }
         },
         error: function (xhr) {
             toastr.error("System Error: " + xhr.statusText);

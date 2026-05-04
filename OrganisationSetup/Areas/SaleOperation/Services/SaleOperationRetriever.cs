@@ -57,7 +57,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                         && documentStatusIds.Contains(x.DocumentStatus)).Select(x => new Customer_List
                         {
                             Id = x.Id,
-                            Description = x.Description,
+                            Text = x.Description,
                             Contact = x.Contact,
                         }).ToListAsync();
                 default:

@@ -1,7 +1,9 @@
 ﻿/* ------ Global Variable ------ */
 var operationType = $("#OperationType").val();
 var dropDownListInitOption = "<option value='-1' " + (operationType == "INSERT_INTO_DB" ? "selected='selected'" : "") + ">Select an option</option>";
+var customerList = [];
 var customerLedgerTable = "";
+
 
 
 /* ------ DOM Elements ------ */
@@ -70,26 +72,30 @@ function getBranchList() {
         }
     });
 }
+
 function getCustomerList(customerId) {
     $.ajax({
         url: window.basePath + "AccountNfinance/AFPaymentReceiptManagement/populateCustomerListByParam",
         type: "GET",
         dataType: "json",
         data: { operationType: operationType },
-        beforeSend: function () {
-
-        },
         success: function (data) {
-            $("#DropDownListCustomer").empty().append(dropDownListInitOption);
-            $.each(data, function (index, item) {
-                var selectedOption = (item.id == customerId);
-                $("#DropDownListCustomer").append(new Option(item.description, item.id, selectedOption, selectedOption));
+            customerList = data;
+            var $ddl = $("#DropDownListCustomer");
+            $ddl.select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: 'Search customer...',
+                allowClear: true,
+                data: customerList,
+                minimumInputLength: 1,
             });
-        },
-        complete: function () {
+            if (customerId) {
+                $ddl.val(customerId).trigger('change');
+            }
         },
         error: function (xhr, status, error) {
-            console.error("Error: " + error);
+            console.error("Customer load failed: " + error);
         }
     });
 }
@@ -138,15 +144,15 @@ function changeEventHandler() {
 /* ------ Call Initial Components ------ */
 function initialize() {
     getBranchList();
-    getCustomerList();
     getvPaymentMethodList();
     domCustomerLedgerTable();
     const intputMasking = new UIMasking();
     intputMasking.initialize();
-    $('.select2').select2({
+    $('.select2:not(#DropDownListCustomer)').select2({
         theme: 'bootstrap-5',
         width: '100%'
     });
+    getCustomerList(null);
     changeEventHandler();
 }
 /* ------ Validation for user input ------ */
@@ -167,31 +173,29 @@ function validater() {
 }
 
 /* ------ Add/Edit/Delete Operation ------ */
-function createUpdateDataIntoDB(btnElement) {
-    if (!validater()) return;
-
-    var tr = $(btnElement).closest('tr');
-    var rowData = invoiceTable.row(tr).data();
-    var guID = rowData.guID;
-    var invoiceId = rowData.invoiceId;
-
-    var receiptAmount = parseFloat($('#TextBoxReceiptAmount_' + guID).val());
-    if (!receiptAmount || receiptAmount <= 0) {
-        toastr.warning("Please enter a valid payment amount.");
-        return;
-    }
+function createUpdateDataIntoDB() {
+    var operationType = $("#OperationType").val();
+    var paymentGuID = $("#GuID").val();
+    var locationId = $("#DropDownListLocation :selected").val();
+    var transactionDate = $("#TextBoxTransactionDate").val();
+    var customerId = $("#DropDownListCustomer :selected").val();
+    var description = $("#TextBoxDescription").val();
+    var paymentMethodId = $("#DropDownListPaymentMethod :selected").val();
+    var reference = $("#TextBoxReference").val();
+    var receiptAmount = $("#TextBoxReceiptAmount").val();
+    var paymentTypeId = $("#PaymentTypeId").val();
 
     var jsonData = {
-        OperationType: $("#OperationType").val(),
-        LocationId: $("#DropDownListLocation :selected").val(),
-        TransactionDate: $("#TextBoxTransactionDate").val(),
-        CustomerId: $("#DropDownListCustomer :selected").val(),
-        PaymentMethodId: $("#DropDownListPaymentMethod :selected").val(),
-        Reference: $("#TextBoxReference").val(),
-        InvoiceId: invoiceId,
-        Description: $('#TextBoxDescription_' + guID).val(),
+        OperationType: operationType,
+        GuID: paymentGuID ? paymentGuID : null,
+        LocationId: locationId,
+        TransactionDate: transactionDate,
+        CustomerId: customerId,
+        description: description,
+        PaymentMethodId: paymentMethodId,
+        Reference: reference,
         ReceiptAmount: receiptAmount,
-        PaymentTypeId: $("#PaymentTypeId").val(),
+        PaymentTypeId: paymentTypeId
     };
     $.ajax({
         url: window.basePath + "AccountNfinance/AFPaymentReceiptManagement/createUpdatePaymentReceipt",
@@ -201,14 +205,13 @@ function createUpdateDataIntoDB(btnElement) {
         dataType: "json",
         beforeSend: function () {
             initLoading();
-            $(btnElement).prop("disabled", true);
         },
         success: function (response) {
-            if (response.isSuccess) {
+            if (response.IsSuccess == true) {
                 toastr.success(response.message);
-                $("#AFPaymentReceipt").removeClass("was-validated");
-                getInvoiceList(jsonData.customerId);
-            } else {
+                $("#AFPaymentReceiptForm").removeClass('was-validated');
+            }
+            else {
                 toastr.info(response.message);
             }
         },
@@ -217,7 +220,7 @@ function createUpdateDataIntoDB(btnElement) {
         },
         complete: function () {
             stopLoading();
-            $(btnElement).prop("disabled", false);
+            clearInputFields();
         }
     });
 }
