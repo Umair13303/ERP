@@ -82,6 +82,12 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
             var result = await _anfrService.populateInvoiceByParam(operationType, guid, customerId, invoiceStatus);
             return Json(new { data = result });
         }
+        [HttpGet]
+        public async Task<IActionResult> populatePaymentReceiptListByParam(string operationType,int? customerId)
+        {
+            var result = await _anfrService.populatePaymentReceiptByParam(operationType, customerId);
+            return Json(new { data = result });
+        }
         #endregion
 
 

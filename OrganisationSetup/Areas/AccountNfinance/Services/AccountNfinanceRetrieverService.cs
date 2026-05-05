@@ -16,6 +16,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
         Task<List<AFChartOfAccount>> populateChartOfAccountByParam(string? operationType, int? filterConditionId, int? accountCatagoryId);
         Task<AFChartOfAccount> populateChartOfAccountInfo(Guid? guid);
         Task<IEnumerable<DTObject.Invoice_List>> populateInvoiceByParam(string operationType, Guid? guid, int? customerId, int?[]invoiceStatus);
+        Task<IEnumerable<DTObject.RptPaymentReceipt_List>> populatePaymentReceiptByParam(string operationType, int? customerId);
     }
     public class AccountNfinanceRetrieverService : IAccountNfinanceRetriever
     {
@@ -92,6 +93,22 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                 customerId,
                 documentStatusIds,
                 invoiceStatus,
+                _connectionString
+            );
+        }
+        public async Task<IEnumerable<DTObject.RptPaymentReceipt_List>> populatePaymentReceiptByParam(string operationType, int? customerId)
+        {
+            var userInfo = _currentUser;
+            if (!userInfo.IsAuthenticated) return new List<DTObject.RptPaymentReceipt_List>();
+            int?[]? paymentStatusIds = await _commonsServices.getPaymentStatusByParam();
+            int?[]? documentStatusIds = await _commonsServices.getDocumentStatusByParam(operationType);
+
+            return await _repo.ret_RptPaymentReceipt_ByParam(
+                paymentStatusIds,
+                documentStatusIds,
+                userInfo.BranchId,
+                userInfo.CompanyId,
+                customerId,
                 _connectionString
             );
         }

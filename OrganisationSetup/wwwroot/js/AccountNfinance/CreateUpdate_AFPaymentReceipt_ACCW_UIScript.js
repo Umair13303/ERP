@@ -2,13 +2,13 @@
 var operationType = $("#OperationType").val();
 var dropDownListInitOption = "<option value='-1' " + (operationType == "INSERT_INTO_DB" ? "selected='selected'" : "") + ">Select an option</option>";
 var customerList = [];
-var customerLedgerTable = "";
+var paymentReceiptTable = "";
 
 
 
 /* ------ DOM Elements ------ */
 function domCustomerLedgerTable() {
-    customerLedgerTable = $('#TableCustomerLedger').DataTable({
+    paymentReceiptTable = $('#TablePaymentReceipt').DataTable({
         "processing": true,
         "serverSide": false,
         "responsive": true,
@@ -29,9 +29,8 @@ function domCustomerLedgerTable() {
             { "data": null, "title": "#" },
             { "data": "transactionDate", "title": "Date" },
             { "data": "code", "title": "Code" },
-            { "data": "code", "title": "Debit" },
-            { "data": "code", "title": "Credit" },
-            { "data": "code", "title": "Balance" },
+            { "data": "description", "title": "Description" },
+            { "data": "receiptAmount", "title": "Amount" },
         ],
         columnDefs: [
             {
@@ -122,16 +121,16 @@ function getvPaymentMethodList() {
         }
     });
 }
-function getInvoiceReceiptList(customerId) {
-    customerLedgerTable.clear().draw();
-    customerLedgerTable.ajax.url((window.basePath + "AccountNfinance/AFPaymentReceiptManagement/populateInvoiceListByParam?customerId=" + customerId + "&operationType=" + operationType)).load();
+function getPaymentReceiptList(customerId) {
+    paymentReceiptTable.clear().draw();
+    paymentReceiptTable.ajax.url((window.basePath + "AccountNfinance/AFPaymentReceiptManagement/populatePaymentReceiptListByParam?operationType=" + operationType + "&customerId=" + customerId)).load();
 
 }
 /* ------ Change Cases DDL's ------ */
 function changeEventHandler() {
     $("#DropDownListCustomer").on("change", function () {
         var customerId = $("#DropDownListCustomer :selected").val();
-        getInvoiceReceiptList(customerId);
+        getPaymentReceiptList(customerId);
     });
     $("#ButtonSaveData, #ButtonUpdateData").on("click", function (e) {
         if (validater()) {
@@ -225,8 +224,8 @@ function createUpdateDataIntoDB() {
     });
 }
 function clearInputFields() {
-    $(".form-control").val('');
-    $(".select2").val('-1').trigger("change");
+    $(".form-control").not("#DropDownListLocation").val('');
+    $(".select2").not("#DropDownListLocation").val('-1').trigger("change");
 
 }
 $(function () {

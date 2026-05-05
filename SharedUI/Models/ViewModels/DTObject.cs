@@ -60,5 +60,15 @@ namespace SharedUI.Models.ViewModels
             public int? CustomerId { get; set; }
 
         }
+        public class RptPaymentReceipt_List
+        {
+            public DateTime? TransactionDate { get; set; }
+            public string? Code { get; set; }
+            public string? Description { get; set; }
+            public decimal? ReceiptAmount { get; set; }
+            public Guid? GuID { get; set; }
+            public int? Id { get; set; }
+
+        }
     }
 }

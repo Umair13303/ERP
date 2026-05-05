@@ -254,8 +254,8 @@ function createUpdateDataIntoDB(btnElement) {
     });
 }
 function clearInputFields() {
-    $(".form-control").val('');
-    $(".select2").val('-1').trigger("change");
+    $(".form-control").not("#DropDownListLocation").val('');
+    $(".select2").not("#DropDownListLocation").val('-1').trigger("change");
 
 }
 $(function () {

@@ -42,6 +42,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
         Task<IReadOnlyList<DTObject.Invoice_List>> ret_Invoice_ByParam(Guid? guId, int? customerId, int?[] documentStatusIds, int?[] invoiceStatusIds,string connStr);
         Task<IReadOnlyList<DTObject.RptCustomerSummary_List>> ret_RptCustomerSummary_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] invoiceStatusIds, int?[] documentStatusIds, string connStr);
         Task<IReadOnlyList<DTObject.RptSaleLedger_List>> ret_RptSaleLedger_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] invoiceStatusIds, int?[] documentStatusIds, string connStr);
+        Task<IReadOnlyList<DTObject.RptPaymentReceipt_List>> ret_RptPaymentReceipt_ByParam(int?[] paymentStatusIds, int?[] documentStatusIds, int? branchId, int? companyId, int? customerId, string connStr);
         #endregion
 
     }
@@ -692,6 +693,27 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             try
             {
                 var result = await db.QueryAsync<DTObject.RptSaleLedger_List>("[dbo].[RptSaleLedger_GLBParam]", parameters, commandType: CommandType.StoredProcedure);
+                return result.ToList().AsReadOnly();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public async Task<IReadOnlyList<DTObject.RptPaymentReceipt_List>> ret_RptPaymentReceipt_ByParam(int?[] paymentStatusIds,int?[] documentStatusIds,int? branchId, int? companyId,  int? customerId,  string connStr)
+        {
+            using IDbConnection db = new SqlConnection(connStr);
+            var parameters = new
+            {
+                PaymentStatusIds = paymentStatusIds != null ? string.Join(",", paymentStatusIds) : null,
+                DocumentStatusIds = documentStatusIds != null ? string.Join(",", documentStatusIds) : null,
+                BranchId = branchId,
+                CompanyId = companyId,
+                CustomerId= customerId
+            };
+            try
+            {
+                var result = await db.QueryAsync<DTObject.RptPaymentReceipt_List>("[dbo].[RptPaymentReceipt_GLBParam]", parameters, commandType: CommandType.StoredProcedure);
                 return result.ToList().AsReadOnly();
             }
             catch (Exception ex)
