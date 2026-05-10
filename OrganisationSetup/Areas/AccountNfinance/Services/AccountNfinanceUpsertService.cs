@@ -16,7 +16,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
     public interface IAccountNfinanceUpsert
     {
         Task<ServiceResult> updateInsertDataInto_AFChartOfAccount(PostedData postedData, bool? isCustomerAutoAccount);
-        Task<ServiceResult> updateInsertDataInto_AFInvoice(PostedData postedData, List<AFInvoicPPI_TVP> invoicePPI);
+        Task<ServiceResult> updateInsertDataInto_AFInvoice(PostedData postedData, List<AFInvoicePPI_TVP> invoicePPI);
         Task<ServiceResult> updateInsertDataInto_AFPaymentReceipt(PostedData postedData);
 
 
@@ -108,7 +108,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
 
         }
 
-        public async Task<ServiceResult> updateInsertDataInto_AFInvoice(PostedData postedData, List<AFInvoicPPI_TVP> invoicePPI)
+        public async Task<ServiceResult> updateInsertDataInto_AFInvoice(PostedData postedData, List<AFInvoicePPI_TVP> invoicePPI)
         {
             var userInfo = _currentUser;
 

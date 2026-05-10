@@ -1,47 +1,44 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SharedUI.Models.Enums
 {
-    /*USE camelCase CASE FOR ENUMS*/
+    /* USE camelCase FOR ENUMS as per project requirements */
     public enum DocumentType
     {
+        // CONFIGURATION
         company = 1,
         user = 2,
         rightSetting = 3,
         userRight = 4,
         branch = 5,
-        branchSetting = 6,
-        academicClass = 7,
-        academicAdmissionSession = 8,
-        academicSubject = 9,
-        academicClassCurriculum = 10,
-        academicClassCurriculumSubject = 11,
-        academicAdmissionSessionClass = 12,
-        accountChartOfAccount = 13,
-        accountDiscountType = 14,
-        accountFeeType = 15,
-        accountClassFeeStructure = 16,
-        accountClassFeeStructureFeeType = 17,
-        student = 18,
-        department=19,
-        section=20,
-        category = 21,
-        subCategory = 22,
-        brand = 23,
-        supplier = 24,
-        saleUnit = 25,
-        product = 26,
-        productATI = 27,
-        invoice = 28,
-        invoiceProduct= 29,
-        invoiceProductCustomerOB= 30,
-        customerLedgerRecord= 31,
-        journalVoucher= 32,
-        paymentReceipt=33,
+
+        // COMPANY SETUP
+        accountChartOfAccount = 6,
+        department = 7,
+
+        // INVENTORY
+        saleUnit = 8,
+        section = 9,
+        category = 10,
+        subCategory = 11,
+        brand = 12,
+        product = 13,
+        productATI = 14,
+
+        // SALE
+        customer = 15,
+        invoice = 16,
+        invoiceProduct = 17,
+        invoiceProductCustomerOB = 18,
+        customerLedgerRecord = 19,
+        paymentReceipt = 20,
+
+        // PURCHASE
+        supplier = 21,
+        bill = 22,
+        billProduct = 23,
+        billProductSupplierOB = 24,
+        supplierLedgerRecord = 25
 
 
     }

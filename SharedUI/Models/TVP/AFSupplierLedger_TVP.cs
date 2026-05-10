@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace SharedUI.Models.TVP
 {
 
-    public class AFCustomerLedger_TVP
+    public class AFSupplierLedger_TVP
     {
         public int Id { get; set; }
 
@@ -19,7 +19,7 @@ namespace SharedUI.Models.TVP
 
         public DateTime? TransactionDate { get; set; }
 
-        public int? CustomerId { get; set; }
+        public int? SupplierId { get; set; }
 
         public int? RefDocumentType { get; set; }
 
@@ -51,5 +51,4 @@ namespace SharedUI.Models.TVP
 
         public int? CompanyId { get; set; }
     }
-
 }

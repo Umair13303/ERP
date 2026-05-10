@@ -21,6 +21,14 @@ namespace SharedUI.Models.Enums
         overDue = 4,
         cancelled = 5
     }
+    public enum BillStatus
+    {
+        unPaid = 1,
+        partialPaid = 2,
+        paid = 3,
+        overDue = 4,
+        cancelled = 5
+    }
     public enum ReconcileStatus
     {
         unreconciled = 1,

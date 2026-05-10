@@ -76,7 +76,7 @@ namespace OrganisationSetup.Areas.ApplicationConfiguration.Controllers
                     HttpOnly = true,
                     Secure = true,
                     SameSite = SameSiteMode.None,
-                    Expires = DateTime.UtcNow.AddMinutes(240),
+                    Expires = DateTime.UtcNow.AddMinutes(600),
                     Path = "/",
                     IsEssential = true
                 });

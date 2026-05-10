@@ -116,7 +116,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                                                     userInfo.UserId,
                                                     DateTime.Now,
                                                     userInfo.UserId,
-                                                    (int?)DocumentType.section,
+                                                    (int?)DocumentType.customer,
                                                     (int?)DocumentStatus.active,
                                                     userInfo.BranchId,
                                                     userInfo.CompanyId,
@@ -131,9 +131,9 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
 
                         #region PORTION FOR :: FILL & UPSERT Invoice
                         string Description = "Opening Balance Till: " + DateTime.Now.ToString("dd-MMM-yyyy") + " . ";
-                        List<AFInvoicPPI_TVP> invoicePI = new List<AFInvoicPPI_TVP>
+                        List<AFInvoicePPI_TVP> invoicePI = new List<AFInvoicePPI_TVP>
                         {
-                            new AFInvoicPPI_TVP
+                            new AFInvoicePPI_TVP
                             {
                                 Id = 0,
                                 GuID = Guid.NewGuid(),
@@ -163,7 +163,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                                                         Description,
                                                         postedData.FBRStamp?.Trim(),
                                                         invoicePI.Sum(x => x.ChargedAmount),
-                                                        (int?)InvoiceType.OBMock,
+                                                        (int?)InvoiceType.OpeningBalanceINV,
                                                         (int?)InvoiceStatus.unPaid,
                                                         DateTime.Now,
                                                         userInfo.UserId,

@@ -13,6 +13,7 @@ namespace SharedUI.Models.SQLParameters
         public Guid? ProductATIGuID { get; set; }
         public string? Description { get; set; }
         public string? DefaultReceivableAccount { get; set; }
+        public string? DefaultPayableAccount { get; set; }
         public string? FBRStamp { get; set; }
         public int? OrganisationTypeId { get; set; }
         public int? ProductTypeId { get; set; }
