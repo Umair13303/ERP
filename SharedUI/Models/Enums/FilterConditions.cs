@@ -23,6 +23,7 @@ namespace SharedUI.Models.Enums
         ISubCategory_Operation_GroupByCategory=13,
         SOCustomer_Operation_ByCompany=14,
         CSDepartment_Operation_ForSale = 15,
+        IProduct_Operation_ALLActive_ByCompany=16
 
 
 

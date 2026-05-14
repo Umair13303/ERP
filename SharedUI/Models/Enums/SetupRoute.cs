@@ -10,6 +10,7 @@
             Inventory = 4,
             AIMSCHConfiguration = 5,
             SaleOperation = 6,
+            Procurement=7
         }
         public enum Controller
         {

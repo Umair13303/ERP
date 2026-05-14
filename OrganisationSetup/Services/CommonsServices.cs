@@ -27,6 +27,8 @@ namespace OrganisationSetup.Services
         Task<List<osvChartOfAccount>> populateOSvChartOfAccountByParam(string? operationType, int? filterConditionId, int? accountCatagoryId);
         Task<List<vPaymentMethod>> populatePaymentMethodByParam();
         Task<List<vProductType>> populateProductTypeByParam();
+
+        Task<List<vProductType>> populateStockAdjustmentTypeByParam();
         Task<Dictionary<string, FieldConfig>> fetchProductSetting();
     }
     public class CommonServices : ICommon
@@ -124,6 +126,11 @@ namespace OrganisationSetup.Services
             return result;
         }
         public async Task<List<vProductType>> populateProductTypeByParam()
+        {
+            var result = await _context.vProductType.AsNoTracking().Where(x=> x.Status == true).ToListAsync();
+            return result;
+        }
+        public async Task<List<vProductType>> populateStockAdjustmentTypeByParam()
         {
             var result = await _context.vProductType.AsNoTracking().Where(x=> x.Status == true).ToListAsync();
             return result;

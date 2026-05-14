@@ -17,6 +17,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         Task<List<ICategory>> populateCategoryByParam(string? operationType, int? filterConditionId, int? sectionId);
         Task<List<ISubCategory>> populateSubCategoryByParam(string? operationType, int? filterConditionId, int? categoryId);
         Task<List<IBrand>> populateBrandByParam(string? operationType, int? filterConditionId);
+        Task<List<Product_List>> populateProductByParam(string? operationType, int? filterConditionId, string searchParam);
     }
     public class InventoryRetrieverService : IInventoryRetriever
     {
@@ -167,6 +168,33 @@ namespace OrganisationSetup.Areas.Inventory.Services
             ).ToListAsync();
 
             return result;
+        }
+        public async Task<List<Product_List>> populateProductByParam(string? operationType, int? filterConditionId, string searchParam)
+        {
+            var userInfo = _currentUser;
+            if (!userInfo.IsAuthenticated)
+            {
+                return new List<Product_List>();
+            }
+
+            int?[]? documentStatusIds = await _commonsServices.getDocumentStatusByParam(operationType);
+            if (documentStatusIds == null) return new List<Product_List>();
+            switch (filterConditionId)
+            {
+                case ((int?)FilterConditions.IProduct_Operation_ALLActive_ByCompany):
+                    return await _eRPOSContext.IProduct.AsNoTracking()
+                        .Where(x =>
+                        x.CompanyId == userInfo.CompanyId
+                        && x.Status == true
+                        && documentStatusIds.Contains(x.DocumentStatus)).Select(x => new Product_List
+                        {
+                            Id = x.Id,
+                            Text = x.Description,
+                            AttIds = x.AttributeIds
+                        }).ToListAsync();
+                default:
+                    return new List<Product_List>();
+            }
         }
     }
 

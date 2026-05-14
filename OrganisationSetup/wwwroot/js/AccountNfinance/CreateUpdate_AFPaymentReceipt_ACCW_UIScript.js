@@ -71,7 +71,6 @@ function getBranchList() {
         }
     });
 }
-
 function getCustomerList(customerId) {
     $.ajax({
         url: window.basePath + "AccountNfinance/AFPaymentReceiptManagement/populateCustomerListByParam",

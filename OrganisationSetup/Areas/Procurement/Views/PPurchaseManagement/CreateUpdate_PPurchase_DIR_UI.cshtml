@@ -1,0 +1,516 @@
+﻿@using SharedUI.Models.Enums
+@{
+    Layout = "LayoutOne";
+}
+
+<div class="container-fluid py-2">
+
+    <div class="d-flex justify-content-between align-items-center border-bottom mb-4 pb-3">
+        <div>
+            <h5 class="fw-bold mb-0">@ViewBag.DisplayName</h5>
+            @{
+                string message = "Fill in the details to create a new stock adjustment record.";
+                <p class="text-muted small mb-0">@message</p>
+            }
+        </div>
+        <div>
+            @{
+                if (ViewBag.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB))
+                {
+                    <button type="button" id="ButtonSaveData" class="btn btn-primary btn-sm px-4 shadow-sm">
+                        <i class="fa-solid fa-cloud-arrow-up me-1"></i> Save
+                    </button>
+                }
+                else if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
+                {
+                    <button type="button" id="ButtonUpdateData" class="btn btn-success btn-sm px-4 shadow-sm">
+                        <i class="fa-solid fa-cloud-arrow-up me-1"></i> Update
+                    </button>
+                }
+            }
+        </div>
+    </div>
+
+    <form id="PStockForm ">
+        @Html.Hidden("OperationType", (string)ViewBag.OperationType)
+        @Html.Hidden("GuID")
+
+        @{
+            if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
+            {
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <div class="row mb-0">
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group">
+                                    @Html.Label("DropDownListDocument", "Document (Stock Adjustment)", new { @class = "col-form-label" })
+                                    @Html.DropDownList("DocumentGuID", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListDocument" })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+
+        <!-- HEADER INFORMATION -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="col-12 mt-2">
+                    <div class="bg-light rounded-2 border-start border-primary border-4 p-2">
+                        <span class="fw-bold text-primary small"><i class="fa-solid fa-file-lines me-2"></i> ADJUSTMENT INFORMATION</span>
+                    </div>
+                </div>
+
+                <div class="row mb-0 mt-3">
+                    <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("DropDownListLocation", "Location", new { @class = "col-form-label" })
+                            @Html.DropDownList("LocationId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListLocation" })
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("TextBoxTransactionDate", "Transaction Date", new { @class = "col-form-label" })
+                            @Html.TextBox("TransactionDate", null, new { @class = "form-control form-control-sm simpleDate", type = "date", required = "required", @id = "TextBoxTransactionDate" })
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("DropDownListAdjustmentType", "Adjustment Type", new { @class = "col-form-label" })
+                            @Html.DropDownList("AdjustmentTypeId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListAdjustmentType" })
+                        </div>
+                    </div>
+                 
+                </div>
+
+                <div class="row mb-0">
+                    <div class="col-sm-12 col-md-8">
+                        <div class="form-group">
+                            @Html.Label("TextBoxAdditionalDetail", "Additional Detail", new { @class = "col-form-label" })
+                            @Html.TextArea("AdditionalDetail", null, new { @class = "form-control form-control-sm", rows = "2", placeholder = "Optional remarks for this adjustment", @id = "TextBoxAdditionalDetail" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADD ITEM PANEL -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="col-12 mt-2">
+                    <div class="bg-light rounded-2 border-start border-warning border-4 p-2 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-warning small"><i class="fa-solid fa-boxes-stacking me-2"></i> ADD PRODUCT / VARIANT</span>
+                    </div>
+                </div>
+
+                <div class="row mb-0 mt-3">
+                    <div class="col-sm-12 col-md-5">
+                        <div class="form-group">
+                            @Html.Label("DropDownListProduct", "Product", new { @class = "col-form-label" })
+                            @Html.DropDownList("ProductId", Enumerable.Empty<SelectListItem>(), "Search & select product...", new { @class = "form-select form-select-sm select2", @id = "DropDownListProduct" })
+                        </div>
+                    </div>
+                </div>
+
+                <div id="VariantAttributesContainer" style="display:none;">
+                    <div class="row mb-0 mt-2" id="MultiTextBox">
+                    </div>
+                    <div class="row mb-0 mt-2">
+                        <div class="col-sm-12 col-md-3">
+                            <div class="form-group">
+                                <label class="col-form-label">Quantity</label>
+                                <input type="number" id="InputQty" class="form-control form-control-sm numberOnly" placeholder="Enter Qty" min="0" step="any" />
+                            </div>
+                        </div>
+                        <div class="col-sm-12 col-md-3">
+                            <div class="form-group">
+                                <label class="col-form-label">Unit Cost</label>
+                                <input type="number" id="InputUnitCost" class="form-control form-control-sm numberOnly" placeholder="Enter Unit Cost" min="0" step="any" />
+                            </div>
+                        </div>
+                        <div class="col-sm-12 col-md-3 d-flex align-items-end">
+                            <button type="button" id="ButtonAddLine" class="btn btn-success btn-sm px-4">
+                                <i class="fa-solid fa-plus me-1"></i> Add to Lines
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Matched variant badge -->
+                    <div class="row mt-2" id="VariantMatchRow" style="display:none;">
+                        <div class="col-12">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2" id="VariantMatchBadge">
+                                <i class="fa-solid fa-tag me-1"></i> <span id="VariantMatchText"></span>
+                            </span>
+                            <span class="ms-2 small text-muted">Current Stock: <strong id="CurrentStockDisplay">—</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="NoVariantMsg" class="text-muted small mt-3" style="display:none;">
+                    <i class="fa-solid fa-circle-info me-1"></i> This product has no attribute variants. Quantity and cost can be entered directly.
+                </div>
+            </div>
+        </div>
+
+        <!-- ADJUSTMENT LINES TABLE -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="col-12 mt-2">
+                    <div class="bg-light rounded-2 border-start border-success border-4 p-2 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-success small"><i class="fa-solid fa-list-check me-2"></i> ADJUSTMENT LINES</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle" id="LineBadge">0 lines</span>
+                    </div>
+                </div>
+
+                <div class="table-responsive mt-3">
+                    <table class="table table-sm table-bordered table-hover align-middle" id="AdjustmentLinesTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:40px">#</th>
+                                <th>Product</th>
+                                <th>Combination (Attributes)</th>
+                                <th style="width:110px">Qty</th>
+                                <th style="width:120px">Unit Cost</th>
+                                <th style="width:130px">Total Value</th>
+                                <th style="width:80px">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="AdjustmentLinesBody">
+                            <tr id="EmptyLinesRow">
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    <i class="fa-solid fa-inbox me-2"></i>No lines added yet. Select a product above and click <strong>Add to Lines</strong>.
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot id="AdjustmentLinesFoot" style="display:none;">
+                            <tr class="table-light fw-bold">
+                                <td colspan="5" class="text-end">Grand Total</td>
+                                <td id="GrandTotalCell">0.00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden field for serialised lines (posted to server) -->
+        @Html.Hidden("AdjustmentLinesJSON", null, new { @id = "AdjustmentLinesJSON" })
+
+    </form>
+</div>
+
+<script>
+    var LocationId = @ViewBag.LocationId;
+</script>
+<script src="~/js/procurement/createupdate_ppurchase_dir_ui.js"></script>
+@* 
+
+    <script>
+        $(document).ready(function () {
+
+            /* ======================================================
+               SAMPLE DATA  –  replace each $.get() call with your
+               actual controller endpoints following the same pattern
+               used throughout this ERP codebase.
+            ====================================================== */
+            const SAMPLE_PRODUCTS = [
+                { id: 1, text: "Men's Polo Shirt", hasAttributes: true,  attributes: [
+                    { id: 1, name: "Size",   values: [{id:1,val:"S"},{id:2,val:"M"},{id:3,val:"L"},{id:4,val:"XL"}] },
+                    { id: 2, name: "Color",  values: [{id:5,val:"Black"},{id:6,val:"White"},{id:7,val:"Navy"}] }
+                ]},
+                { id: 2, text: "Running Shoes",   hasAttributes: true,  attributes: [
+                    { id: 3, name: "Size",   values: [{id:8,val:"40"},{id:9,val:"41"},{id:10,val:"42"},{id:11,val:"43"}] },
+                    { id: 4, name: "Color",  values: [{id:12,val:"Red"},{id:13,val:"Black"}] }
+                ]},
+                { id: 3, text: "Plain Notebook",  hasAttributes: false, attributes: [] }
+            ];
+
+            const SAMPLE_ADJUSTMENT_TYPES = [
+                { id: 1, text: "Physical Count Correction" },
+                { id: 2, text: "Damage / Write-Off" },
+                { id: 3, text: "Return to Stock" },
+                { id: 4, text: "Opening Balance" }
+            ];
+
+            const SAMPLE_WAREHOUSES = [
+                { id: 1, text: "Main Warehouse" },
+                { id: 2, text: "Branch Store — Gulberg" },
+                { id: 3, text: "Branch Store — DHA" }
+            ];
+
+            /* =========  POPULATE STATIC DROPDOWNS  ========= */
+            function populateDDL(selector, data) {
+                var $sel = $(selector);
+                $sel.find("option:not(:first)").remove();
+                $.each(data, function (_, item) {
+                    $sel.append($("<option>").val(item.id).text(item.text));
+                });
+                if ($sel.hasClass("select2")) {
+                    $sel.trigger("change");
+                }
+            }
+
+            populateDDL("#DropDownListAdjustmentType", SAMPLE_ADJUSTMENT_TYPES);
+            populateDDL("#DropDownListWarehouse",      SAMPLE_WAREHOUSES);
+
+            /* Populate Products DDL */
+            var productOptions = [{ id: "", text: "Search & select product..." }];
+            $.each(SAMPLE_PRODUCTS, function (_, p) {
+                productOptions.push({ id: p.id, text: p.text });
+            });
+            $("#DropDownListProduct").select2({ data: productOptions, width: "100%" });
+
+            /* Set today's date */
+            var today = new Date().toISOString().split("T")[0];
+            $("#TextBoxDocumentDate").val(today);
+
+            /* =========  ADJUSTMENT LINES STATE  ========= */
+            var lines     = [];   // [{productId, productName, combination, qty, unitCost, attributes}]
+            var lineIndex = 0;
+
+            /* =========  PRODUCT CHANGE → LOAD ATTRIBUTES  ========= */
+            $("#DropDownListProduct").on("change", function () {
+                var productId = parseInt($(this).val());
+                if (!productId) {
+                    $("#VariantAttributesContainer").hide();
+                    $("#NoVariantMsg").hide();
+                    return;
+                }
+
+                /* Replace with: $.get(controller url, {productId}, function(data){...}) */
+                var product = SAMPLE_PRODUCTS.find(p => p.id === productId);
+                if (!product) return;
+
+                $("#AttributeFieldsRow").empty();
+                $("#VariantMatchRow").hide();
+
+                if (product.hasAttributes && product.attributes.length > 0) {
+                    $.each(product.attributes, function (_, attr) {
+                        var colDiv = $("<div>").addClass("col-sm-12 col-md-3");
+                        var fgDiv  = $("<div>").addClass("form-group");
+                        var lbl    = $("<label>").addClass("col-form-label").text(attr.name);
+                        var sel    = $("<select>")
+                            .addClass("form-select form-select-sm select2 attribute-val-ddl")
+                            .attr("data-attr-id",   attr.id)
+                            .attr("data-attr-name", attr.name)
+                            .append($("<option>").val("").text("Select " + attr.name));
+
+                        $.each(attr.values, function (_, v) {
+                            sel.append($("<option>").val(v.id).text(v.val).attr("data-val-text", v.val));
+                        });
+
+                        fgDiv.append(lbl, sel);
+                        colDiv.append(fgDiv);
+                        $("#AttributeFieldsRow").append(colDiv);
+
+                        sel.select2({ width: "100%" });
+                    });
+
+                    /* Listen for combination change */
+                    $("#AttributeFieldsRow").on("change", ".attribute-val-ddl", resolveVariant);
+
+                    $("#VariantAttributesContainer").show();
+                    $("#NoVariantMsg").hide();
+                } else {
+                    /* No attributes — simple product */
+                    $("#VariantAttributesContainer").show();
+                    $("#AttributeFieldsRow").empty();
+                    $("#NoVariantMsg").show();
+                    showVariantBadge("Simple Product (No Variants)", "—");
+                }
+            });
+
+            /* =========  RESOLVE VARIANT COMBINATION  ========= */
+            function resolveVariant() {
+                var allSelected = true;
+                var parts       = [];
+                var attrData    = [];
+
+                $(".attribute-val-ddl").each(function () {
+                    var selectedOpt = $(this).find("option:selected");
+                    if (!$(this).val()) {
+                        allSelected = false;
+                        return false;
+                    }
+                    parts.push(selectedOpt.attr("data-val-text") || selectedOpt.text());
+                    attrData.push({
+                        attrId:   $(this).data("attr-id"),
+                        attrName: $(this).data("attr-name"),
+                        valueId:  $(this).val(),
+                        valueText: selectedOpt.attr("data-val-text") || selectedOpt.text()
+                    });
+                });
+
+                if (allSelected) {
+                    var combination = parts.join(" / ");
+                    /* Replace with actual stock lookup from your controller */
+                    var mockCurrentStock = Math.floor(Math.random() * 200);
+                    showVariantBadge(combination, mockCurrentStock);
+                    $("#ButtonAddLine").data("combination", combination);
+                    $("#ButtonAddLine").data("attrData",    JSON.stringify(attrData));
+                } else {
+                    $("#VariantMatchRow").hide();
+                }
+            }
+
+            function showVariantBadge(combination, stock) {
+                $("#VariantMatchText").text(combination);
+                $("#CurrentStockDisplay").text(stock);
+                $("#VariantMatchRow").show();
+            }
+
+            /* =========  ADD LINE  ========= */
+            $("#ButtonAddLine").on("click", function () {
+                var productId   = parseInt($("#DropDownListProduct").val());
+                var productName = $("#DropDownListProduct option:selected").text();
+                var qty         = parseFloat($("#InputQty").val());
+                var unitCost    = parseFloat($("#InputUnitCost").val()) || 0;
+
+                if (!productId)        { alert("Please select a product.");   return; }
+                if (isNaN(qty) || qty <= 0) { alert("Please enter a valid quantity."); return; }
+
+                var product     = SAMPLE_PRODUCTS.find(p => p.id === productId);
+                var combination = "—";
+                var attrData    = [];
+
+                if (product && product.hasAttributes) {
+                    var allSelected = true;
+                    $(".attribute-val-ddl").each(function () {
+                        if (!$(this).val()) { allSelected = false; return false; }
+                    });
+                    if (!allSelected) { alert("Please select all attribute values to identify the variant."); return; }
+                    combination = $(this).data("combination") || "Selected Variant";
+                    attrData    = JSON.parse($(this).data("attrData") || "[]");
+                }
+
+                /* Check for duplicate combination on same product */
+                var duplicate = lines.find(function (l) {
+                    return l.productId === productId && l.combination === combination;
+                });
+                if (duplicate) {
+                    if (!confirm("A line for this product + combination already exists. Add another?")) return;
+                }
+
+                lineIndex++;
+                var line = {
+                    index:       lineIndex,
+                    productId:   productId,
+                    productName: productName,
+                    combination: combination,
+                    attrData:    attrData,
+                    qty:         qty,
+                    unitCost:    unitCost,
+                    totalValue:  qty * unitCost
+                };
+                lines.push(line);
+                renderLines();
+                resetAddPanel();
+            });
+
+            /* =========  RENDER LINES TABLE  ========= */
+            function renderLines() {
+                var $tbody = $("#AdjustmentLinesBody");
+                $tbody.empty();
+
+                if (lines.length === 0) {
+                    $tbody.append($("#EmptyLinesRow").clone().removeAttr("id").show());
+                    $("#AdjustmentLinesFoot").hide();
+                    $("#LineBadge").text("0 lines");
+                    updateJSON();
+                    return;
+                }
+
+                var grandTotal = 0;
+                $.each(lines, function (i, line) {
+                    grandTotal += line.totalValue;
+                    var $tr = $("<tr>");
+                    $tr.append($("<td>").text(i + 1));
+                    $tr.append($("<td>").text(line.productName));
+                    $tr.append($("<td>").html(
+                        line.combination !== "—"
+                            ? "<span class='badge bg-secondary-subtle text-secondary border border-secondary-subtle'>" + escapeHtml(line.combination) + "</span>"
+                            : "<span class='text-muted'>—</span>"
+                    ));
+                    $tr.append($("<td>").text(line.qty));
+                    $tr.append($("<td>").text(line.unitCost.toFixed(2)));
+                    $tr.append($("<td>").text(line.totalValue.toFixed(2)));
+                    var $delBtn = $("<button>")
+                        .addClass("btn btn-danger btn-sm")
+                        .html("<i class='fa-solid fa-trash'></i>")
+                        .on("click", function () { removeLine(line.index); });
+                    $tr.append($("<td>").append($delBtn));
+                    $tbody.append($tr);
+                });
+
+                $("#GrandTotalCell").text(grandTotal.toFixed(2));
+                $("#AdjustmentLinesFoot").show();
+                $("#LineBadge").text(lines.length + (lines.length === 1 ? " line" : " lines"));
+                updateJSON();
+            }
+
+            function removeLine(index) {
+                lines = lines.filter(function (l) { return l.index !== index; });
+                renderLines();
+            }
+
+            function updateJSON() {
+                $("#AdjustmentLinesJSON").val(JSON.stringify(lines));
+            }
+
+            function resetAddPanel() {
+                $("#DropDownListProduct").val("").trigger("change");
+                $("#InputQty").val("");
+                $("#InputUnitCost").val("");
+                $("#VariantAttributesContainer").hide();
+                $("#NoVariantMsg").hide();
+                $("#VariantMatchRow").hide();
+                $("#AttributeFieldsRow").empty();
+            }
+
+            /* =========  SAVE / UPDATE  ========= */
+            function collectAndPost(operationType) {
+                if (lines.length === 0) {
+                    alert("Please add at least one adjustment line before saving.");
+                    return;
+                }
+
+                var postedData = {
+                    OperationType:  operationType,
+                    GuID:           $("#GuID").val(),
+                    DocumentDate:   $("#TextBoxDocumentDate").val(),
+                    AdjustmentTypeId: $("#DropDownListAdjustmentType").val(),
+                    WarehouseId:    $("#DropDownListWarehouse").val(),
+                    Remarks:        $("#TextBoxRemarks").val(),
+                    AdjustmentLines: lines
+                };
+
+                /* Replace with your actual controller endpoint */
+                $.ajax({
+                    url:         "/Inventory/IStockAdjustmentManagement/createUpdateStockAdjustment",
+                    type:        "POST",
+                    contentType: "application/json",
+                    data:        JSON.stringify(postedData),
+                    success: function (response) {
+                        if (response.isSuccess) {
+                            alert("Stock Adjustment saved successfully.");
+                            window.location.reload();
+                        } else {
+                            alert("Error: " + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert("An unexpected error occurred. Please try again.");
+                    }
+                });
+            }
+
+            $("#ButtonSaveData").on("click",   function () { collectAndPost("INSERT_DATA_INTO_DB"); });
+            $("#ButtonUpdateData").on("click", function () { collectAndPost("UPDATE_DATA_INTO_DB"); });
+
+            /* =========  HELPERS  ========= */
+            function escapeHtml(str) {
+                return $("<div>").text(str).html();
+            }
+        });
+    </script> *@

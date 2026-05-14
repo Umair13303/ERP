@@ -20,6 +20,12 @@ namespace SharedUI.Models.ViewModels
             public string? Text { get; set; }
             public string? Contact { get; set; }
         }
+        public class Product_List
+        {
+            public int? Id { get; set; }
+            public string? Text { get; set; }
+            public string? AttIds { get; set; }
+        }
         public class Invoice_List
         {
             public string? CustomerName { get; set; }
