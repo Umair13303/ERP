@@ -42,4 +42,12 @@ namespace SharedUI.Models.Enums
 
 
     }
+    public enum StockAdjustmentType
+    {
+        OPENING_BALANCE = 1,
+        STOCK_IN_SURPLUS = 2,
+        STOCK_OUT_DAMAGED = 3,
+        THEFT_OR_LOSS = 4,
+        DATA_ENTRY_CORRECTION = 5
+    }
 }
