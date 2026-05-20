@@ -38,5 +38,4 @@ public partial class confClientProductSetting
     public string? ProductTypeLabel { get; set; }
 
     public bool? EnableDepartment { get; set; }
-
 }

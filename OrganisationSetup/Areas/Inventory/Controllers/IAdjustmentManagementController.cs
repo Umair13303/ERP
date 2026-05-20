@@ -45,9 +45,9 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
             return Json(result);
         }
         [HttpGet]
-        public async Task<IActionResult> populatevStockAdjustmentTypeListByParam()
+        public async Task<IActionResult> populatevInventoryAdjustmentTypeListByParam()
         {
-            var result = await _commonsServices.populateStockAdjustmentTypeByParam();
+            var result = await _commonsServices.populateInventoryAdjustmentTypeByParam();
             return Json(result);
         }
         [HttpGet]

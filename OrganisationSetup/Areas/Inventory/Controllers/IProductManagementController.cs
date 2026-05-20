@@ -129,6 +129,12 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
             var result = await _IcService.populateSaleTaxTypeByParam();
             return Json(result);
         }
+        [HttpGet]
+        public async Task<IActionResult> populatevCostingModeListByParam()
+        {
+            var result = await _IcService.populateCostingModeByParam();
+            return Json(result);
+        }
 
         #endregion
 

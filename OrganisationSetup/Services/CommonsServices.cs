@@ -27,8 +27,8 @@ namespace OrganisationSetup.Services
         Task<List<osvChartOfAccount>> populateOSvChartOfAccountByParam(string? operationType, int? filterConditionId, int? accountCatagoryId);
         Task<List<vPaymentMethod>> populatePaymentMethodByParam();
         Task<List<vProductType>> populateProductTypeByParam();
-
-        Task<List<vProductType>> populateStockAdjustmentTypeByParam();
+        Task<List<vInventoryAdjustmentType>> populateInventoryAdjustmentTypeByParam();
+        Task<List<vCostingMode>> populateCostingModeByParam();
         Task<Dictionary<string, FieldConfig>> fetchProductSetting();
     }
     public class CommonServices : ICommon
@@ -130,9 +130,14 @@ namespace OrganisationSetup.Services
             var result = await _context.vProductType.AsNoTracking().Where(x=> x.Status == true).ToListAsync();
             return result;
         }
-        public async Task<List<vProductType>> populateStockAdjustmentTypeByParam()
+        public async Task<List<vInventoryAdjustmentType>> populateInventoryAdjustmentTypeByParam()
         {
-            var result = await _context.vProductType.AsNoTracking().Where(x=> x.Status == true).ToListAsync();
+            var result = await _context.vInventoryAdjustmentType.AsNoTracking().Where(x=> x.Status == true).ToListAsync();
+            return result;
+        }
+        public async Task<List<vCostingMode>> populateCostingModeByParam()
+        {
+            var result = await _context.vCostingMode.AsNoTracking().Where(x=> x.Status == true).ToListAsync();
             return result;
         }
         public async Task<List<osvChartOfAccount>> populateOSvChartOfAccountByParam(string? operationType, int? filterConditionId, int? accountCatagoryId)

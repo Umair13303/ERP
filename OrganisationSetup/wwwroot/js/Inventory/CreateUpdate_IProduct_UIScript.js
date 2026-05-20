@@ -322,6 +322,28 @@ function getvSaleTaxTypeList() {
         }
     });
 }
+function getvCostingModeList() {
+    $.ajax({
+        url: window.basePath + "Inventory/IProductManagement/populatevCostingModeListByParam",
+        type: "GET",
+        dataType: "json",
+        beforeSend: function () {
+
+        },
+        success: function (data) {
+            $("#DropDownListCostingMode").empty();
+            $.each(data, function (index, item) {
+                $("#DropDownListCostingMode").append(new Option(item.description, item.id));
+            });
+        },
+        complete: function () {
+
+        },
+        error: function (xhr, status, error) {
+            console.error("Error: " + error);
+        }
+    });
+}
 
 /* ------ Change Cases DDL's ------ */
 function changeEventHandler() {
@@ -361,6 +383,7 @@ function initialize() {
     getvItemTypeList();
     getvHSCodeList();
     getvSaleTaxTypeList();
+    getvCostingModeList();
     const intputMasking = new UIMasking();
     intputMasking.initialize();
     $('.select2').select2({
@@ -412,6 +435,7 @@ function createUpdateDataIntoDB() {
     var itemTypeId = $("#DropDownListItemType :selected").val();
     var hsCodeId = $("#DropDownListHSCode :selected").val();
     var saleTaxTypeId = $("#DropDownListSaleTaxType :selected").val();
+    var costingModeId = $("#DropDownListCostingMode :selected").val();
 
     var jsonData = {
         OperationType: operationType,
@@ -437,8 +461,8 @@ function createUpdateDataIntoDB() {
         CostOfSaleAccountId: costOfSaleAccountId,
         ItemTypeId: itemTypeId,
         HSCodeId: hsCodeId,
-        SaleTaxTypeId: saleTaxTypeId
-
+        SaleTaxTypeId: saleTaxTypeId,
+        CostingModeId: costingModeId
     }
     $.ajax({
         url: window.basePath + "Inventory/IProductManagement/createUpdateProduct",

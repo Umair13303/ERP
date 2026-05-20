@@ -3,27 +3,23 @@ using System.Collections.Generic;
 
 namespace OrganisationSetup.Models.DAL;
 
-public partial class IProductATI
+public partial class AFBillPPI
 {
     public int Id { get; set; }
 
     public Guid? GuID { get; set; }
 
+    public int? BillId { get; set; }
+
     public int? ProductId { get; set; }
 
-    public int? InventoryAccountId { get; set; }
+    public int? Quantity { get; set; }
 
-    public int? SaleRevenueAccountId { get; set; }
+    public decimal ActualAmount { get; set; }
 
-    public int? CostOfSaleAccountId { get; set; }
+    public decimal DiscountAmount { get; set; }
 
-    public int? ItemTypeId { get; set; }
-
-    public int? HSCodeId { get; set; }
-
-    public int? SaleTaxTypeId { get; set; }
-
-    public int? CostingModeId { get; set; }
+    public decimal ChargedAmount { get; set; }
 
     public DateTime? CreatedOn { get; set; }
 

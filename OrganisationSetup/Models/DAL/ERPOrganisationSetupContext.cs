@@ -19,6 +19,10 @@ public partial class ERPOrganisationSetupContext : DbContext
 
     public virtual DbSet<ACUser> ACUser { get; set; }
 
+    public virtual DbSet<AFBill> AFBill { get; set; }
+
+    public virtual DbSet<AFBillPPI> AFBillPPI { get; set; }
+
     public virtual DbSet<AFChartOfAccount> AFChartOfAccount { get; set; }
 
     public virtual DbSet<AFCustomerLedger> AFCustomerLedger { get; set; }
@@ -31,11 +35,15 @@ public partial class ERPOrganisationSetupContext : DbContext
 
     public virtual DbSet<AFPaymentReceipt> AFPaymentReceipt { get; set; }
 
+    public virtual DbSet<AFSupplierLedger> AFSupplierLedger { get; set; }
+
     public virtual DbSet<CSDepartment> CSDepartment { get; set; }
 
     public virtual DbSet<IBrand> IBrand { get; set; }
 
     public virtual DbSet<ICategory> ICategory { get; set; }
+
+    public virtual DbSet<IInventoryAdjustment> IInventoryAdjustment { get; set; }
 
     public virtual DbSet<IProduct> IProduct { get; set; }
 
@@ -44,6 +52,8 @@ public partial class ERPOrganisationSetupContext : DbContext
     public virtual DbSet<ISection> ISection { get; set; }
 
     public virtual DbSet<ISubCategory> ISubCategory { get; set; }
+
+    public virtual DbSet<ISupplier> ISupplier { get; set; }
 
     public virtual DbSet<SOCustomer> SOCustomer { get; set; }
 
@@ -61,11 +71,15 @@ public partial class ERPOrganisationSetupContext : DbContext
 
     public virtual DbSet<vCity> vCity { get; set; }
 
+    public virtual DbSet<vCostingMode> vCostingMode { get; set; }
+
     public virtual DbSet<vCountry> vCountry { get; set; }
 
     public virtual DbSet<vFinancialStatement> vFinancialStatement { get; set; }
 
     public virtual DbSet<vHSCode> vHSCode { get; set; }
+
+    public virtual DbSet<vInventoryAdjustmentType> vInventoryAdjustmentType { get; set; }
 
     public virtual DbSet<vItemType> vItemType { get; set; }
 
@@ -117,6 +131,27 @@ public partial class ERPOrganisationSetupContext : DbContext
         modelBuilder.Entity<ACUser>(entity =>
         {
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<AFBill>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__AFBill__3214EC07A9ABD5AD");
+
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.DueAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.TransactionDate).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<AFBillPPI>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__AFBillPP__3214EC0769720BF3");
+
+            entity.Property(e => e.ActualAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ChargedAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.DiscountAmount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
         });
 
@@ -179,6 +214,17 @@ public partial class ERPOrganisationSetupContext : DbContext
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
         });
 
+        modelBuilder.Entity<AFSupplierLedger>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__AFSuppli__3214EC0779569B61");
+
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.Credit).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Debit).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.TransactionDate).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+        });
+
         modelBuilder.Entity<CSDepartment>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK_ACDepartment");
@@ -200,6 +246,19 @@ public partial class ERPOrganisationSetupContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__ICategor__3214EC07ADE2DB2A");
 
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<IInventoryAdjustment>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__IInvento__3214EC07449043B5");
+
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.QuantityIn).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.QuantityOut).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.TransactionDate).HasColumnType("datetime");
+            entity.Property(e => e.UnitPurchasePrice).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.UnitSalePrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
         });
 
@@ -233,6 +292,15 @@ public partial class ERPOrganisationSetupContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__ISubCate__3214EC0768BF3384");
 
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<ISupplier>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__ISupplie__3214EC0750900A43");
+
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.OpeningBalance).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
         });
 
@@ -294,6 +362,13 @@ public partial class ERPOrganisationSetupContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__vCity__3214EC079B843DE9");
         });
 
+        modelBuilder.Entity<vCostingMode>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__vCosting__3214EC07CE0C2E53");
+
+            entity.Property(e => e.Status).HasDefaultValue(true);
+        });
+
         modelBuilder.Entity<vCountry>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__vCountry__3214EC076392BB8C");
@@ -307,6 +382,13 @@ public partial class ERPOrganisationSetupContext : DbContext
         modelBuilder.Entity<vHSCode>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__vHSCode__3214EC0703BE51B4");
+        });
+
+        modelBuilder.Entity<vInventoryAdjustmentType>(entity =>
+        {
+            entity.HasNoKey();
+
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
         });
 
         modelBuilder.Entity<vItemType>(entity =>

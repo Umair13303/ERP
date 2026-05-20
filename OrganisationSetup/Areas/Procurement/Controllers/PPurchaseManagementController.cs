@@ -46,10 +46,11 @@ namespace OrganisationSetup.Areas.Procurement.Controllers
             var result = await _acrService.populateBranchByParam(operationType, (int?)FilterConditions.acBranch_Operation_ByAllowedBranches, null);
             return Json(result);
         }
+
         [HttpGet]
-        public async Task<IActionResult> populatevStockAdjustmentTypeListByParam()
+        public async Task<IActionResult> populatevInventoryAdjustmentTypeListByParam()
         {
-            var result = await _commonsServices.populateStockAdjustmentTypeByParam();
+            var result = await _commonsServices.populateInventoryAdjustmentTypeByParam();
             return Json(result);
         }
         [HttpGet]

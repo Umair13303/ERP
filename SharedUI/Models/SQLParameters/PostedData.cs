@@ -17,6 +17,7 @@ namespace SharedUI.Models.SQLParameters
         public string? FBRStamp { get; set; }
         public int? OrganisationTypeId { get; set; }
         public int? ProductTypeId { get; set; }
+        public int? CostingModeId { get; set; }
         public int? CountryId { get; set; }
         public int? CustomerId { get; set; }
         public int? AccountTypeId { get; set; }
