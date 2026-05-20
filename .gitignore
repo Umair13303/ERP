@@ -363,3 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 *.slnLaunch
 /ERP.rar
+/OrganisationSetup/Areas/Inventory/Views/DirectPurchaseManagement/CreateUpdate_DirectPurchase_UI.cshtml
+/OrganisationSetup/wwwroot/js/Inventory/PointOfSale_Window.js
