@@ -107,6 +107,7 @@ builder.Services.AddScoped<IInventoryRetriever, InventoryRetrieverService>();
 builder.Services.AddScoped<ISaleOperationUpsert, SaleOperationUpsertService>();
 builder.Services.AddScoped<ISaleOperationValidation, SaleOperationValidationService>();
 builder.Services.AddScoped<ISaleOperationRetriever, SaleOperationRetrieverService>();
+builder.Services.AddScoped<IPOSService, POSService>();
 builder.Services.AddScoped<TempUser>();
 
 var app = builder.Build();

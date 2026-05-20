@@ -24,6 +24,8 @@ namespace SharedUI.Models.Enums
         brand = 12,
         product = 13,
         productATI = 14,
+        inventoryAdjustment = 26,
+        stockLedgerRecord = 27,
 
         // SALE
         customer = 15,
@@ -39,8 +41,6 @@ namespace SharedUI.Models.Enums
         billProduct = 23,
         billProductSupplierOB = 24,
         supplierLedgerRecord = 25
-
-
     }
     public enum StockAdjustmentType
     {
@@ -50,4 +50,28 @@ namespace SharedUI.Models.Enums
         THEFT_OR_LOSS = 4,
         DATA_ENTRY_CORRECTION = 5
     }
+    public enum CostingMode
+    {
+        FIFO = 1,
+        LIFO = 2,
+        WAC = 3
+    }
+
+    public enum AdjustmentStatus
+    {
+        approved = 1,
+        pending = 2,
+        rejected = 3
+    }
+
+    public enum AdjustmentType
+    {
+        OpeningBalance = 1,
+        Damaged = 2,
+        Shortage = 3,
+        Variance = 4,
+        Equipment = 5
+    }
+
+
 }

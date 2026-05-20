@@ -1,175 +1,171 @@
 ﻿@using SharedUI.Models.Enums
 @{
     Layout = "LayoutOne";
-    var staticAdjustmentTypes = Enum.GetValues(typeof(StockAdjustmentType))
-            .Cast<StockAdjustmentType>()
-            .Select(e => new SelectListItem
-            {
-                Value = ((int)e).ToString(),
-                Text = e.ToString().Replace("_", " ") 
-            }).ToList();
 }
 
 <div class="container-fluid py-2">
-
     <div class="d-flex justify-content-between align-items-center border-bottom mb-4 pb-3">
         <div>
             <h5 class="fw-bold mb-0">@ViewBag.DisplayName</h5>
-            @{
-                string message = "Fill in the details to create a new stock adjustment record.";
-                <p class="text-muted small mb-0">@message</p>
-            }
-        </div>
-        <div>
-            @{
-                if (ViewBag.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB))
-                {
-                    <button type="button" id="ButtonSaveData" class="btn btn-primary btn-sm px-4 shadow-sm">
-                        <i class="fa-solid fa-cloud-arrow-up me-1"></i> Save
-                    </button>
-                }
-                else if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
-                {
-                    <button type="button" id="ButtonUpdateData" class="btn btn-success btn-sm px-4 shadow-sm">
-                        <i class="fa-solid fa-cloud-arrow-up me-1"></i> Update
-                    </button>
-                }
-            }
+            <p class="text-muted small mb-0">Record direct purchases with immediate GL impact</p>
         </div>
     </div>
 
-    <form id="IInventoryAdjustmentForm">
+    <form id="DirectPurchaseForm">
         @Html.Hidden("OperationType", (string)ViewBag.OperationType)
         @Html.Hidden("GuID")
 
-        @{
-            if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
-            {
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <div class="row mb-0">
-                            <div class="col-sm-12 col-md-6">
-                                <div class="form-group">
-                                    @Html.Label("DropDownListDocument", "Document (Stock Adjustment)", new { @class = "col-form-label" })
-                                    @Html.DropDownList("DocumentGuID", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListDocument" })
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-        }
-
-        <!-- HEADER INFORMATION -->
         <div class="card mb-3">
             <div class="card-body">
                 <div class="col-12 mt-2">
                     <div class="bg-light rounded-2 border-start border-primary border-4 p-2">
-                        <span class="fw-bold text-primary small"><i class="fa-solid fa-file-lines me-2"></i> ADJUSTMENT INFORMATION</span>
+                        <span class="fw-bold text-primary small"><i class="fa-solid fa-file-lines me-2"></i> PURCHASE INFORMATION</span>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="form-group">
+                            @Html.Label("DropDownListLocation", "Location", new { @class = "col-form-label" })
+                            @Html.DropDownList("LocationId", Enumerable.Empty<SelectListItem>(), "Select Location", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListLocation" })
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="form-group">
+                            @Html.Label("TextBoxTransactionDate", "Purchase Date", new { @class = "col-form-label" })
+                            @Html.TextBox("TransactionDate", DateTime.Now.ToString("yyyy-MM-dd"), new { @class = "form-control form-control-sm", type = "date", required = "required", @id = "TextBoxTransactionDate" })
+                        </div>
                     </div>
                 </div>
 
                 <div class="row">
-                    <div class="col-lg-6 border-end">
-                        <div class="row g-1">
-                            <div class="col-sm-12 col-md-6">
-                        <div class="form-group">
-                            @Html.Label("DropDownListLocation", "Location", new { @class = "col-form-label" })
-                            @Html.DropDownList("LocationId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListLocation" })
-                        </div>
-                    </div>
-                            <div class="col-sm-12 col-md-6">
-                        <div class="form-group">
-                            @Html.Label("TextBoxTransactionDate", "Transaction Date", new { @class = "col-form-label" })
-                            @Html.TextBox("TransactionDate", null, new { @class = "form-control form-control-sm simpleDate", type = "date", required = "required", @id = "TextBoxTransactionDate" })
-                        </div>
-                    </div>
-                            <div class="col-sm-12 col-md-12">
-                        <div class="form-group">
-                            @Html.Label("TextBoxDescription", "Description", new { @class = "col-form-label" })
-                            @Html.TextBox("Description", null, new { @class = "form-control form-control-sm", placeholder = "Provide Description!", required = "required", @id = "TextBoxDescription" })
-                        </div>
-                    </div>
-                        </div>
-                        <div class="row g-1">
                     <div class="col-sm-12 col-md-6">
                         <div class="form-group">
-                            @Html.Label("DropDownListProduct", "Product", new { @class = "col-form-label" })
-                            @Html.DropDownList("ProductId", Enumerable.Empty<SelectListItem>(), "Search & select product...", new { @class = "form-select form-select-sm select2", @id = "DropDownListProduct" })
+                            @Html.Label("DropDownListSupplier", "Supplier", new { @class = "col-form-label" })
+                            @Html.DropDownList("SupplierId", Enumerable.Empty<SelectListItem>(), "Select Supplier", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListSupplier" })
                         </div>
                     </div>
-
-                    <div class="col-12 mt-2">
-                        <div class="bg-light rounded-2 border-start border-warning border-1 p-2">
-                            <span class="fw-bold text-warning small"><i class="fa-solid fa-file-lines me-2"></i> VARIANT INFORMATION</span>
-                            <div class="row mb-0 mt-0 fw-bold text-danger small" id="ContainerStockAttribute">
-                            </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="form-group">
+                            @Html.Label("TextBoxInvoiceNo", "Invoice/Bill No", new { @class = "col-form-label" })
+                            @Html.TextBox("InvoiceNo", null, new { @class = "form-control form-control-sm", required = "required", placeholder = "Supplier invoice number", @id = "TextBoxInvoiceNo" })
                         </div>
                     </div>
-                    
                 </div>
-                        <div class="row g-1">
-                    <div class="col-sm-12 col-md-4">
+
+                <div class="row">
+                    <div class="col-sm-12 col-md-12">
                         <div class="form-group">
-                            @Html.Label("DropDownListAdjustmentType", "Adjustment Type", new { @class = "col-form-label" })
-                            @Html.DropDownList("AdjustmentTypeId", staticAdjustmentTypes, "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListAdjustmentType" })
-                            @* @Html.DropDownList("AdjustmentTypeId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListAdjustmentType" }) *@
+                            @Html.Label("TextBoxDescription", "Purchase Description", new { @class = "col-form-label" })
+                            @Html.TextArea("Description", null, new { @class = "form-control form-control-sm", rows = "2", placeholder = "Purchase details", @id = "TextBoxDescription" })
                         </div>
-                    </div>
-
-                    <div class="col-sm-12 col-md-4">
-                        <div class="form-group">
-                            @Html.Label("TextBoxUnitPurchasePrice", "Purchase Price", new { @class = "col-form-label" })
-                            @Html.TextBox("UnitPurchasePrice", 0.00, new { @class = "form-control form-control-sm", placeholder = "Provide Purchase Price/e!", required = "required", @id = "TextBoxUnitPurchasePrice", type = "number", min = "0" })
-                        </div>
-                    </div>
-
-                    <div class="col-sm-12 col-md-4">
-                        <div class="form-group">
-                            @Html.Label("TextBoxUnitSalePrice", "Sale Price", new { @class = "col-form-label" })
-                            @Html.TextBox("UnitSalePrice", 0.00, new { @class = "form-control form-control-sm", placeholder = "Provide Sale Price/e!", required = "required", @id = "TextBoxUnitSalePrice" ,type = "number", min = "0.00" })
-                        </div>
-                    </div>
-
-                    <div class="col-sm-12 col-md-4">
-                        <div class="form-group">
-                            @Html.Label("TextBoxQuantityIn", "Quantity In", new { @class = "col-form-label" })
-                            @Html.TextBox("QuantityIn", 0.00, new { @class = "form-control form-control-sm", placeholder = "Quantity Inward!", @id = "TextBoxQuantityIn" ,type = "number", min = "0" })
-                        </div>
-                    </div>
-                    <div class="col-sm-12 col-md-4">
-                        <div class="form-group">
-                            @Html.Label("TextBoxQuantityOut", "Quantity Out", new { @class = "col-form-label" })
-                            @Html.TextBox("QuantityOut", 0.00, new { @class = "form-control form-control-sm", placeholder = "Quantity Outward!", @id = "TextBoxQuantityOut" ,type = "number", min = "0" })
-                        </div>
-                    </div>
-
-                            @if (ViewBag.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB))
-                            {
-                                <button type="button" id="ButtonSaveData" class="btn btn-primary btn-sm px-4 shadow-sm">
-                                    <i class="fa-solid fa-cloud-arrow-up me-1"></i> Save
-                                </button>
-                            }
-                            else if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
-                            {
-                                <button type="button" id="ButtonUpdateData" class="btn btn-success btn-sm px-4 shadow-sm">
-                                    <i class="fa-solid fa-cloud-arrow-up me-1"></i> Update
-                                </button>
-                            }
-
-
-
-                        </div> 
                     </div>
                 </div>
             </div>
+        </div>
 
+        <div class="card mb-3">
+            <div class="card-header">
+                <span class="fw-bold text-primary"><i class="fa-solid fa-list me-2"></i> PURCHASE LINE ITEMS</span>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="TableDirectPurchaseItems" class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th width="5%">#</th>
+                                <th width="25%">Product</th>
+                                <th width="10%">Quantity</th>
+                                <th width="12%">Unit Price</th>
+                                <th width="12%">Amount</th>
+                                <th width="15%">GL Account</th>
+                                <th width="10%">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="TablePurchaseItemsBody">
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-light">
+                                <td colspan="4" class="text-end fw-bold">TOTAL:</td>
+                                <td class="fw-bold" id="TotalAmount">0.00</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("DropDownListProduct", "Add Product", new { @class = "col-form-label" })
+                            @Html.DropDownList("ProductId", Enumerable.Empty<SelectListItem>(), "Select Product", new { @class = "form-select form-select-sm select2", @id = "DropDownListProduct" })
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-2">
+                        <div class="form-group">
+                            @Html.Label("TextBoxLineQuantity", "Qty", new { @class = "col-form-label" })
+                            @Html.TextBox("LineQuantity", "", new { @class = "form-control form-control-sm", type = "number", step = "0.01", @id = "TextBoxLineQuantity" })
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-2">
+                        <div class="form-group">
+                            @Html.Label("TextBoxLinePrice", "Price", new { @class = "col-form-label" })
+                            @Html.TextBox("LinePrice", "", new { @class = "form-control form-control-sm", type = "number", step = "0.01", @id = "TextBoxLinePrice" })
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("DropDownListGLAccount", "GL Account", new { @class = "col-form-label" })
+                            @Html.DropDownList("GLAccountId", Enumerable.Empty<SelectListItem>(), "Select Account", new { @class = "form-select form-select-sm select2", @id = "DropDownListGLAccount" })
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-2 d-flex align-items-end">
+                        <button type="button" id="ButtonAddLineItem" class="btn btn-sm btn-info w-100">
+                            <i class="fa-solid fa-plus me-1"></i> Add
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="form-group">
+                            @Html.Label("TextBoxTaxAmount", "Tax Amount", new { @class = "col-form-label" })
+                            @Html.TextBox("TaxAmount", "0.00", new { @class = "form-control form-control-sm", type = "number", step = "0.01", @id = "TextBoxTaxAmount" })
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="form-group">
+                            @Html.Label("TextBoxDiscount", "Discount", new { @class = "col-form-label" })
+                            @Html.TextBox("Discount", "0.00", new { @class = "form-control form-control-sm", type = "number", step = "0.01", @id = "TextBoxDiscount" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-3 p-3 bg-light rounded">
+                    <div class="col-sm-12 col-md-4 text-end fw-bold">
+                        Subtotal: <span id="SubtotalDisplay">0.00</span>
+                    </div>
+                    <div class="col-sm-12 col-md-4 text-end fw-bold">
+                        Tax: <span id="TaxDisplay">0.00</span>
+                    </div>
+                    <div class="col-sm-12 col-md-4 text-end fw-bold text-primary" style="font-size: 16px;">
+                        Total: <span id="GrandTotalDisplay">0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-end">
+            <button type="button" id="ButtonSaveData" class="btn btn-primary btn-sm px-4">
+                <i class="fa-solid fa-cloud-arrow-up me-1"></i> Save Purchase
+            </button>
         </div>
     </form>
 </div>
 
-<script>
-    var LocationId = @ViewBag.LocationId;
-    var SelectedAdjustmentTypeId = '@ViewBag.AdjustmentTypeId' || null;
-</script>
-<script src="~/js/procurement/createupdate_ppurchase_dir_uiscript.js"></script>
+<script src="~/js/inventory/DirectPurchase_UIScript.js"></script>

@@ -39,14 +39,16 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
         Task<(int? response, int? insertedId)> UpsertInto_ISupplier(string? operationType, Guid? guId, string? description, string? contact, string? email, string? cnicNumber, string? address, string? additionalDetail, int? payableAccountId, decimal? openingBalance, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId, SqlConnection con, SqlTransaction trans);
         Task<(int? response, int? insertedId, string? documentCode, decimal? totalBillAmount)> UpsertInto_AFBill(string? operationType, Guid? guId, int? locationId, DateTime? transactionDate, int? supplierId, string? description, decimal dueAmount, int? billTypeId, int? billStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId, List<AFBillPPI_TVP> billPPI, SqlConnection con, SqlTransaction trans);
         Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_AFSupplierLedger(string? operationType, int? companyId, List<AFSupplierLedger_TVP> customerLedger, SqlConnection con, SqlTransaction trans);
+        Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_IInventoryAdjustment(string? operationType, Guid? guID, int? locationId, DateTime? transactionDate, string? description, int? productId, string? attribute, int? inventoryAdjustmentTypeId, decimal? unitPurchasePrice, decimal? unitSalePrice, decimal? quantityIn, decimal? quantityOut, int? adjustmentStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, bool? status, int? branchId, int? companyId, SqlConnection con, SqlTransaction trans);
+        //Task<int?> UpsertInto_IStockLedger(int? companyId, List<IStockLedger_TVP> stockLedger, SqlConnection con, SqlTransaction trans);
 
         #endregion
-
         #region RETRIEVE OPERATION
         Task<IReadOnlyList<DTObject.Invoice_List>> ret_Invoice_ByParam(Guid? guId, int? customerId, int?[] documentStatusIds, int?[] invoiceStatusIds,string connStr);
         Task<IReadOnlyList<DTObject.RptCustomerSummary_List>> ret_RptCustomerSummary_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] invoiceStatusIds, int?[] documentStatusIds, string connStr);
         Task<IReadOnlyList<DTObject.RptSaleLedger_List>> ret_RptSaleLedger_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] invoiceStatusIds, int?[] documentStatusIds, string connStr);
         Task<IReadOnlyList<DTObject.RptPaymentReceipt_List>> ret_RptPaymentReceipt_ByParam(int?[] paymentStatusIds, int?[] documentStatusIds, int? branchId, int? companyId, int? customerId, string connStr);
+        Task<IReadOnlyList<DTObject.RptInventoryAdjustment_List>> ret_RptInventoryAdjustment_ByParam(int?[] adjustmentStatusIds, int?[] documentStatusIds, int? locationId, int? branchId, int? companyId, int? productId, string connStr);
         #endregion
 
     }
@@ -944,6 +946,27 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             try
             {
                 var result = await db.QueryAsync<DTObject.RptPaymentReceipt_List>("[dbo].[RptPaymentReceipt_GLBParam]", parameters, commandType: CommandType.StoredProcedure);
+                return result.ToList().AsReadOnly();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public async Task<IReadOnlyList<DTObject.RptInventoryAdjustment_List>> ret_RptInventoryAdjustment_ByParam(int?[] adjustmentStatusIds, int?[] documentStatusIds, int? locationId,int? branchId, int? companyId,  int? productId,  string connStr)
+        {
+            using IDbConnection db = new SqlConnection(connStr);
+            var parameters = new
+            {
+                AdjustmentStatusIds = adjustmentStatusIds != null ? string.Join(",", adjustmentStatusIds) : null,
+                DocumentStatusIds = documentStatusIds != null ? string.Join(",", documentStatusIds) : null,
+                BranchId = branchId,
+                CompanyId = companyId,
+                ProductId= productId
+            };
+            try
+            {
+                var result = await db.QueryAsync<DTObject.RptInventoryAdjustment_List>("[dbo].[RptInventoryAdjustment_GLBParam]", parameters, commandType: CommandType.StoredProcedure);
                 return result.ToList().AsReadOnly();
             }
             catch (Exception ex)

@@ -22,7 +22,7 @@ function getBranchList() {
             });
         },
         complete: function () {
-            if (LocationId != null || LocationId != "" || LocationId != undefined || LocationId != 0) {
+            if (LocationId != null && LocationId != "" && LocationId != undefined && LocationId != 0) {
                 $("#DropDownListLocation").val(LocationId).trigger("change").prop('disabled', true);
             }
         },
@@ -171,7 +171,7 @@ function createUpdateDataIntoDB() {
     var transactionDate = $("#TextBoxTransactionDate").val();
     var description = $("#TextBoxDescription").val();
     var productId = $("#DropDownListProduct :selected").val();
-    var adjustmentTypeId = $("#DropDownListAdjustmentType  :selected").val();
+    var adjustmentTypeId = $("#DropDownListInventoryAdjustmentType :selected").val();
     var unitPurchasePrice = $("#TextBoxUnitPurchasePrice").val();
     var unitSalePrice = $("#TextBoxUnitSalePrice").val();
     var quantityIn = $("#TextBoxQuantityIn").val();
@@ -200,11 +200,8 @@ function createUpdateDataIntoDB() {
         Attribute: attribute
     };
 
-
-    console.log(jsonData);
-    return;
     $.ajax({
-        url: window.basePath + "CompanySetup/CSDepartmentManagement/createUpdateDepartment",
+        url: window.basePath + "Inventory/IAdjustmentManagement/createUpdateInventoryAdjustment",
         type: "POST",
         data: JSON.stringify(jsonData),
         contentType: "application/json; charset=utf-8",

@@ -79,5 +79,12 @@ namespace SharedUI.Models.SQLParameters
         public int? ItemTypeId { get; set; }
         public int? HSCodeId { get; set; }
         public int? SaleTaxTypeId { get; set; }
+        public decimal? QuantityIn { get; set; }
+        public decimal? QuantityOut { get; set; }
+        public int? InventoryAdjustmentTypeId { get; set; }
+        public int? SupplierId { get; set; }
+        public string? InvoiceNo { get; set; }
+        public decimal UnitPurchasePrice { get; set; }
+        public decimal UnitSalePrice { get; set; }
     }
 }

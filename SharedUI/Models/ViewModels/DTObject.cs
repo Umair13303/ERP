@@ -76,5 +76,18 @@ namespace SharedUI.Models.ViewModels
             public int? Id { get; set; }
 
         }
+        public class RptInventoryAdjustment_List
+        {
+            public DateTime? TransactionDate { get; set; }
+            public string? Code { get; set; }
+            public string? Description { get; set; }
+            public decimal? QuantityIn { get; set; }
+            public decimal? QuantityOut { get; set; }
+            public decimal? UnitPurchasePrice { get; set; }
+            public decimal? UnitSalePrice { get; set; }
+            public Guid? GuID { get; set; }
+            public int? Id { get; set; }
+
+        }
     }
 }

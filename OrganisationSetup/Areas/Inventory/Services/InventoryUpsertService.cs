@@ -22,6 +22,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         Task<ServiceResult> updateInsertDataInto_IProduct(PostedData postedData);
         Task<ServiceResult> updateInsertDataInto_IProductATI(PostedData postedData);
         Task<ServiceResult> updateInsertDataInto_ISupplier(PostedData postedData);
+        Task<ServiceResult> updateInsertDataInto_IInventoryAdjustment(PostedData postedData);
 
     }
     public class InventoryUpsertService : IInventoryUpsert
@@ -686,6 +687,125 @@ namespace OrganisationSetup.Areas.Inventory.Services
             }
 
         }
+        public async Task<ServiceResult> updateInsertDataInto_IInventoryAdjustment(PostedData postedData)
+        {
+            var userInfo = _currentUser;
 
+            if (!userInfo.IsAuthenticated)
+                return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
+
+            #region PORTION FOR :: DOCUMENT SETTING ON BASIS OF OperationType
+            Guid? adjustmentGuID = Guid.Empty;
+            if (postedData.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB))
+            {
+                adjustmentGuID = Guid.NewGuid();
+            }
+            else
+            {
+                adjustmentGuID = postedData.GuID;
+            }
+            bool? isOperationPermitted = true; //await _validationService.isOSCustomerValid(postedData.OperationType, customerGuID, postedData.Description);
+            #endregion
+
+            if (isOperationPermitted == true)
+            {
+
+                using var con = new SqlConnection(_connectionString);
+                await con.OpenAsync();
+                using var transaction = con.BeginTransaction();
+                try
+                {
+                    #region PORTION FOR :: UPSERT INTO dbo.IInventoryAdjustment
+                    var IInventoryAdjustment = await _repo.UpsertInto_IInventoryAdjustment(
+                        postedData.OperationType,
+                        adjustmentGuID,
+                        postedData.LocationId,
+                        postedData.TransactionDate,
+                        postedData.Description?.Trim(),
+                        postedData.ProductId,
+                        postedData.AttributeIds?.Trim(),
+                        postedData.InventoryAdjustmentTypeId,
+                        postedData.UnitPurchasePrice,
+                        postedData.UnitSalePrice,
+                        postedData.QuantityIn,
+                        postedData.QuantityOut,
+                        (int?)AdjustmentStatus.approved,
+                        DateTime.Now,
+                        userInfo.UserId,
+                        DateTime.Now,
+                        userInfo.UserId,
+                        (int?)DocumentType.inventoryAdjustment,
+                        (int?)DocumentStatus.active,
+                        true,
+                        userInfo.BranchId,
+                        userInfo.CompanyId,
+                        con, transaction);
+                    #endregion
+
+                    #region PORTION FOR :: CREATE STOCK LEDGER ENTRY
+                    var netQuantity = (postedData.QuantityIn ?? 0) - (postedData.QuantityOut ?? 0);
+                    var unitCost = netQuantity > 0 ? (decimal?)postedData.UnitPurchasePrice ?? 0 : (decimal?)postedData.UnitSalePrice ?? 0;
+
+                    var productATI = await _eRPOSContext.IProductATI.FirstOrDefaultAsync(x => x.ProductId == postedData.ProductId);
+
+                    var stockLedgerEntries = new List<IStockLedger_TVP>
+        {
+            new IStockLedger_TVP
+            {
+                Id = 0,
+                GuID = Guid.NewGuid(),
+                LocationId = postedData.LocationId,
+                TransactionDate = postedData.TransactionDate ?? DateTime.Now,
+                ProductId = postedData.ProductId,
+                RefDocumentType = (int?)DocumentType.inventoryAdjustment,
+                RefDocumentId = IInventoryAdjustment.insertedId,
+                Description = $"Adjustment: {postedData.Description}",
+                InQty = postedData.QuantityIn ?? 0,
+                OutQty = postedData.QuantityOut ?? 0,
+                UnitCost = unitCost,
+                CostingModeId = productATI?.CostingModeId,
+                CreatedOn = DateTime.Now,
+                CreatedBy = userInfo.UserId,
+                UpdatedOn = DateTime.Now,
+                UpdatedBy = userInfo.UserId,
+                DocumentType = (int?)DocumentType.stockLedgerRecord,
+                DocumentStatus = (int?)DocumentStatus.active,
+                Status = true,
+                BranchId = userInfo.BranchId,
+                CompanyId = userInfo.CompanyId
+            }
+        };
+
+                    // var stockLedgerResponse = await _repo.UpsertInto_IStockLedger(
+                    //     userInfo.CompanyId,
+                    //     stockLedgerEntries,
+                    //     con,
+                    //     transaction);
+                    #endregion
+
+                    #region PORTION FOR :: HANDLE TRANSACTION
+                    switch (IInventoryAdjustment.response)
+                    {
+                        case (int)Code.Created:
+                        case (int)Code.Accepted:
+                            await transaction.CommitAsync();
+                            return ServiceResult.success(Message.serverResponse(IInventoryAdjustment.response), (int)IInventoryAdjustment.response);
+                        default:
+                            await transaction.RollbackAsync();
+                            return ServiceResult.failure(Message.serverResponse((int?)Code.BadRequest), (int)Code.BadRequest);
+                    }
+                    #endregion
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return ServiceResult.failure(Message.serverResponse((int?)Code.InternalServerError), (int)Code.InternalServerError);
+                }
+            }
+            else
+            {
+                return ServiceResult.failure(Message.serverResponse((int?)Code.Conflict), (int)Code.Conflict);
+            }
+        }
     }
 }

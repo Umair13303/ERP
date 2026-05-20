@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace SharedUI.Models.Enums
 {
-    public enum InvoiceType
+    public enum BillType
     {
-        OpeningBalanceINV=1,
-        SaleINV=2,
-        POSSale=3
+        OpeningBalanceBILL = 1,
+        PurchaseBILL = 2
     }
+
 }
