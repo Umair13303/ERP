@@ -84,7 +84,7 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
             if (!ModelState.IsValid)
                 return Json(new { IsSuccess = false, message = "Invalid data", statusCode = 400 });
 
-            var result = await _iuService.updateInsertDataInto_IInventoryAdjustment(postedData);
+            var result = await _iuService.updateInsertDataInto_IInventoryAdjustment(postedData,null);
             return Json(new { result.IsSuccess, message = result.Message, statusCode = result.StatusCode });
         }
         #endregion

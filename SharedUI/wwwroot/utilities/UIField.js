@@ -29,7 +29,7 @@ class gridButton {
         return "<a onclick=" + URL + " id=" + Id + " title='Click here to Delete " + Title + "' class='btn btn-sm DELETE'><i class='far fa-trash'></i> " + '' + "</a>";
     }
     static deleteInList(Id, Title, URL) {
-        return "<a title='Click here to Delete " + Title + "' class='btn btn-sm delete'><i class='far fa-trash-alt'></i> " + '' + "</a>";
+        return "<a title='Click here to Delete " + Title + "' class='btn btn-sm DELETE_IN_LIST'><i class='far fa-trash-alt'></i> " + '' + "</a>";
     }
     static childRowControl(Class) {
         return "<a class='btn btn-sm  " + Class + " view'><i class='far fa-plus " + Class + "'></i></a>";

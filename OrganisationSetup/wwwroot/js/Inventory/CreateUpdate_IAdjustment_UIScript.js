@@ -3,7 +3,57 @@ var operationType = $("#OperationType").val();
 var dropDownListInitOption = "<option value='-1'>Select an option</option>";
 var attributeList = [];
 var productList = [];
-var stagedLineItems = [];
+var adjustmentTable;
+
+/* ------ UI COMPONENTS ------ */
+function initializeDataTable() {
+    adjustmentTable = $('#AdjustmentDetailTable').DataTable({
+        destroy: true,
+        searching: true,
+        ordering: true,
+        info: true,
+        columns: [
+            { title: 'Product', data: 'ProductName' },
+            {
+                title: 'Attributes', data: 'AttributeDisplayString',
+                render: function (data) {
+                    return '<span class="badge bg-light text-dark border">' + data + '</span>';
+                }
+            },
+            {
+                title: 'Purchase Price/e', data: 'UnitPurchasePrice',
+                className: 'text-end',
+                render: function (data) { return parseFloat(data).toFixed(2); }
+            },
+            {
+                title: 'Sale Price/e', data: 'UnitSalePrice',
+                className: 'text-end',
+                render: function (data) { return parseFloat(data).toFixed(2); }
+            },
+            {
+                title: 'QTY IN', data: 'QuantityIn',
+                className: 'text-end text-success fw-bold'
+            },
+            {
+                title: 'QTY OUT', data: 'QuantityOut',
+                className: 'text-end text-danger fw-bold'
+            },
+            {
+                title: 'ACTIONS',
+                data: null,
+                className: 'text-center',
+                orderable: false,
+                searchable: false,
+                render: function (data, type, row, meta) {
+                    return gridButton.deleteInList("", "Delete Adjustment", "");
+                }
+            }
+        ],
+        language: {
+            emptyTable: "No items added yet. Click 'Add Item' above."
+        }
+    });
+}
 
 /* ------ Depending DDL's ------ */
 function getBranchList() {
@@ -126,6 +176,11 @@ function changeEventHandler() {
             });
         }
     });
+    $("#ButtonAddLineItem").on("click", function (e) {
+        e.preventDefault();
+        addLineItemToStaging();
+    });
+
     $("#ButtonSaveData, #ButtonUpdateData").on("click", function (e) {
         if (validater()) {
             e.preventDefault();
@@ -134,8 +189,73 @@ function changeEventHandler() {
     });
 }
 
+/* ------ Grid Actions ------ */
+function addLineItemToStaging() {
+    var productId = $("#DropDownListProduct").val();
+    var productName = $("#DropDownListProduct option:selected").text();
+    var adjustmentTypeId = $("#DropDownListInventoryAdjustmentType").val();
+    var adjustmentTypeName = $("#DropDownListInventoryAdjustmentType option:selected").text();
+    var unitPurchasePrice = parseFloat($("#TextBoxUnitPurchasePrice").val()) || 0;
+    var unitSalePrice = parseFloat($("#TextBoxUnitSalePrice").val()) || 0;
+    var quantityIn = parseFloat($("#TextBoxQuantityIn").val()) || 0;
+    var quantityOut = parseFloat($("#TextBoxQuantityOut").val()) || 0;
+
+    if (!productId || productId === "-1") {
+        toastr.warning("Please select a valid product.");
+        return;
+    }
+    if (!adjustmentTypeId || adjustmentTypeId === "-1") {
+        toastr.warning("Please select an adjustment type.");
+        return;
+    }
+    if (quantityIn <= 0 && quantityOut <= 0) {
+        toastr.warning("Quantity In or Quantity Out must be greater than zero.");
+        return;
+    }
+
+    var itemAttributes = [];
+    var attributeDescriptions = [];
+    $("#ContainerStockAttribute .attr-field, #ContainerStockAttribute input").each(function () {
+        var $input = $(this);
+        var attrId = $input.attr('data-attribute-id') || $input.attr('id');
+        var val = $input.val();
+        if (val) {
+            itemAttributes.push({ Id: attrId, Description: val });
+            attributeDescriptions.push(val);
+        }
+    });
+
+    var attributeString = attributeDescriptions.length > 0 ? attributeDescriptions.join(', ') : "N/A";
+
+    var lineItem = {
+        ProductId: productId,
+        ProductName: productName,
+        AdjustmentTypeId: adjustmentTypeId,
+        AdjustmentTypeName: adjustmentTypeName,
+        UnitPurchasePrice: unitPurchasePrice,
+        UnitSalePrice: unitSalePrice,
+        QuantityIn: quantityIn,
+        QuantityOut: quantityOut,
+        Attribute: itemAttributes,
+        AttributeDisplayString: attributeString
+    };
+    adjustmentTable.row.add(lineItem).draw(false);
+    clearLineItemInputs();
+}
+function clearLineItemInputs() {
+    $("#DropDownListProduct").val('-1').trigger("change");
+    $("#DropDownListInventoryAdjustmentType").val('-1').trigger("change");
+    $("#TextBoxUnitPurchasePrice").val('0.00');
+    $("#TextBoxUnitSalePrice").val('0.00');
+    $("#TextBoxQuantityIn").val('0.00');
+    $("#TextBoxQuantityOut").val('0.00');
+    $("#ContainerStockAttribute").empty();
+    $("#DivVariantInformation").slideUp('fast');
+}
+
 /* ------ Call Initial Components ------ */
 function initialize() {
+    initializeDataTable();
     getBranchList();
     getvInventoryAdjustmentTypeList();
     getvAttributeList();
@@ -170,7 +290,6 @@ function createUpdateDataIntoDB() {
     var locationId = $("#DropDownListLocation :selected").val();
     var transactionDate = $("#TextBoxTransactionDate").val();
     var description = $("#TextBoxDescription").val();
-    var productId = $("#DropDownListProduct :selected").val();
     var adjustmentTypeId = $("#DropDownListInventoryAdjustmentType :selected").val();
     var unitPurchasePrice = $("#TextBoxUnitPurchasePrice").val();
     var unitSalePrice = $("#TextBoxUnitSalePrice").val();
@@ -185,6 +304,17 @@ function createUpdateDataIntoDB() {
         });
     });
 
+    var adjustmentDetail = adjustmentTable.rows().data().toArray().map(row => {
+        return {
+            ProductId: row.ProductId,
+            InventoryAdjustmentTypeId: row.AdjustmentTypeId,
+            UnitPurchasePrice: row.UnitPurchasePrice,
+            UnitSalePrice: row.UnitSalePrice,
+            QuantityIn: row.QuantityIn,
+            QuantityOut: row.QuantityOut,
+            Attribute: row.Attribute
+        };
+    });
     var jsonData = {
         OperationType: operationType,
         GuID: adjustmentGuID ? adjustmentGuID : null,
@@ -197,9 +327,9 @@ function createUpdateDataIntoDB() {
         unitSalePrice: unitSalePrice,
         quantityIn: quantityIn,
         quantityOut: quantityOut,
-        Attribute: attribute
+        Attribute: attribute,
+        Details: adjustmentDetail
     };
-
     $.ajax({
         url: window.basePath + "Inventory/IAdjustmentManagement/createUpdateInventoryAdjustment",
         type: "POST",
