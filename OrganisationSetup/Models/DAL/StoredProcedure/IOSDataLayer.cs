@@ -40,7 +40,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
         Task<(int? response, int? insertedId, string? documentCode, decimal? totalBillAmount)> UpsertInto_AFBill(string? operationType, Guid? guId, int? locationId, DateTime? transactionDate, int? supplierId, string? description, decimal dueAmount, int? billTypeId, int? billStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId, List<AFBillPPI_TVP> billPPI, SqlConnection con, SqlTransaction trans);
         Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_AFSupplierLedger(string? operationType, int? companyId, List<AFSupplierLedger_TVP> customerLedger, SqlConnection con, SqlTransaction trans);
         //Task<int?> UpsertInto_IStockLedger(int? companyId, List<IStockLedger_TVP> stockLedger, SqlConnection con, SqlTransaction trans);
-        Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_IInventoryAdjustment(string operationType, Guid? guID, int? locationId, DateTime? transactionDate, string? description, int? adjustmentStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, bool? status, int? branchId, int? companyId, List<IInventoryAdjustmentPPQD_TVP> details, SqlConnection con, SqlTransaction trans);
+        Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_IInventoryAdjustment(string operationType, Guid? guID, int? locationId, DateTime? transactionDate, string? description, int? adjustmentTypeId,int? adjustmentStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, bool? status, int? branchId, int? companyId, List<IInventoryAdjustmentPPQD_TVP> details, SqlConnection con, SqlTransaction trans);
         #endregion
         #region RETRIEVE OPERATION
         Task<IReadOnlyList<DTObject.Invoice_List>> ret_Invoice_ByParam(Guid? guId, int? customerId, int?[] documentStatusIds, int?[] invoiceStatusIds,string connStr);
@@ -821,9 +821,9 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             await cmd.ExecuteNonQueryAsync();
             return (response: responseParam.Value == DBNull.Value ? null : (int?)responseParam.Value, insertedId: insertedIdParam.Value == DBNull.Value ? null : (int?)insertedIdParam.Value, documentCode: documentCodeParam.Value == DBNull.Value ? null : (string?)documentCodeParam.Value);
         }
-        public async Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_IInventoryAdjustment(string operationType,Guid? guID,int? locationId,DateTime? transactionDate,string? description,int? adjustmentStatus,DateTime? createdOn,int? createdBy,DateTime? updatedOn,int? updatedBy,int? documentType,int? documentStatus,bool? status,int? branchId,int? companyId,List<IInventoryAdjustmentPPQD_TVP> details, SqlConnection con,SqlTransaction trans)
+        public async Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_IInventoryAdjustment(string operationType,Guid? guID,int? locationId,DateTime? transactionDate,string? description, int? adjustmentTypeId,int? adjustmentStatus,DateTime? createdOn,int? createdBy,DateTime? updatedOn,int? updatedBy,int? documentType,int? documentStatus,bool? status,int? branchId,int? companyId,List<IInventoryAdjustmentPPQD_TVP> details, SqlConnection con,SqlTransaction trans)
         {
-            using var cmd = new SqlCommand("IInventoryAdjustment_Upsert", con, trans);
+            using var cmd = new SqlCommand("IAdjustment_Upsert", con, trans);
             cmd.CommandType = CommandType.StoredProcedure;
 
             cmd.Parameters.AddWithValue("@DB_OperationType", operationType ?? (object)DBNull.Value);
@@ -831,6 +831,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             cmd.Parameters.AddWithValue("@LocationId", locationId ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@TransactionDate", transactionDate ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@Description", description ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@AdjustmentTypeId", adjustmentTypeId ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@AdjustmentStatus", adjustmentStatus ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@CreatedOn", createdOn ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@CreatedBy", createdBy ?? (object)DBNull.Value);
@@ -845,10 +846,9 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             // Prepare TVP DataTable
             var table = new DataTable();
             table.Columns.Add("GuID", typeof(Guid));
-            table.Columns.Add("InventoryAdjustmentId", typeof(int));
+            table.Columns.Add("AdjustmentId", typeof(int));
             table.Columns.Add("ProductId", typeof(int));
             table.Columns.Add("Attribute", typeof(string));
-            table.Columns.Add("InventoryAdjustmentTypeId", typeof(int));
             table.Columns.Add("UnitPurchasePrice", typeof(decimal));
             table.Columns.Add("UnitSalePrice", typeof(decimal));
             table.Columns.Add("QuantityIn", typeof(decimal));
@@ -865,27 +865,26 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             {
                 table.Rows.Add(
                     d.GuID ?? Guid.NewGuid(),
-                    d.InventoryAdjustmentId ?? 0,
-                    d.ProductId ?? (object)DBNull.Value,
-                    d.Attribute ?? (object)DBNull.Value,
-                    d.InventoryAdjustmentTypeId ?? (object)DBNull.Value,
+                    d.AdjustmentId,
+                    d.ProductId,
+                    d.Attribute,
                     d.UnitPurchasePrice,
                     d.UnitSalePrice,
                     d.QuantityIn ,
                     d.QuantityOut,
-                    d.CreatedOn ?? DateTime.Now,
-                    d.CreatedBy ?? (object)DBNull.Value,
-                    d.UpdatedOn ?? DateTime.Now,
-                    d.UpdatedBy ?? (object)DBNull.Value,
-                    d.DocumentType ?? (object)DBNull.Value,
-                    d.DocumentStatus ?? (object)DBNull.Value,
-                    d.Status ?? true
+                    d.CreatedOn,
+                    d.CreatedBy,
+                    d.UpdatedOn,
+                    d.UpdatedBy,
+                    d.DocumentType,
+                    d.DocumentStatus,
+                    d.Status
                 );
             }
 
-            var tvpParam = new SqlParameter("@IInventoryAdjustmentPPQD_TVP", SqlDbType.Structured)
+            var tvpParam = new SqlParameter("@IAdjustmentPPQD_TVP", SqlDbType.Structured)
             {
-                TypeName = "dbo.IInventoryAdjustmentPPQD_TVP",
+                TypeName = "dbo.IAdjustmentPPQD_TVP",
                 Value = table
             };
             cmd.Parameters.Add(tvpParam);

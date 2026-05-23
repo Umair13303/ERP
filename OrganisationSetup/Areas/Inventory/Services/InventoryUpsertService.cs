@@ -860,19 +860,32 @@ namespace OrganisationSetup.Areas.Inventory.Services
             var userInfo = _currentUser;
             if (!userInfo.IsAuthenticated)
                 return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
-
+            #region PORTION FOR :: DOCUMENT SETTING ON BASIS OF OperationType
+            Guid? adjustmentGuID = Guid.Empty;
+            if (postedData.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB))
+            {
+                adjustmentGuID = Guid.NewGuid();
+            }
+            else
+            {
+                adjustmentGuID = postedData.GuID;
+            }
+            bool? isOperationPermitted = true; //await _validationService.isOSCustomerValid(postedData.OperationType, customerGuID, postedData.Description);
+            #endregion
             using var con = new SqlConnection(_connectionString);
             await con.OpenAsync();
             using var transaction = con.BeginTransaction();
             try
             {
+
                 #region PORTION FOR :: UPSERT INTO dbo.IInventoryAdjustment
                 var IInventoryAdjustment = await _repo.UpsertInto_IInventoryAdjustment(
                     postedData.OperationType,
-                    postedData.GuID,
+                    adjustmentGuID,
                     postedData.LocationId,
                     postedData.TransactionDate,
                     postedData.Description,
+                    postedData.AdjustmentTypeId,
                     (int)AdjustmentStatus.approved,
                     DateTime.Now,
                     userInfo.UserId,
@@ -883,7 +896,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                     true,
                     userInfo.BranchId,
                     userInfo.CompanyId,
-                    detailRows,
+                    postedData.PostedDataIAdjustmentPPQD,
                     con, transaction
                 );
                 #endregion

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SharedUI.Models.TVP;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -81,10 +82,14 @@ namespace SharedUI.Models.SQLParameters
         public int? SaleTaxTypeId { get; set; }
         public decimal? QuantityIn { get; set; }
         public decimal? QuantityOut { get; set; }
-        public int? InventoryAdjustmentTypeId { get; set; }
+        public int? AdjustmentTypeId { get; set; }
         public int? SupplierId { get; set; }
         public string? InvoiceNo { get; set; }
         public decimal UnitPurchasePrice { get; set; }
         public decimal UnitSalePrice { get; set; }
+
+        public List<IInventoryAdjustmentPPQD_TVP> PostedDataIAdjustmentPPQD { get; set; }
+
     }
+
 }

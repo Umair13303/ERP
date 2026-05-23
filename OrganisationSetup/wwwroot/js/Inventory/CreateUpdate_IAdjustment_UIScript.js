@@ -155,39 +155,6 @@ function getProductList(productId) {
     });
 }
 
-/* ------ Change Cases DDL's ------ */
-function changeEventHandler() {
-    $("#DropDownListProduct").on("change", function () {
-        var $selected = $(this).find(':selected');
-        var attributeIds = $selected.data('attids');
-        if (attributeIds) {
-            var attributeArray = attributeIds.toString().split(',');
-            $("#ContainerStockAttribute").empty();
-            $.each(attributeArray, function (index, attrId) {
-                attrId = attrId.trim();
-                if (attributeList.length > 0) {
-                    $("#DivVariantInformation").slideDown('slow');
-                    var attribute = attributeList.find(a => a.id == attrId);
-                    if (attribute) {
-                        var fieldHtml = inputField.textBox(attribute.description, attribute.description, "", "Standard", false, attribute.id);
-                        $("#ContainerStockAttribute").append(fieldHtml);
-                    }
-                }
-            });
-        }
-    });
-    $("#ButtonAddLineItem").on("click", function (e) {
-        e.preventDefault();
-        addLineItemToStaging();
-    });
-
-    $("#ButtonSaveData, #ButtonUpdateData").on("click", function (e) {
-        if (validater()) {
-            e.preventDefault();
-            createUpdateDataIntoDB();
-        }
-    });
-}
 
 /* ------ Grid Actions ------ */
 function addLineItemToStaging() {
@@ -202,10 +169,6 @@ function addLineItemToStaging() {
 
     if (!productId || productId === "-1") {
         toastr.warning("Please select a valid product.");
-        return;
-    }
-    if (!adjustmentTypeId || adjustmentTypeId === "-1") {
-        toastr.warning("Please select an adjustment type.");
         return;
     }
     if (quantityIn <= 0 && quantityOut <= 0) {
@@ -243,8 +206,6 @@ function addLineItemToStaging() {
     clearLineItemInputs();
 }
 function clearLineItemInputs() {
-    $("#DropDownListProduct").val('-1').trigger("change");
-    $("#DropDownListInventoryAdjustmentType").val('-1').trigger("change");
     $("#TextBoxUnitPurchasePrice").val('0.00');
     $("#TextBoxUnitSalePrice").val('0.00');
     $("#TextBoxQuantityIn").val('0.00');
@@ -252,6 +213,40 @@ function clearLineItemInputs() {
     $("#ContainerStockAttribute").empty();
     $("#DivVariantInformation").slideUp('fast');
 }
+/* ------ Change Cases DDL's ------ */
+function changeEventHandler() {
+    $("#DropDownListProduct").on("change", function () {
+        var $selected = $(this).find(':selected');
+        var attributeIds = $selected.data('attids');
+        if (attributeIds) {
+            var attributeArray = attributeIds.toString().split(',');
+            $("#ContainerStockAttribute").empty();
+            $.each(attributeArray, function (index, attrId) {
+                attrId = attrId.trim();
+                if (attributeList.length > 0) {
+                    $("#DivVariantInformation").slideDown('slow');
+                    var attribute = attributeList.find(a => a.id == attrId);
+                    if (attribute) {
+                        var fieldHtml = inputField.textBox(attribute.description, attribute.description, "", "Standard", false, attribute.id);
+                        $("#ContainerStockAttribute").append(fieldHtml);
+                    }
+                }
+            });
+        }
+    });
+    $("#ButtonAddLineItem").on("click", function (e) {
+        e.preventDefault();
+        addLineItemToStaging();
+    });
+
+    $("#ButtonSaveData, #ButtonUpdateData").on("click", function (e) {
+        if (validater()) {
+            e.preventDefault();
+            createUpdateDataIntoDB();
+        }
+    });
+}
+
 
 /* ------ Call Initial Components ------ */
 function initialize() {
@@ -291,10 +286,6 @@ function createUpdateDataIntoDB() {
     var transactionDate = $("#TextBoxTransactionDate").val();
     var description = $("#TextBoxDescription").val();
     var adjustmentTypeId = $("#DropDownListInventoryAdjustmentType :selected").val();
-    var unitPurchasePrice = $("#TextBoxUnitPurchasePrice").val();
-    var unitSalePrice = $("#TextBoxUnitSalePrice").val();
-    var quantityIn = $("#TextBoxQuantityIn").val();
-    var quantityOut = $("#TextBoxQuantityOut").val();
     var attribute = [];
     $("#ContainerStockAttribute .attr-field").each(function () {
         var $input = $(this);
@@ -304,15 +295,14 @@ function createUpdateDataIntoDB() {
         });
     });
 
-    var adjustmentDetail = adjustmentTable.rows().data().toArray().map(row => {
+    var iAdjustmentPPQD = adjustmentTable.rows().data().toArray().map(row => {
         return {
             ProductId: row.ProductId,
-            InventoryAdjustmentTypeId: row.AdjustmentTypeId,
             UnitPurchasePrice: row.UnitPurchasePrice,
             UnitSalePrice: row.UnitSalePrice,
             QuantityIn: row.QuantityIn,
             QuantityOut: row.QuantityOut,
-            Attribute: row.Attribute
+            Attribute: JSON.stringify(row.Attribute),
         };
     });
     var jsonData = {
@@ -321,14 +311,9 @@ function createUpdateDataIntoDB() {
         LocationId: locationId,
         TransactionDate: transactionDate,
         Description: description,
-        ProductId: productId,
-        adjustmentTypeId: adjustmentTypeId,
-        unitPurchasePrice: unitPurchasePrice,
-        unitSalePrice: unitSalePrice,
-        quantityIn: quantityIn,
-        quantityOut: quantityOut,
+        AdjustmentTypeId: adjustmentTypeId,
         Attribute: attribute,
-        Details: adjustmentDetail
+        PostedDataIAdjustmentPPQD: iAdjustmentPPQD
     };
     $.ajax({
         url: window.basePath + "Inventory/IAdjustmentManagement/createUpdateInventoryAdjustment",
@@ -353,7 +338,7 @@ function createUpdateDataIntoDB() {
         },
         complete: function () {
             stopLoading();
-            clearInputFields();
+            //clearInputFields();
         }
     });
 }
