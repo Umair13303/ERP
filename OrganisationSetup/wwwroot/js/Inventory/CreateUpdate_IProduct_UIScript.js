@@ -492,8 +492,8 @@ function createUpdateDataIntoDB() {
     });
 }
 function clearInputFields() {
-    $(".form-control").not("#DropDownListAttribute,#DropDownListProductType,#DropDownListInventoryAccount,#DropDownListSaleRevenueAccount,#DropDownListCostOfSaleAccount,#DropDownListItemType,#DropDownListHSCode,#DropDownListSaleTaxType").val("");
-    $(".select2").not("#DropDownListAttribute,#DropDownListProductType,#DropDownListInventoryAccount,#DropDownListSaleRevenueAccount,#DropDownListCostOfSaleAccount,#DropDownListItemType,#DropDownListHSCode,#DropDownListSaleTaxType").val("-1").trigger("change");
+    $(".form-control").not("#DropDownListAttribute,#DropDownListProductType,#DropDownListDepartment,#DropDownListInventoryAccount,#DropDownListSaleRevenueAccount,#DropDownListCostOfSaleAccount,#DropDownListItemType,#DropDownListHSCode,#DropDownListSaleTaxType").val("");
+    $(".select2").not("#DropDownListAttribute,#DropDownListProductType,,#DropDownListDepartment,#DropDownListInventoryAccount,#DropDownListSaleRevenueAccount,#DropDownListCostOfSaleAccount,#DropDownListItemType,#DropDownListHSCode,#DropDownListSaleTaxType").val("-1").trigger("change");
 }
 $(function () {
     if (typeof setupGlobalAjax === "function") setupGlobalAjax();

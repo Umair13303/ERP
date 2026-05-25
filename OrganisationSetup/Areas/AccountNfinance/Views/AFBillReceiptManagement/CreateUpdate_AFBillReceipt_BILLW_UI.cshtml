@@ -28,7 +28,7 @@
     <form id="AFPaymentReceipt">
         @Html.Hidden("OperationType", (string)ViewBag.OperationType)
         @Html.Hidden("GuID")
-        @Html.Hidden("PaymentTypeId", (int)PaymentType.invoiceWise)
+        @Html.Hidden("PaymentTypeId", (int)PaymentType.BillWise)
         @{
             if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
             {
@@ -51,7 +51,7 @@
             <div class="card-body">
                 <div class="col-12 mt-4">
                     <div class="bg-light rounded-2 border-start border-primary border-4 p-2">
-                        <span class="fw-bold text-primary small"><i class="fa-solid fa-building me-2"></i> PAYMENT INFORMATION</span>
+                        <span class="fw-bold text-primary small"><i class="fa-solid fa-building me-2"></i> BILL INFORMATION</span>
                     </div>
                 </div>
                 @{
@@ -97,8 +97,8 @@
                 </div>
                 <div class="row g-3">
                 <div class="bootstrap-admin-panel-content">
-                    <table class="table table-bordered table-sm order-column stripe table-hover" style="width: 100%" id="TableInvoice">
-                        <tbody id="TableBodyInvoice">
+                                <table class="table table-bordered table-sm order-column stripe table-hover" style="width: 100%" id="TableBill">
+                        <tbody id="TableBodyBill">
                         </tbody>
                     </table>
                 </div>
@@ -113,4 +113,3 @@
 <script>
     var LocationId = @ViewBag.LocationId;
 </script>
-<script src="~/js/accountnfinance/CreateUpdate_AFPaymentReceipt_INVW_UIScript.js"></script>

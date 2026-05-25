@@ -56,7 +56,7 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> populatevInventoryAdjustmentTypeListByParam()
+        public async Task<IActionResult> populatevAdjustmentTypeListByParam()
         {
             var result = await _commonsServices.populateInventoryAdjustmentTypeByParam();
             return Json(result);
@@ -81,10 +81,7 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
         [HttpPost]
         public async Task<IActionResult> createUpdateInventoryAdjustment([FromBody] PostedData postedData)
         {
-            if (!ModelState.IsValid)
-                return Json(new { IsSuccess = false, message = "Invalid data", statusCode = 400 });
-
-            var result = await _iuService.updateInsertDataInto_IInventoryAdjustment(postedData,null);
+            var result = await _iuService.updateInsertDataInto_IAdjustment(postedData);
             return Json(new { result.IsSuccess, message = result.Message, statusCode = result.StatusCode });
         }
         #endregion

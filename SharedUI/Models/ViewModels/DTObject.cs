@@ -66,7 +66,7 @@ namespace SharedUI.Models.ViewModels
             public int? CustomerId { get; set; }
 
         }
-        public class RptPaymentReceipt_List
+        public class RptInvoiceReceipt_List
         {
             public DateTime? TransactionDate { get; set; }
             public string? Code { get; set; }

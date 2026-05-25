@@ -15,8 +15,10 @@ namespace SharedUI.Models.Enums
     
     public enum PaymentType
     {
-        invoiceWise=1,
-        onAccount=2,
+        InvoiceWise=1,
+        BillWise=2,
+        CustomerAccount=3,
+        SupplierAccount=4
     }
-    
+
 }

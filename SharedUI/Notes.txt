@@ -215,3 +215,102 @@ Scaffold-DbContext "Server=DESKTOP-AQT2VBG\SQLEXPRESS;Database=ERPOrganisationSe
 6. IN ORGANISATIONSETUP, CLOTH HOUSE : Install-Package Microsoft.EntityFrameworkCore.SqlServer -Version 8.0.23
 
 Install-Package Microsoft.EntityFrameworkCore -Version 8.0.23
+
+
+
+-- ----------------------------------------------------------------------------------
+-- SIMULATION: What your Backend / UI passes to SQL Server
+-- ----------------------------------------------------------------------------------
+DECLARE @SelectedFilters TABLE (
+    AttributeName  NVARCHAR(100), -- e.g., 'Size', 'Color', 'Fabric', etc.
+    FilterValue    NVARCHAR(100)  -- e.g., 'Standard', 'Red', 'Cotton'
+);
+
+-- SCENARIO: Customer filters for "Size = Standard", but wants "All" colors.
+-- (We ONLY insert 'Size'. 'Color' is omitted so it automatically rolls up and sums!)
+INSERT INTO @SelectedFilters (AttributeName, FilterValue)
+VALUES ('Size', 'Standard'),('Color', 'Green'); 
+-- To test "All Columns", simply leave this table empty or comment out the insert.
+
+
+-- ----------------------------------------------------------------------------------
+-- SCRIPT VARIABLES
+-- ----------------------------------------------------------------------------------
+DECLARE @AllColumns       NVARCHAR(MAX) = ''; -- Used for the internal JSON flattening
+DECLARE @DynamicSelect    NVARCHAR(MAX) = ''; -- Used for UI column displaying
+DECLARE @DynamicWhere     NVARCHAR(MAX) = ''; -- Used for filtering the dataset
+DECLARE @DynamicGroupBy   NVARCHAR(MAX) = ''; -- Used for custom quantity calculations
+DECLARE @SQL              NVARCHAR(MAX) = '';
+
+-- 1. Gather ALL existing attributes in your database to form the PIVOT layout
+SELECT @AllColumns += ',' + QUOTENAME(a.Description)
+FROM dbo.osvProductCombination pc
+CROSS APPLY OPENJSON(pc.Attribute) WITH (AttributeId INT '$.Id') AS attr
+INNER JOIN vAttribute a ON a.Id = attr.AttributeId
+GROUP BY a.Description;
+
+SET @AllColumns = STUFF(@AllColumns, 1, 1, '');
+
+
+-- 2. Dynamically build SELECT, WHERE, and GROUP BY based ONLY on the user's active filters
+SELECT 
+    @DynamicSelect  += ', ' + QUOTENAME(AttributeName),
+    @DynamicGroupBy += ', ' + QUOTENAME(AttributeName),
+    @DynamicWhere   += ' AND ' + QUOTENAME(AttributeName) + ' = ''' + REPLACE(FilterValue, '''', '''''') + ''''
+FROM @SelectedFilters;
+
+
+-- 3. Fallback Safety: If the user didn't apply any filters (wants "All" everywhere), 
+-- show all available attribute columns as standard.
+IF ISNULL(@DynamicSelect, '') = ''
+BEGIN
+    SET @DynamicSelect  = ', ' + @AllColumns;
+    SET @DynamicGroupBy = ', ' + @AllColumns;
+END
+
+
+-- 4. Construct the Master Adaptive SQL String
+SET @SQL = '
+SELECT 
+    ProductName,
+    SUM(QuantityIn)  AS TotalQuantityIn,   -- Automatically merges and sums quantities
+    SUM(QuantityOut) AS TotalQuantityOut   -- Automatically merges and sums quantities
+    ' + @DynamicSelect + '                   -- Dynamically displays only requested columns
+FROM (
+    -- STEP 1: Flatten ALL JSON data into structural database columns
+    SELECT 
+        PivotTable.ProductName,
+        PivotTable.QuantityIn,
+        PivotTable.QuantityOut,
+        ' + @AllColumns + '
+    FROM (
+        SELECT 
+            PPQD.Id                  AS DetailId, -- Ensures rows remain separate for pivot execution
+            P.Description        AS ProductName,
+            PPQD.QuantityIn,
+            PPQD.QuantityOut,
+            a.Description        AS AttributeName,
+            attr.ValueDesc       AS AttributeValue
+        FROM IAdjustmentPPQD AS PPQD
+        INNER JOIN osvProductCombination PC ON PC.Id = PPQD.ProductCombinationId
+        INNER JOIN IProduct              P  ON P.Id  = PPQD.ProductId
+        CROSS APPLY OPENJSON(PC.Attribute)
+            WITH (
+                AttributeId  INT            ''$.Id'',
+                ValueDesc    NVARCHAR(MAX)  ''$.Description''
+            ) AS attr
+        INNER JOIN vAttribute a ON a.Id = attr.AttributeId
+    ) AS SourceData
+    PIVOT (
+        MAX(AttributeValue)
+        FOR AttributeName IN (' + @AllColumns + ')
+    ) AS PivotTable
+) AS FlattenedData
+WHERE 1=1 ' + @DynamicWhere + '  -- Appends active user search filters
+GROUP BY 
+    ProductName
+    ' + @DynamicGroupBy + '; -- Math grouping recalibrates based on what filters are present';
+
+
+-- 5. Execute the dynamic query
+EXEC sp_executesql @SQL;

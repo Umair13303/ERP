@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace OrganisationSetup.Models.DAL;
 
-public partial class SOCustomer
+public partial class AFInventoryLedger
 {
     public int Id { get; set; }
 
@@ -11,22 +11,29 @@ public partial class SOCustomer
 
     public string? Code { get; set; }
 
+    public int? LocationId { get; set; }
+
+    public DateTime? TransactionDate { get; set; }
+
+    public int? ProductId { get; set; }
+
+    public int? ProductCombinationId { get; set; }
+
+    public int? RefDocumentType { get; set; }
+
+    public int? RefDocumentId { get; set; }
+
     public string? Description { get; set; }
-    public int? TierTypeId { get; set; }
 
-    public string? Contact { get; set; }
+    public decimal QuantityIn { get; set; }
 
-    public string? Email { get; set; }
+    public decimal QuantityOut { get; set; }
 
-    public string? CNICNumber { get; set; }
+    public decimal Debit { get; set; }
 
-    public string? Address { get; set; }
+    public decimal Credit { get; set; }
 
-    public string? AdditionalDetail { get; set; }
-
-    public int? ReceivableAccountId { get; set; }
-
-    public decimal? OpeningBalance { get; set; }
+    public int? ReconcillationStatus { get; set; }
 
     public DateTime? CreatedOn { get; set; }
 

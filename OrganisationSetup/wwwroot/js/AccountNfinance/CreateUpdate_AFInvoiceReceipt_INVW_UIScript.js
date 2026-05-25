@@ -4,6 +4,8 @@ var dropDownListInitOption = "<option value='-1' " + (operationType == "INSERT_I
 var customerList = [];
 var invoiceTable = "";
 /* ------ DOM Elements ------ */
+
+
 function domInvoiceTable() {
     invoiceTable = $('#TableInvoice').DataTable({
         "processing": true,
@@ -82,7 +84,7 @@ function domInvoiceTable() {
 /* ------ Depending DDL's ------ */
 function getBranchList() {
     $.ajax({
-        url: window.basePath + "AccountNfinance/AFPaymentReceiptManagement/populateBranchListByParam",
+        url: window.basePath + "AccountNfinance/AFInvoiceReceiptManagement/populateBranchListByParam",
         type: "GET",
         dataType: "json",
         data: { operationType: operationType },
@@ -107,7 +109,7 @@ function getBranchList() {
 }
 function getCustomerList(customerId) {
     $.ajax({
-        url: window.basePath + "AccountNfinance/AFPaymentReceiptManagement/populateCustomerListByParam",
+        url: window.basePath + "AccountNfinance/AFInvoiceReceiptManagement/populateCustomerListByParam",
         type: "GET",
         dataType: "json",
         data: { operationType: operationType },
@@ -133,7 +135,7 @@ function getCustomerList(customerId) {
 }
 function getvPaymentMethodList() {
     $.ajax({
-        url: window.basePath + "AccountNfinance/AFPaymentReceiptManagement/populatevPaymentMethodListByParam",
+        url: window.basePath + "AccountNfinance/AFInvoiceReceiptManagement/populatevPaymentMethodListByParam",
         type: "GET",
         dataType: "json",
         data: { operationType: operationType },
@@ -156,7 +158,7 @@ function getvPaymentMethodList() {
 }
 function getInvoiceList(customerId) {
     invoiceTable.clear().draw();
-    invoiceTable.ajax.url((window.basePath + "AccountNfinance/AFPaymentReceiptManagement/populateInvoiceListByParam?customerId=" + customerId + "&operationType=" + operationType)).load();
+    invoiceTable.ajax.url((window.basePath + "AccountNfinance/AFInvoiceReceiptManagement/populateInvoiceListByParam?customerId=" + customerId + "&operationType=" + operationType)).load();
 
 }
 /* ------ Change Cases DDL's ------ */
@@ -189,7 +191,7 @@ function initialize() {
 }
 /* ------ Validation for user input ------ */
 function validater() {
-    var form = document.getElementById("AFPaymentReceipt");
+    var form = document.getElementById("AFInvoiceReceipt");
     if (!form.checkValidity()) {
         form.classList.add('was-validated');
 
@@ -232,7 +234,7 @@ function createUpdateDataIntoDB(btnElement) {
         PaymentTypeId: $("#PaymentTypeId").val(),
     };
     $.ajax({
-        url: window.basePath + "AccountNfinance/AFPaymentReceiptManagement/createUpdatePaymentReceipt",
+        url: window.basePath + "AccountNfinance/AFInvoiceReceiptManagement/createUpdateInvoiceReceipt",
         type: "POST",
         data: JSON.stringify(jsonData),
         contentType: "application/json; charset=utf-8",
@@ -242,7 +244,7 @@ function createUpdateDataIntoDB(btnElement) {
             $(btnElement).prop("disabled", true);
         },
         success: function (response) {
-                $("#AFPaymentReceipt").removeClass("was-validated");
+                $("#AFInvoiceReceipt").removeClass("was-validated");
         },
         error: function (xhr) {
             toastr.error("System Error: " + xhr.statusText);

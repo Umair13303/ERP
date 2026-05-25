@@ -30,6 +30,7 @@ namespace SharedUI.Models.SQLParameters
         public int? DepartmentId { get; set; }
         public int? SectionId { get; set; }
         public int? CategoryId { get; set; }
+        public int? TierTypeId { get; set; }
         public int? SubCategoryId { get; set; }
         public int? InvoiceId { get; set; }
         public int? PaymentMethodId { get; set; }

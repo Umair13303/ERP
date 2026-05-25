@@ -17,7 +17,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
 
     [Authorize]
     [Area(nameof(SetupRoute.Area.AccountNfinance))]
-    public class AFPaymentReceiptManagementController : Controller
+    public class AFInvoiceReceiptManagementController : Controller
     {
 
         private readonly ICommon _commonsServices;
@@ -28,7 +28,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
         private readonly IAccountNfinanceUpsert _anfuService;
 
 
-        public AFPaymentReceiptManagementController(ICommon commonsServices,ISaleOperationRetriever sorService, IApplicationConfigurationRetriever acrService, IAccountNfinanceRetriever anfrService, TempUser currentUser, IAccountNfinanceUpsert anfuService)
+        public AFInvoiceReceiptManagementController(ICommon commonsServices,ISaleOperationRetriever sorService, IApplicationConfigurationRetriever acrService, IAccountNfinanceRetriever anfrService, TempUser currentUser, IAccountNfinanceUpsert anfuService)
         {
             _commonsServices = commonsServices;
             _sorService = sorService;
@@ -38,14 +38,14 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
             _anfuService = anfuService;
         }
         #region PORTION CONTAIN CODE TO: RENDER VIEW
-        public IActionResult CreateUpdate_AFPaymentReceipt_INVW_UI(UISetting ui)
+        public IActionResult CreateUpdate_AFInvoiceReceipt_INVW_UI(UISetting ui)
         {
             ViewBag.OperationType = ui.OperationType;
             ViewBag.DisplayName = ui.DisplayName;
             ViewBag.LocationId = _currentUser.BranchId; 
             return View();
         }
-        public IActionResult CreateUpdate_AFPaymentReceipt_ACCW_UI(UISetting ui)
+        public IActionResult CreateUpdate_AFInvoiceReceipt_ACCW_UI(UISetting ui)
         {
             ViewBag.OperationType = ui.OperationType;
             ViewBag.DisplayName = ui.DisplayName;
@@ -83,9 +83,9 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
             return Json(new { data = result });
         }
         [HttpGet]
-        public async Task<IActionResult> populatePaymentReceiptListByParam(string operationType,int? customerId)
+        public async Task<IActionResult> populateInvoiceReceiptListByParam(string operationType,int? customerId)
         {
-            var result = await _anfrService.populatePaymentReceiptByParam(operationType, customerId);
+            var result = await _anfrService.populateInvoiceReceiptByParam(operationType, customerId);
             return Json(new { data = result });
         }
         #endregion
@@ -93,15 +93,9 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
 
         #region PORTION CONTAIN CODE TO: ADD/EDIT/DELETE DOCUMENT
         [HttpPost]
-        public async Task<IActionResult> createUpdatePaymentReceipt([FromBody] PostedData postedData)
+        public async Task<IActionResult> createUpdateInvoiceReceipt([FromBody] PostedData postedData)
         {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors);
-            }
-            if (!ModelState.IsValid) return View(postedData);
-
-            var result = await _anfuService.updateInsertDataInto_AFPaymentReceipt(postedData);
+            var result = await _anfuService.updateInsertDataInto_AFInvoiceReceipt(postedData);
             return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message });
         }
         #endregion

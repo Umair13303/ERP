@@ -143,12 +143,6 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
         [HttpPost]
         public async Task<IActionResult> createUpdateProduct([FromBody] PostedData postedData)
         {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors);
-            }
-            if (!ModelState.IsValid) return View(postedData);
-
             var result = await _IuService.updateInsertDataInto_IProduct(postedData);
             return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message });
         }

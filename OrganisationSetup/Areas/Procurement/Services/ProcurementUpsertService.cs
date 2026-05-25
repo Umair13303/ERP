@@ -1,46 +1,44 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using OrganisationSetup.Areas.AccountNfinance.Services;
 using OrganisationSetup.Models.DAL;
 using OrganisationSetup.Models.DAL.StoredProcedure;
-using OrganisationSetup.Services;
 using SharedUI.Models.Contexts;
 using SharedUI.Models.Enums;
 using SharedUI.Models.Responses;
 using SharedUI.Models.SQLParameters;
 using SharedUI.Models.TVP;
-using System.Data;
 using System.Diagnostics;
+using System.Transactions;
 
 
-namespace OrganisationSetup.Areas.SaleOperation.Services
+namespace OrganisationSetup.Areas.Procurement.Services
 {
-    public interface ISaleOperationUpsert
+    public interface IProcurementUpsert
     {
-        Task<ServiceResult> updateInsertDataInto_SOCustomer(PostedData postedData);
+        Task<ServiceResult> updateInsertDataInto_PSupplier(PostedData postedData);
 
     }
-    public class SaleOperationUpsertService : ISaleOperationUpsert
+    public class ProcurementUpsertService : IProcurementUpsert
     {
         private readonly TempUser _currentUser;
         private readonly IOSDataLayer _repo;
         private readonly string _connectionString;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ISaleOperationValidation _validationService;
-        private readonly ICommon _cService;
+        private readonly IProcurementValidation _validationService;
         private readonly ERPOrganisationSetupContext _eRPOSContext;
-        public SaleOperationUpsertService(TempUser currentUser,IOSDataLayer repo, ERPOrganisationSetupContext context, IHttpContextAccessor httpContextAccessor ,ISaleOperationValidation validationService, ERPOrganisationSetupContext eRPOSC, ICommon cService)
+        public ProcurementUpsertService(TempUser currentUser, IOSDataLayer repo, ERPOrganisationSetupContext context, IHttpContextAccessor httpContextAccessor , IProcurementValidation validationService, ERPOrganisationSetupContext eRPOSC)
         {
             _currentUser = currentUser;
             _repo = repo;
             _connectionString = context.Database.GetDbConnection().ConnectionString;
             _httpContextAccessor = httpContextAccessor;
             _validationService = validationService;
-            _cService = cService;
             _eRPOSContext = eRPOSC;
         }
-
-        public async Task<ServiceResult> updateInsertDataInto_SOCustomer(PostedData postedData)
+        
+        public async Task<ServiceResult> updateInsertDataInto_PSupplier(PostedData postedData)
         {
             var userInfo = _currentUser;
 
@@ -48,31 +46,31 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                 return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
 
             #region PORTION FOR :: DOCUMENT SETTING ON BASIS OF OperationType
-            Guid? customerGuID = Guid.Empty;
+            Guid? supplierGuID = Guid.Empty;
             Guid? chartOfAccountGuID = Guid.Empty;
-            Guid? invoiceGuID = Guid.Empty;
-            Guid? customerLedgerGuID = Guid.Empty;
+            Guid? billGuID = Guid.Empty;
+            Guid? supplierLedgerGuID = Guid.Empty;
             Guid? journalVoucherCreditGuID = Guid.Empty;
             Guid? journalVoucherDebitGuID = Guid.Empty;
             if (postedData.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB))
             {
-                customerGuID = Guid.NewGuid();
+                supplierGuID = Guid.NewGuid();
                 chartOfAccountGuID = Guid.NewGuid();
-                invoiceGuID = Guid.NewGuid();
-                customerLedgerGuID = Guid.NewGuid();
+                billGuID = Guid.NewGuid();
+                supplierLedgerGuID = Guid.NewGuid();
                 journalVoucherCreditGuID = Guid.NewGuid();
                 journalVoucherDebitGuID = Guid.NewGuid();
             }
             else
             {
-                customerGuID = postedData.GuID;
+                supplierGuID = postedData.GuID;
                 chartOfAccountGuID = postedData.GuID;
-                invoiceGuID = postedData.GuID;
-                customerLedgerGuID = postedData.GuID;
+                billGuID = postedData.GuID;
+                supplierLedgerGuID = postedData.GuID;
                 journalVoucherCreditGuID = postedData.GuID;
                 journalVoucherDebitGuID = postedData.GuID;
             }
-            bool? isOperationPermitted = await _validationService.isOSCustomerValid(postedData.OperationType, customerGuID, postedData.Description);
+            bool? isOperationPermitted = true; //await _validationService.isOSCustomerValid(postedData.OperationType, customerGuID, postedData.Description);
             #endregion
 
             if (isOperationPermitted == true)
@@ -86,8 +84,8 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                     var AFChartOfAccount = await _repo.UpsertInto_AFChartOfAccount(
                                                       postedData.OperationType,
                                                       chartOfAccountGuID,
-                                                      postedData.DefaultReceivableAccount?.Trim(),
-                                                      (int?)AccountCategory.ACCOUNTS_RECEIVABLE,
+                                                      postedData.DefaultPayableAccount?.Trim(),
+                                                      (int?)AccountCategory.ACCOUNTS_PAYABLE,
                                                       (int?)FinancialStatement.INCOME_STATEMENT,
                                                       DateTime.Now,
                                                       userInfo.UserId,
@@ -100,12 +98,11 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                                                       con, transaction);
                     #endregion
 
-                    #region PORTION FOR :: UPSERT INTO dbo.SOCustomer
-                    var SOCustomer = await _repo.UpsertInto_SOCustomer(
+                    #region PORTION FOR :: UPSERT INTO dbo.ISupplier
+                    var ISupplier = await _repo.UpsertInto_PSupplier(
                                                     postedData.OperationType,
-                                                    customerGuID,
+                                                    supplierGuID,
                                                     postedData.Description?.Trim(),
-                                                    postedData.TierTypeId,
                                                     postedData.Contact?.Trim(),
                                                     postedData.Email?.Trim(),
                                                     postedData.CNICNumber?.Trim(),
@@ -117,7 +114,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                                                     userInfo.UserId,
                                                     DateTime.Now,
                                                     userInfo.UserId,
-                                                    (int?)DocumentType.customer,
+                                                    (int?)DocumentType.supplier,
                                                     (int?)DocumentStatus.active,
                                                     userInfo.BranchId,
                                                     userInfo.CompanyId,
@@ -127,21 +124,19 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                     if (postedData.OpeningBalance > 0)
                     {
                         DateTime transactionDate = DateTime.Now;
-                        int? customerId = SOCustomer.insertedId;
+                        int? supplierId = ISupplier.insertedId;
                         #region PRE-PARE DOCUMENTS IN CASE OPENING BALANCE > 0
 
-                        #region PORTION FOR :: FILL & UPSERT Invoice
+                        #region PORTION FOR :: FILL & UPSERT Bill
                         string Description = "Opening Balance Till: " + DateTime.Now.ToString("dd-MMM-yyyy") + " . ";
-                        List<AFInvoicePPI_TVP> invoicePI = new List<AFInvoicePPI_TVP>
+                        List<AFBillPPI_TVP> billPI = new List<AFBillPPI_TVP>
                         {
-                            new AFInvoicePPI_TVP
+                            new AFBillPPI_TVP
                             {
                                 Id = 0,
                                 GuID = Guid.NewGuid(),
-                                InvoiceId = 0,
-                                ProductPriceLogId=0,
+                                BillId = 0,
                                 ProductId = 0,
-                                ProductCombinationId = 0,
                                 Quantity = 0,
                                 ActualAmount = (decimal)postedData.OpeningBalance!,
                                 DiscountAmount = 0,
@@ -150,62 +145,61 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                                 CreatedBy = userInfo.UserId,
                                 UpdatedOn = DateTime.Now,
                                 UpdatedBy = userInfo.UserId,
-                                DocumentType = (int?)DocumentType.invoiceProductCustomerOB,
+                                DocumentType = (int?)DocumentType.billProductSupplierOB,
                                 DocumentStatus = (int?)DocumentStatus.active,
                                 Status = true
                             }
                         };
 
-                        #region PORTION FOR :: UPSERT INTO dbo.AFInvoice
-                        var AFInvoice = await _repo.UpsertInto_AFInvoice(
+                        #region PORTION FOR :: UPSERT INTO dbo.AFBill
+                        var AFBill = await _repo.UpsertInto_AFBill(
                                                         postedData.OperationType,
-                                                        invoiceGuID,
+                                                        billGuID,
                                                         userInfo.BranchId,
                                                         transactionDate,
-                                                        customerId,
+                                                        supplierId,
                                                         Description,
-                                                        postedData.FBRStamp?.Trim(),
-                                                        invoicePI.Sum(x => x.ChargedAmount),
-                                                        (int?)InvoiceType.OpeningBalanceINV,
-                                                        (int?)InvoiceStatus.unPaid,
+                                                        billPI.Sum(x => x.ChargedAmount),
+                                                        (int?)BillType.OpeningBalanceBILL,
+                                                        (int?)BillStatus.unPaid,
                                                         DateTime.Now,
                                                         userInfo.UserId,
                                                         DateTime.Now,
                                                         userInfo.UserId,
-                                                        (int?)DocumentType.invoice,
+                                                        (int?)DocumentType.bill,
                                                         (int?)DocumentStatus.active,
                                                         userInfo.BranchId,
                                                         userInfo.CompanyId,
-                                                        invoicePI,
+                                                        billPI,
                                                         con, transaction);
 
-                        SOCustomer.response = AFInvoice.response;
+                        ISupplier.response = AFBill.response;
                         #endregion
                         #endregion
 
-                        #region PORTION FOR :: FILL & UPSERT CustomerLedger
-                        Description = Description+ " Having Document Code:-  "+ AFInvoice.documentCode;
-                        List<AFCustomerLedger_TVP> customerLedger = new List<AFCustomerLedger_TVP>
+                        #region PORTION FOR :: FILL & UPSERT SupplierLedger
+                        Description = Description + " Having Document Code:-  " + AFBill.documentCode;
+                        List<AFSupplierLedger_TVP> supplierLedger = new List<AFSupplierLedger_TVP>
                         {
-                            new AFCustomerLedger_TVP
+                            new AFSupplierLedger_TVP
                             {
                                 Id = 0,
-                                GuID = customerLedgerGuID,
+                                GuID = supplierLedgerGuID,
                                 Code= "",
                                 LocationId = userInfo.BranchId,
                                 TransactionDate= transactionDate,
-                                CustomerId = customerId,
-                                RefDocumentType = (int?)DocumentType.invoice,
-                                RefDocumentId=AFInvoice.insertedId,
+                                SupplierId = supplierId,
+                                RefDocumentType = (int?)DocumentType.bill,
+                                RefDocumentId=AFBill.insertedId,
                                 Description= Description,
-                                Debit= (decimal)AFInvoice.totalInvoiceAmount,
+                                Debit= (decimal)AFBill.totalBillAmount,
                                 Credit =0,
                                 ReconcillationStatus= (int?)ReconcileStatus.reconciled,
                                 CreatedOn = DateTime.Now,
                                 CreatedBy = userInfo.UserId,
                                 UpdatedOn = DateTime.Now,
                                 UpdatedBy = userInfo.UserId,
-                                DocumentType = (int?)DocumentType.customerLedgerRecord,
+                                DocumentType = (int?)DocumentType.supplierLedgerRecord,
                                 DocumentStatus = (int?)DocumentStatus.active,
                                 Status = true,
                                 BranchId= userInfo.BranchId,
@@ -213,30 +207,30 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                             }
                         };
 
-                        #region PORTION FOR :: UPSERT INTO dbo.AFCustomerLedger
-                        var AFCustomerLedger = await _repo.UpsertInto_AFCustomerLedger(
+                        #region PORTION FOR :: UPSERT INTO dbo.AFSupplierLedger
+                        var AFSupplierLedger = await _repo.UpsertInto_AFSupplierLedger(
                                                     postedData.OperationType,
                                                     userInfo.CompanyId,
-                                                    customerLedger,
+                                                    supplierLedger,
                                                     con, transaction);
 
                         #endregion
 
                         #endregion
 
-                        SOCustomer.response = AFCustomerLedger.response!.Value;
+                        //   ISupplier.response = AFSupplierLedger.response!.Value;
 
                         #endregion
                     }
 
                     #region PORTION FOR :: HANLDE TRANSACTION
 
-                    switch (SOCustomer.response)
+                    switch (ISupplier.response)
                     {
                         case (int)Code.Created:
                         case (int)Code.Accepted:
                             await transaction.CommitAsync();
-                            return ServiceResult.internalSuccess(Message.serverResponse(SOCustomer.response), (int)SOCustomer.response,SOCustomer.insertedId);
+                            return ServiceResult.internalSuccess(Message.serverResponse(ISupplier.response), (int)ISupplier.response, ISupplier.insertedId);
                         default:
                             await transaction.RollbackAsync();
                             return ServiceResult.failure(Message.serverResponse((int?)Code.BadRequest), (int)Code.BadRequest);
@@ -255,6 +249,6 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
             }
 
         }
-
+       
     }
 }

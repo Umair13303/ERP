@@ -17,7 +17,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
     {
         Task<ServiceResult> updateInsertDataInto_AFChartOfAccount(PostedData postedData, bool? isCustomerAutoAccount);
         Task<ServiceResult> updateInsertDataInto_AFInvoice(PostedData postedData, List<AFInvoicePPI_TVP> invoicePPI);
-        Task<ServiceResult> updateInsertDataInto_AFPaymentReceipt(PostedData postedData);
+        Task<ServiceResult> updateInsertDataInto_AFInvoiceReceipt(PostedData postedData);
 
 
 
@@ -142,7 +142,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                   postedData.CustomerId,
                                                   postedData.Description,
                                                   postedData.FBRStamp,
-                                                  postedData.DueAmount,
+                                                  (decimal)postedData.DueAmount,
                                                   postedData.InvoiceTypeId,
                                                   postedData.InvoiceStatus,
                                                   DateTime.Now,
@@ -184,7 +184,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
             }
         }
 
-        public async Task<ServiceResult> updateInsertDataInto_AFPaymentReceipt(PostedData postedData)
+        public async Task<ServiceResult> updateInsertDataInto_AFInvoiceReceipt(PostedData postedData)
         {
             var userInfo = _currentUser;
 
@@ -192,16 +192,16 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                 return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
 
             #region PORTION FOR :: DOCUMENT SETTING ON BASIS OF OperationType
-            Guid? paymentReceiptGuID = Guid.Empty;
+            Guid? invoiceReceiptGuID = Guid.Empty;
             Guid? customerLedgerGuID = Guid.Empty;
             if (postedData.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB) || postedData.OperationType == nameof(OperationType.MPO_LIST))
             {
-                paymentReceiptGuID = Guid.NewGuid();
+                invoiceReceiptGuID = Guid.NewGuid();
                 customerLedgerGuID = Guid.NewGuid();
             }
             else
             {
-                paymentReceiptGuID = postedData.GuID;
+                invoiceReceiptGuID = postedData.GuID;
             }
             bool? isOperationPermitted = true;
             //bool? isOperationPermitted = await _validationService.isAFPaymentReceiptValid(postedData.OperationType, paymentReceiptGuID);
@@ -216,17 +216,17 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                 {
                     await _eRPOSContext.Database.UseTransactionAsync(transaction);
 
-                    #region PORTION FOR :: UPSERT INTO dbo.AFPaymentReceipt
-                    var AFPaymentReceipt = await _repo.UpsertInto_AFPaymentReceipt(
+                    #region PORTION FOR :: UPSERT INTO dbo.AFInvoiceReceipt
+                    var AFInvoiceReceipt = await _repo.UpsertInto_AFInvoiceReceipt(
                                                       postedData.OperationType,
-                                                      paymentReceiptGuID,
+                                                      invoiceReceiptGuID,
                                                       postedData.LocationId,
                                                       postedData.TransactionDate,
                                                       postedData.CustomerId,
                                                       postedData.InvoiceId,
                                                       postedData.Description,
-                                                      postedData.PaymentMethodId,
                                                       postedData.PaymentTypeId,
+                                                      postedData.PaymentMethodId,
                                                       postedData.Reference,
                                                       postedData.ReceiptAmount,
                                                       (int?)PaymentStatus.verified,
@@ -234,7 +234,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                       userInfo.UserId,
                                                       DateTime.Now,
                                                       userInfo.UserId,
-                                                      (int?)DocumentType.paymentReceipt,
+                                                      (int?)DocumentType.invoiceReceipt,
                                                       (int?)DocumentStatus.active,
                                                       userInfo.BranchId,
                                                       userInfo.CompanyId,
@@ -253,11 +253,11 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                 LocationId = userInfo.BranchId,
                                 TransactionDate= postedData.TransactionDate,
                                 CustomerId = postedData.CustomerId,
-                                RefDocumentType = (int?)DocumentType.paymentReceipt,
-                                RefDocumentId=AFPaymentReceipt.insertedId,
+                                RefDocumentType = (int?)DocumentType.invoiceReceipt,
+                                RefDocumentId=AFInvoiceReceipt.insertedId,
                                 Description= customerLedgerDescription,
                                 Debit=0,
-                                Credit =postedData.ReceiptAmount,
+                                Credit =(decimal)postedData.ReceiptAmount,
                                 ReconcillationStatus= (int?)ReconcileStatus.reconciled,
                                 CreatedOn = DateTime.Now,
                                 CreatedBy = userInfo.UserId,
@@ -282,10 +282,9 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
 
                     #endregion
 
-
                     switch (postedData.PaymentTypeId)
                     {
-                        case (int)PaymentType.invoiceWise:
+                        case (int)PaymentType.InvoiceWise:
                             #region PORTION FOR :: UPDATE OUTSTANDING DUE AMOUNT ON dbo.AFInvoice
 
                             var AFInvoice = await _eRPOSContext.AFInvoice
@@ -293,7 +292,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                                .FirstOrDefaultAsync();
                             if (AFInvoice != null)
                             {
-                                AFInvoice.DueAmount = AFInvoice.DueAmount - postedData.ReceiptAmount;
+                                AFInvoice.DueAmount = (decimal)AFInvoice.DueAmount - (decimal)postedData.ReceiptAmount;
                                 AFInvoice.DueAmount = AFInvoice.DueAmount < 0 ? 0 : AFInvoice.DueAmount;
                                 if (postedData.ReceiptAmount < AFInvoice.DueAmount)
                                 {
@@ -308,21 +307,21 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                             }
                             else
                             {
-                                AFPaymentReceipt.response = (int)Code.NotFound;
+                                AFInvoiceReceipt.response = (int)Code.NotFound;
                             }
                             #endregion
                             break;
-                        case (int)PaymentType.onAccount:
+                        case (int)PaymentType.CustomerAccount:
                                 break;
                     }
 
                     #region PORTION FOR :: HANDLE TRANSACTION
-                    switch (AFPaymentReceipt.response)
+                    switch (AFInvoiceReceipt.response)
                     {
                         case (int)Code.Created:
                         case (int)Code.Accepted:
                             await transaction.CommitAsync();
-                            return ServiceResult.success(Message.serverResponse(AFPaymentReceipt.response), (int)AFPaymentReceipt.response);
+                            return ServiceResult.success(Message.serverResponse(AFInvoiceReceipt.response), (int)AFInvoiceReceipt.response);
                         default:
                             await transaction.RollbackAsync();
                             return ServiceResult.failure(Message.serverResponse((int?)Code.BadRequest), (int)Code.BadRequest);

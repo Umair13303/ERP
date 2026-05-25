@@ -81,9 +81,9 @@ function getBranchList() {
         }
     });
 }
-function getvInventoryAdjustmentTypeList() {
+function getvAdjustmentTypeList() {
     $.ajax({
-        url: window.basePath + "Inventory/IAdjustmentManagement/populatevInventoryAdjustmentTypeListByParam",
+        url: window.basePath + "Inventory/IAdjustmentManagement/populatevAdjustmentTypeListByParam",
         type: "GET",
         dataType: "json",
         data: { operationType: operationType },
@@ -91,9 +91,9 @@ function getvInventoryAdjustmentTypeList() {
 
         },
         success: function (data) {
-            $("#DropDownListInventoryAdjustmentType").empty().append(dropDownListInitOption);
+            $("#DropDownListAdjustmentType").empty().append(dropDownListInitOption);
             $.each(data, function (index, item) {
-                $("#DropDownListInventoryAdjustmentType").append(new Option(item.description, item.id));
+                $("#DropDownListAdjustmentType").append(new Option(item.description, item.id));
             });
         },
         complete: function () {
@@ -160,8 +160,6 @@ function getProductList(productId) {
 function addLineItemToStaging() {
     var productId = $("#DropDownListProduct").val();
     var productName = $("#DropDownListProduct option:selected").text();
-    var adjustmentTypeId = $("#DropDownListInventoryAdjustmentType").val();
-    var adjustmentTypeName = $("#DropDownListInventoryAdjustmentType option:selected").text();
     var unitPurchasePrice = parseFloat($("#TextBoxUnitPurchasePrice").val()) || 0;
     var unitSalePrice = parseFloat($("#TextBoxUnitSalePrice").val()) || 0;
     var quantityIn = parseFloat($("#TextBoxQuantityIn").val()) || 0;
@@ -193,8 +191,6 @@ function addLineItemToStaging() {
     var lineItem = {
         ProductId: productId,
         ProductName: productName,
-        AdjustmentTypeId: adjustmentTypeId,
-        AdjustmentTypeName: adjustmentTypeName,
         UnitPurchasePrice: unitPurchasePrice,
         UnitSalePrice: unitSalePrice,
         QuantityIn: quantityIn,
@@ -252,7 +248,7 @@ function changeEventHandler() {
 function initialize() {
     initializeDataTable();
     getBranchList();
-    getvInventoryAdjustmentTypeList();
+    getvAdjustmentTypeList();
     getvAttributeList();
     getProductList();
     changeEventHandler();
@@ -285,7 +281,7 @@ function createUpdateDataIntoDB() {
     var locationId = $("#DropDownListLocation :selected").val();
     var transactionDate = $("#TextBoxTransactionDate").val();
     var description = $("#TextBoxDescription").val();
-    var adjustmentTypeId = $("#DropDownListInventoryAdjustmentType :selected").val();
+    var adjustmentTypeId = $("#DropDownListAdjustmentType :selected").val();
     var attribute = [];
     $("#ContainerStockAttribute .attr-field").each(function () {
         var $input = $(this);
@@ -338,14 +334,14 @@ function createUpdateDataIntoDB() {
         },
         complete: function () {
             stopLoading();
-            //clearInputFields();
+            clearInputFields();
         }
     });
 }
 function clearInputFields() {
-    $(".form-control").val('');
-    $(".select2").val('-1').trigger("change");
-
+    adjustmentTable.clear().draw();
+    $(".form-control").not("#DropDownListLocation").val('');
+    $(".select2").not("#DropDownListLocation").val('-1').trigger("change");
 }
 $(function () {
     if (typeof setupGlobalAjax === "function") setupGlobalAjax();

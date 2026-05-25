@@ -71,6 +71,12 @@
                                     @Html.TextBox("Description", null, new { @class = "form-control form-control-sm", required = "required", placeholder = "Provide Description!", @id = "TextBoxDescription" })
                                 </div>
                             </div>
+                            <div class="col-sm-12 col-md-4">
+                                <div class="form-group">
+                                    @Html.Label("DropDownListTierType", "Tier Type", new { @class = "col-form-label" })
+                                    @Html.DropDownList("TierTypeId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListTierType",@disabled=true })
+                                </div>
+                            </div>
                         </div>
                         <div class="row mb-0">
                             <div class="col-sm-12 col-md-3">

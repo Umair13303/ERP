@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace OrganisationSetup.Models.DAL;
 
-public partial class SOCustomer
+public partial class AFInvoiceReceipt
 {
     public int Id { get; set; }
 
@@ -11,22 +11,25 @@ public partial class SOCustomer
 
     public string? Code { get; set; }
 
+    public int? LocationId { get; set; }
+
+    public DateTime? TransactionDate { get; set; }
+
+    public int? CustomerId { get; set; }
+
+    public int? InvoiceId { get; set; }
+
     public string? Description { get; set; }
-    public int? TierTypeId { get; set; }
 
-    public string? Contact { get; set; }
+    public int? PaymentTypeId { get; set; }
 
-    public string? Email { get; set; }
+    public int? PaymentMethodId { get; set; }
 
-    public string? CNICNumber { get; set; }
+    public string? Reference { get; set; }
 
-    public string? Address { get; set; }
+    public decimal ReceiptAmount { get; set; }
 
-    public string? AdditionalDetail { get; set; }
-
-    public int? ReceivableAccountId { get; set; }
-
-    public decimal? OpeningBalance { get; set; }
+    public int? PaymentStatus { get; set; }
 
     public DateTime? CreatedOn { get; set; }
 

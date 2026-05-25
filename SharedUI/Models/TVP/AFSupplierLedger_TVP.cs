@@ -51,4 +51,5 @@ namespace SharedUI.Models.TVP
 
         public int? CompanyId { get; set; }
     }
+   
 }

@@ -197,60 +197,6 @@ namespace OrganisationSetup.Areas.Inventory.Services
             }
         }
 
-        #region NOT TO BE USED NOW -------- ONLY SUITABLE FOR WAC COST METHOD
-        public async Task<StockOnHandResponse> GetStockOnHand(int productId, int locationId, int companyId)
-        {
-            var product = await _eRPOSContext.IProduct.FirstOrDefaultAsync(x => x.Id == productId);
-            if (product == null)
-                return new StockOnHandResponse { IsFound = false };
-
-            var stockLedger = await _eRPOSContext.IInventoryAdjustment
-                .Where(x => x.ProductId == productId && x.LocationId == locationId && x.CompanyId == companyId && x.Status == true)
-                .ToListAsync();
-
-            var totalIn = stockLedger.Sum(x => x.QuantityIn);
-            var totalOut = stockLedger.Sum(x => x.QuantityOut);
-            var onHandQty = totalIn - totalOut;
-            var avgUnitCost = stockLedger.Any() ? stockLedger.Average(x => x.UnitPurchasePrice) : 0;
-
-            return new StockOnHandResponse
-            {
-                IsFound = true,
-                ProductId = productId,
-                ProductName = product.Description,
-                OnHandQty = onHandQty,
-                AvgUnitCost = (decimal)avgUnitCost,
-                TotalValue = onHandQty * (decimal)avgUnitCost
-            };
-        }
-
-        private async Task<int?> GetProductCostingMode(int productId)
-        {
-            var productATI = await _eRPOSContext.IProductATI.FirstOrDefaultAsync(x => x.ProductId == productId);
-            return productATI?.CostingModeId;
-        }
-        #endregion
     }
 
-}
-public class StockAdjustmentHistoryResponse
-{
-    public int AdjustmentId { get; set; }
-    public string? Code { get; set; }
-    public DateTime? TransactionDate { get; set; }
-    public string? Description { get; set; }
-    public decimal QuantityIn { get; set; }
-    public decimal QuantityOut { get; set; }
-    public decimal UnitPurchasePrice { get; set; }
-    public decimal UnitSalePrice { get; set; }
-}
-
-public class StockOnHandResponse
-{
-    public bool IsFound { get; set; }
-    public int ProductId { get; set; }
-    public string? ProductName { get; set; }
-    public decimal OnHandQty { get; set; }
-    public decimal AvgUnitCost { get; set; }
-    public decimal TotalValue { get; set; }
 }

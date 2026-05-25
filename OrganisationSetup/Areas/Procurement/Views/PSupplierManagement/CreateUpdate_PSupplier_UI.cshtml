@@ -32,7 +32,7 @@
     </div>
 
 
-    <form id="ISupplierForm">
+    <form id="PSupplierForm">
         @Html.Hidden("OperationType", (string)ViewBag.OperationType)
         @Html.Hidden("GuID")
         @{
@@ -125,13 +125,12 @@
                     {
                         <div class="row g-3">
                             <div class="bootstrap-admin-panel-content">
-                                <table class="table table-bordered table-sm order-column stripe table-hover" style="width: 100%" id="TableCustomerSummary">
-                                    <tbody id="TableBodyCustomerSummary">
+                                <table class="table table-bordered table-sm order-column stripe table-hover" style="width: 100%" id="TableSupplierSummary">
+                                    <tbody id="TableBodySupplierSummary">
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-
                     }
                 }
             </div>
@@ -139,4 +138,4 @@
 
     </form>
 </div>
-<script src="~/js/inventory/createupdate_isupplier_uiscript.js"></script>
+<script src="~/js/procurement/createupdate_psupplier_uiscript.js"></script>

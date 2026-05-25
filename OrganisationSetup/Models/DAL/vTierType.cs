@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace OrganisationSetup.Models.DAL;
+
+public partial class vTierType
+{
+    public int Id { get; set; }
+
+    public string? Description { get; set; }
+
+    public bool IsDefault { get; set; }
+
+    public bool Status { get; set; }
+}

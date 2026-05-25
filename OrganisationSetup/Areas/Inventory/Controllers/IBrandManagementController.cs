@@ -33,12 +33,6 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
         [HttpPost]
         public async Task<IActionResult> createUpdateBrand([FromBody] PostedData postedData)
         {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors);
-            }
-            if (!ModelState.IsValid) return View(postedData);
-
             var result = await _acuService.updateInsertDataInto_IBrand(postedData);
             return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message });
         }

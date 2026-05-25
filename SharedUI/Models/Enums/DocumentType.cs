@@ -26,7 +26,7 @@ namespace SharedUI.Models.Enums
         productATI = 14,
         inventoryAdjustment = 26,
         inventoryAdjustmentProductInformation = 27,
-        stockLedgerRecord = 28,
+        inventoryLedgerRecord = 28,
 
         // SALE
         customer = 15,
@@ -34,7 +34,7 @@ namespace SharedUI.Models.Enums
         invoiceProduct = 17,
         invoiceProductCustomerOB = 18,
         customerLedgerRecord = 19,
-        paymentReceipt = 20,
+        invoiceReceipt = 20,
 
         // PURCHASE
         supplier = 21,

@@ -1,0 +1,116 @@
+﻿@using SharedUI.Models.Enums
+@{
+    Layout = "LayoutOne";
+}
+<div class="container-fluid py-2">
+    <div class="d-flex justify-content-between align-items-center border-bottom mb-4 pb-3">
+        <div>
+            <h4 class="fw-bold mb-0">@ViewBag.DisplayName</h4>
+            <p class="text-muted small mb-0">Fill in the details to create a new system record.</p>
+        </div>
+        <div>
+            @if (ViewBag.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB))
+            {
+                <button type="button" id="ButtonSaveData" class="btn btn-primary btn-sm px-4 shadow-sm">
+                    <i class="fa-solid fa-cloud-arrow-up me-1"></i> Save
+                </button>
+            }
+            else if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
+            {
+                <button type="button" id="ButtonUpdateData" class="btn btn-success px-4 shadow-sm">
+                    <i class="fa-solid fa-cloud-arrow-up me-1"></i> Update
+                </button>
+            }
+        </div>
+    </div>
+
+
+    <form id="AFInvoiceReceipt">
+        @Html.Hidden("OperationType", (string)ViewBag.OperationType)
+        @Html.Hidden("GuID")
+        @Html.Hidden("PaymentTypeId", (int)PaymentType.InvoiceWise)
+        @{
+            if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row mb-0">
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group">
+                                    @Html.Label("DropDownListDocument", "Document (Payment)", new { @class = "col-form-label" })
+                                    @Html.DropDownList("DocumentGuID", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListDocument" })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+
+        <div class="card">
+            <div class="card-body">
+                <div class="col-12 mt-4">
+                    <div class="bg-light rounded-2 border-start border-primary border-4 p-2">
+                        <span class="fw-bold text-primary small"><i class="fa-solid fa-building me-2"></i> PAYMENT INFORMATION</span>
+                    </div>
+                </div>
+                @{
+                    if (ViewBag.OperationType == nameof(OperationType.MPO_LIST))
+                    {
+                        
+                <div class="row mb-0">
+                    <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("DropDownListLocation", "Location", new { @class = "col-form-label col-form-label-sm" })
+                            @Html.DropDownList("LocationId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListLocation", required = "required" })
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("TextBoxTransactionDate", "Transaction Date", new { @class = "col-form-label col-form-label-sm" })
+                            @Html.TextBox("TransactionDate", null, new { @class = "form-control form-control-sm",required = "required",placeholder = "YYYY-MM-DD",@id = "TextBoxTransactionDate",@type = "date"   })
+                        </div>
+                    </div>
+
+                    <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("DropDownListCustomer", "Customer", new { @class = "col-form-label col-form-label-sm" })
+                            @Html.DropDownList("CustomerId", Enumerable.Empty<SelectListItem>(), "Select An Option", new { @class = "form-select form-select-sm select2", @id = "DropDownListCustomer" })
+                        </div>
+                    </div>
+                       <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("DropDownListPaymentMethod", "Payment Method", new { @class = "col-form-label col-form-label-sm" })
+                            @Html.DropDownList("PaymentMethodId", Enumerable.Empty<SelectListItem>(), "Select An Option", new { @class = "form-select form-select-sm select2", @id = "DropDownListPaymentMethod" })
+                        </div>
+                    </div>
+                </div>
+                <label class="badge badge"></label>
+                
+                <div class="row mb-0">
+                    <div class="col-sm-12 col-md-3">
+                        <div class="form-group">
+                            @Html.Label("TextBoxReference", "Reference", new { @class = "col-form-label col-form-label-sm" })
+                            @Html.TextBox("Reference", null, new { @class = "form-control form-control-sm", required = "required", placeholder = "Payment Reference", @id = "TextBoxReference" })
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3">
+                <div class="bootstrap-admin-panel-content">
+                    <table class="table table-bordered table-sm order-column stripe table-hover" style="width: 100%" id="TableInvoice">
+                        <tbody id="TableBodyInvoice">
+                        </tbody>
+                    </table>
+                </div>
+                </div>                        
+                    }
+                }
+
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+    var LocationId = @ViewBag.LocationId;
+</script>
+<script src="~/js/accountnfinance/createupdate_afinvoicereceipt_invw_uiscript.js"></script>

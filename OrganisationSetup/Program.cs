@@ -7,6 +7,7 @@ using OrganisationSetup.Areas.AccountNfinance.Services;
 using OrganisationSetup.Areas.ApplicationConfiguration.Services;
 using OrganisationSetup.Areas.CompanySetup.Services;
 using OrganisationSetup.Areas.Inventory.Services;
+using OrganisationSetup.Areas.Procurement.Services;
 using OrganisationSetup.Areas.SaleOperation.Services;
 using OrganisationSetup.Models.DAL;
 using OrganisationSetup.Models.DAL.StoredProcedure;
@@ -17,6 +18,7 @@ using SharedUI.Models.Contexts;
 using SharedUI.Services;
 using System.IO;
 using System.Text;
+using static OrganisationSetup.Areas.Procurement.Services.IProcurementValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -107,6 +109,10 @@ builder.Services.AddScoped<IInventoryRetriever, InventoryRetrieverService>();
 builder.Services.AddScoped<ISaleOperationUpsert, SaleOperationUpsertService>();
 builder.Services.AddScoped<ISaleOperationValidation, SaleOperationValidationService>();
 builder.Services.AddScoped<ISaleOperationRetriever, SaleOperationRetrieverService>();
+builder.Services.AddScoped<IProcurementUpsert, ProcurementUpsertService>();
+builder.Services.AddScoped<IProcurementRetriever, ProcurementRetrieverService>();
+builder.Services.AddScoped<IProcurementValidation, ProcurementValidationService>();
+
 //builder.Services.AddScoped<IPOSService, POSService>();
 builder.Services.AddScoped<TempUser>();
 

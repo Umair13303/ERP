@@ -29,6 +29,7 @@ namespace OrganisationSetup.Services
         Task<List<vProductType>> populateProductTypeByParam();
         Task<List<vInventoryAdjustmentType>> populateInventoryAdjustmentTypeByParam();
         Task<List<vCostingMode>> populateCostingModeByParam();
+        Task<List<vTierType>> populateTierTypeByParam();
         Task<Dictionary<string, FieldConfig>> fetchProductSetting();
     }
     public class CommonServices : ICommon
@@ -138,6 +139,11 @@ namespace OrganisationSetup.Services
         public async Task<List<vCostingMode>> populateCostingModeByParam()
         {
             var result = await _context.vCostingMode.AsNoTracking().Where(x=> x.Status == true).ToListAsync();
+            return result;
+        }
+        public async Task<List<vTierType>> populateTierTypeByParam()
+        {
+            var result = await _context.vTierType.AsNoTracking().Where(x=> x.Status == true && x.IsDefault == true).ToListAsync();
             return result;
         }
         public async Task<List<osvChartOfAccount>> populateOSvChartOfAccountByParam(string? operationType, int? filterConditionId, int? accountCatagoryId)

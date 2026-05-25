@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using OrganisationSetup.Models.DAL;
@@ -9,6 +10,7 @@ using SharedUI.Models.Responses;
 using SharedUI.Models.SQLParameters;
 using SharedUI.Models.TVP;
 using System.Diagnostics;
+using System.Transactions;
 
 
 namespace OrganisationSetup.Areas.Inventory.Services
@@ -21,8 +23,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         Task<ServiceResult> updateInsertDataInto_IBrand(PostedData postedData);
         Task<ServiceResult> updateInsertDataInto_IProduct(PostedData postedData);
         Task<ServiceResult> updateInsertDataInto_IProductATI(PostedData postedData);
-        Task<ServiceResult> updateInsertDataInto_ISupplier(PostedData postedData);
-        Task<ServiceResult> updateInsertDataInto_IInventoryAdjustment(PostedData postedData, List<IInventoryAdjustmentPPQD_TVP> detailRows);
+        Task<ServiceResult> updateInsertDataInto_IAdjustment(PostedData postedData);
 
     }
     public class InventoryUpsertService : IInventoryUpsert
@@ -476,386 +477,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
             }
 
         }
-        public async Task<ServiceResult> updateInsertDataInto_ISupplier(PostedData postedData)
-        {
-            var userInfo = _currentUser;
-
-            if (!userInfo.IsAuthenticated)
-                return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
-
-            #region PORTION FOR :: DOCUMENT SETTING ON BASIS OF OperationType
-            Guid? supplierGuID = Guid.Empty;
-            Guid? chartOfAccountGuID = Guid.Empty;
-            Guid? billGuID = Guid.Empty;
-            Guid? supplierLedgerGuID = Guid.Empty;
-            Guid? journalVoucherCreditGuID = Guid.Empty;
-            Guid? journalVoucherDebitGuID = Guid.Empty;
-            if (postedData.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB))
-            {
-                supplierGuID = Guid.NewGuid();
-                chartOfAccountGuID = Guid.NewGuid();
-                billGuID = Guid.NewGuid();
-                supplierLedgerGuID = Guid.NewGuid();
-                journalVoucherCreditGuID = Guid.NewGuid();
-                journalVoucherDebitGuID = Guid.NewGuid();
-            }
-            else
-            {
-                supplierGuID = postedData.GuID;
-                chartOfAccountGuID = postedData.GuID;
-                billGuID = postedData.GuID;
-                supplierLedgerGuID = postedData.GuID;
-                journalVoucherCreditGuID = postedData.GuID;
-                journalVoucherDebitGuID = postedData.GuID;
-            }
-            bool? isOperationPermitted = true; //await _validationService.isOSCustomerValid(postedData.OperationType, customerGuID, postedData.Description);
-            #endregion
-
-            if (isOperationPermitted == true)
-            {
-                using var con = new SqlConnection(_connectionString);
-                await con.OpenAsync();
-                using var transaction = con.BeginTransaction();
-                try
-                {
-                    #region PORTION FOR :: UPSERT INTO dbo.AFChartOfAccount
-                    var AFChartOfAccount = await _repo.UpsertInto_AFChartOfAccount(
-                                                      postedData.OperationType,
-                                                      chartOfAccountGuID,
-                                                      postedData.DefaultPayableAccount?.Trim(),
-                                                      (int?)AccountCategory.ACCOUNTS_PAYABLE,
-                                                      (int?)FinancialStatement.INCOME_STATEMENT,
-                                                      DateTime.Now,
-                                                      userInfo.UserId,
-                                                      DateTime.Now,
-                                                      userInfo.UserId,
-                                                      (int?)DocumentType.accountChartOfAccount,
-                                                      (int?)DocumentStatus.active,
-                                                      userInfo.BranchId,
-                                                      userInfo.CompanyId,
-                                                      con, transaction);
-                    #endregion
-
-                    #region PORTION FOR :: UPSERT INTO dbo.ISupplier
-                    var ISupplier = await _repo.UpsertInto_ISupplier(
-                                                    postedData.OperationType,
-                                                    supplierGuID,
-                                                    postedData.Description?.Trim(),
-                                                    postedData.Contact?.Trim(),
-                                                    postedData.Email?.Trim(),
-                                                    postedData.CNICNumber?.Trim(),
-                                                    postedData.Address?.Trim(),
-                                                    postedData.AdditionalDetail?.Trim(),
-                                                    AFChartOfAccount.insertedId,
-                                                    postedData.OpeningBalance,
-                                                    DateTime.Now,
-                                                    userInfo.UserId,
-                                                    DateTime.Now,
-                                                    userInfo.UserId,
-                                                    (int?)DocumentType.supplier,
-                                                    (int?)DocumentStatus.active,
-                                                    userInfo.BranchId,
-                                                    userInfo.CompanyId,
-                                                    con, transaction);
-                    #endregion
-
-                    if (postedData.OpeningBalance > 0)
-                    {
-                        DateTime transactionDate = DateTime.Now;
-                        int? supplierId = ISupplier.insertedId;
-                        #region PRE-PARE DOCUMENTS IN CASE OPENING BALANCE > 0
-
-                        #region PORTION FOR :: FILL & UPSERT Bill
-                        string Description = "Opening Balance Till: " + DateTime.Now.ToString("dd-MMM-yyyy") + " . ";
-                        List<AFBillPPI_TVP> billPI = new List<AFBillPPI_TVP>
-                        {
-                            new AFBillPPI_TVP
-                            {
-                                Id = 0,
-                                GuID = Guid.NewGuid(),
-                                BillId = 0,
-                                ProductId = 0,
-                                Quantity = 0,
-                                ActualAmount = (decimal)postedData.OpeningBalance!,
-                                DiscountAmount = 0,
-                                ChargedAmount =  (decimal)postedData.OpeningBalance!,
-                                CreatedOn = DateTime.Now,
-                                CreatedBy = userInfo.UserId,
-                                UpdatedOn = DateTime.Now,
-                                UpdatedBy = userInfo.UserId,
-                                DocumentType = (int?)DocumentType.billProductSupplierOB,
-                                DocumentStatus = (int?)DocumentStatus.active,
-                                Status = true
-                            }
-                        };
-
-                        #region PORTION FOR :: UPSERT INTO dbo.AFBill
-                        var AFBill = await _repo.UpsertInto_AFBill(
-                                                        postedData.OperationType,
-                                                        billGuID,
-                                                        userInfo.BranchId,
-                                                        transactionDate,
-                                                        supplierId,
-                                                        Description,
-                                                        billPI.Sum(x => x.ChargedAmount),
-                                                        (int?)BillType.OpeningBalanceBILL,
-                                                        (int?)BillStatus.unPaid,
-                                                        DateTime.Now,
-                                                        userInfo.UserId,
-                                                        DateTime.Now,
-                                                        userInfo.UserId,
-                                                        (int?)DocumentType.bill,
-                                                        (int?)DocumentStatus.active,
-                                                        userInfo.BranchId,
-                                                        userInfo.CompanyId,
-                                                        billPI,
-                                                        con, transaction);
-
-                        ISupplier.response = AFBill.response;
-                        #endregion
-                        #endregion
-
-                        #region PORTION FOR :: FILL & UPSERT SupplierLedger
-                        Description = Description + " Having Document Code:-  " + AFBill.documentCode;
-                        List<AFSupplierLedger_TVP> supplierLedger = new List<AFSupplierLedger_TVP>
-                        {
-                            new AFSupplierLedger_TVP
-                            {
-                                Id = 0,
-                                GuID = supplierLedgerGuID,
-                                Code= "",
-                                LocationId = userInfo.BranchId,
-                                TransactionDate= transactionDate,
-                                SupplierId = supplierId,
-                                RefDocumentType = (int?)DocumentType.bill,
-                                RefDocumentId=AFBill.insertedId,
-                                Description= Description,
-                                Debit= (decimal)AFBill.totalBillAmount,
-                                Credit =0,
-                                ReconcillationStatus= (int?)ReconcileStatus.reconciled,
-                                CreatedOn = DateTime.Now,
-                                CreatedBy = userInfo.UserId,
-                                UpdatedOn = DateTime.Now,
-                                UpdatedBy = userInfo.UserId,
-                                DocumentType = (int?)DocumentType.supplierLedgerRecord,
-                                DocumentStatus = (int?)DocumentStatus.active,
-                                Status = true,
-                                BranchId= userInfo.BranchId,
-                                CompanyId = userInfo.CompanyId
-                            }
-                        };
-
-                        #region PORTION FOR :: UPSERT INTO dbo.AFSupplierLedger
-                        var AFSupplierLedger = await _repo.UpsertInto_AFSupplierLedger(
-                                                    postedData.OperationType,
-                                                    userInfo.CompanyId,
-                                                    supplierLedger,
-                                                    con, transaction);
-
-                        #endregion
-
-                        #endregion
-
-                        //   ISupplier.response = AFSupplierLedger.response!.Value;
-
-                        #endregion
-                    }
-
-                    #region PORTION FOR :: HANLDE TRANSACTION
-
-                    switch (ISupplier.response)
-                    {
-                        case (int)Code.Created:
-                        case (int)Code.Accepted:
-                            await transaction.CommitAsync();
-                            return ServiceResult.internalSuccess(Message.serverResponse(ISupplier.response), (int)ISupplier.response, ISupplier.insertedId);
-                        default:
-                            await transaction.RollbackAsync();
-                            return ServiceResult.failure(Message.serverResponse((int?)Code.BadRequest), (int)Code.BadRequest);
-                    }
-                    #endregion
-                }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync();
-                    return ServiceResult.failure(Message.serverResponse((int?)Code.InternalServerError), (int)Code.InternalServerError);
-                }
-            }
-            else
-            {
-                return ServiceResult.failure(Message.serverResponse((int?)Code.Conflict), (int)Code.Conflict);
-            }
-
-        }
-        //public async Task<ServiceResult> updateInsertDataInto_IInventoryAdjustment(PostedData postedData, List<IInventoryAdjustmentPPQD_TVP> postedDataPPQD)
-        //{
-        //    var userInfo = _currentUser;
-        //    if (!userInfo.IsAuthenticated)
-        //        return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
-
-        //    using var con = new SqlConnection(_connectionString);
-        //    await con.OpenAsync();
-        //    using var transaction = con.BeginTransaction();
-        //    try
-        //    {
-        //        var result = await _repo.UpsertInto_IInventoryAdjustment(
-        //            postedData.OperationType,
-        //            postedData.GuID,
-        //            postedData.LocationId,
-        //            postedData.TransactionDate,
-        //            postedData.Description,
-        //            (int)AdjustmentStatus.approved,
-        //            DateTime.Now,
-        //            userInfo.UserId,
-        //            DateTime.Now,
-        //            userInfo.UserId,
-        //            (int?)DocumentType.inventoryAdjustment,
-        //            (int?)DocumentStatus.active,
-        //            true,
-        //            userInfo.BranchId,
-        //            userInfo.CompanyId,
-        //            detailRows,
-        //            con, transaction
-        //        );
-
-        //        switch (result.response)
-        //        {
-        //            case (int)Code.Created:
-        //            case (int)Code.Accepted:
-        //                await transaction.CommitAsync();
-        //                return ServiceResult.success("Adjustment saved", (int)Code.Created);
-        //            default:
-        //                await transaction.RollbackAsync();
-        //                return ServiceResult.failure("Adjustment error", (int)Code.BadRequest);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await transaction.RollbackAsync();
-        //        return ServiceResult.failure("System error: " + ex.Message, (int)Code.InternalServerError);
-        //    }
-        //}
-        //{
-        //    var userInfo = _currentUser;
-
-        //    if (!userInfo.IsAuthenticated)
-        //        return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
-
-        //    #region PORTION FOR :: DOCUMENT SETTING ON BASIS OF OperationType
-        //    Guid? adjustmentGuID = Guid.Empty;
-        //    if (postedData.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB))
-        //    {
-        //        adjustmentGuID = Guid.NewGuid();
-        //    }
-        //    else
-        //    {
-        //        adjustmentGuID = postedData.GuID;
-        //    }
-        //    bool? isOperationPermitted = true; //await _validationService.isOSCustomerValid(postedData.OperationType, customerGuID, postedData.Description);
-        //    #endregion
-
-        //    if (isOperationPermitted == true)
-        //    {
-
-        //        using var con = new SqlConnection(_connectionString);
-        //        await con.OpenAsync();
-        //        using var transaction = con.BeginTransaction();
-        //        try
-        //        {
-        //            #region PORTION FOR :: UPSERT INTO dbo.IInventoryAdjustment
-        //            var IInventoryAdjustment = await _repo.UpsertInto_IInventoryAdjustment(
-        //                postedData.OperationType,
-        //                adjustmentGuID,
-        //                postedData.LocationId,
-        //                postedData.TransactionDate,
-        //                postedData.Description?.Trim(),
-        //                postedData.ProductId,
-        //                postedData.AttributeIds?.Trim(),
-        //                postedData.InventoryAdjustmentTypeId,
-        //                postedData.UnitPurchasePrice,
-        //                postedData.UnitSalePrice,
-        //                postedData.QuantityIn,
-        //                postedData.QuantityOut,
-        //                (int?)AdjustmentStatus.approved,
-        //                DateTime.Now,
-        //                userInfo.UserId,
-        //                DateTime.Now,
-        //                userInfo.UserId,
-        //                (int?)DocumentType.inventoryAdjustment,
-        //                (int?)DocumentStatus.active,
-        //                true,
-        //                userInfo.BranchId,
-        //                userInfo.CompanyId,
-        //                con, transaction);
-        //            #endregion
-
-        //            #region PORTION FOR :: CREATE STOCK LEDGER ENTRY
-        //            var netQuantity = (postedData.QuantityIn ?? 0) - (postedData.QuantityOut ?? 0);
-        //            var unitCost = netQuantity > 0 ? (decimal?)postedData.UnitPurchasePrice ?? 0 : (decimal?)postedData.UnitSalePrice ?? 0;
-
-        //            var productATI = await _eRPOSContext.IProductATI.FirstOrDefaultAsync(x => x.ProductId == postedData.ProductId);
-
-        //            var stockLedgerEntries = new List<IStockLedger_TVP>
-        //{
-        //    new IStockLedger_TVP
-        //    {
-        //        Id = 0,
-        //        GuID = Guid.NewGuid(),
-        //        LocationId = postedData.LocationId,
-        //        TransactionDate = postedData.TransactionDate ?? DateTime.Now,
-        //        ProductId = postedData.ProductId,
-        //        RefDocumentType = (int?)DocumentType.inventoryAdjustment,
-        //        RefDocumentId = IInventoryAdjustment.insertedId,
-        //        Description = $"Adjustment: {postedData.Description}",
-        //        InQty = postedData.QuantityIn ?? 0,
-        //        OutQty = postedData.QuantityOut ?? 0,
-        //        UnitCost = unitCost,
-        //        CostingModeId = productATI?.CostingModeId,
-        //        CreatedOn = DateTime.Now,
-        //        CreatedBy = userInfo.UserId,
-        //        UpdatedOn = DateTime.Now,
-        //        UpdatedBy = userInfo.UserId,
-        //        DocumentType = (int?)DocumentType.stockLedgerRecord,
-        //        DocumentStatus = (int?)DocumentStatus.active,
-        //        Status = true,
-        //        BranchId = userInfo.BranchId,
-        //        CompanyId = userInfo.CompanyId
-        //    }
-        //};
-
-        //            // var stockLedgerResponse = await _repo.UpsertInto_IStockLedger(
-        //            //     userInfo.CompanyId,
-        //            //     stockLedgerEntries,
-        //            //     con,
-        //            //     transaction);
-        //            #endregion
-
-        //            #region PORTION FOR :: HANDLE TRANSACTION
-        //            switch (IInventoryAdjustment.response)
-        //            {
-        //                case (int)Code.Created:
-        //                case (int)Code.Accepted:
-        //                    await transaction.CommitAsync();
-        //                    return ServiceResult.success(Message.serverResponse(IInventoryAdjustment.response), (int)IInventoryAdjustment.response);
-        //                default:
-        //                    await transaction.RollbackAsync();
-        //                    return ServiceResult.failure(Message.serverResponse((int?)Code.BadRequest), (int)Code.BadRequest);
-        //            }
-        //            #endregion
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            await transaction.RollbackAsync();
-        //            return ServiceResult.failure(Message.serverResponse((int?)Code.InternalServerError), (int)Code.InternalServerError);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        return ServiceResult.failure(Message.serverResponse((int?)Code.Conflict), (int)Code.Conflict);
-        //    }
-        //}
-        public async Task<ServiceResult> updateInsertDataInto_IInventoryAdjustment(
-        PostedData postedData, List<IInventoryAdjustmentPPQD_TVP> detailRows)
+        public async Task<ServiceResult> updateInsertDataInto_IAdjustment(PostedData postedData)
         {
             var userInfo = _currentUser;
             if (!userInfo.IsAuthenticated)
@@ -877,9 +499,9 @@ namespace OrganisationSetup.Areas.Inventory.Services
             using var transaction = con.BeginTransaction();
             try
             {
-
-                #region PORTION FOR :: UPSERT INTO dbo.IInventoryAdjustment
-                var IInventoryAdjustment = await _repo.UpsertInto_IInventoryAdjustment(
+                DateTime? transactionDate = DateTime.Now;
+                #region PORTION FOR :: UPSERT INTO dbo.IAdjustment
+                var IAdjustment = await _repo.UpsertInto_IAdjustment(
                     postedData.OperationType,
                     adjustmentGuID,
                     postedData.LocationId,
@@ -887,9 +509,9 @@ namespace OrganisationSetup.Areas.Inventory.Services
                     postedData.Description,
                     postedData.AdjustmentTypeId,
                     (int)AdjustmentStatus.approved,
-                    DateTime.Now,
+                    transactionDate,
                     userInfo.UserId,
-                    DateTime.Now,
+                    transactionDate,
                     userInfo.UserId,
                     (int?)DocumentType.inventoryAdjustment,
                     (int?)DocumentStatus.active,
@@ -900,43 +522,53 @@ namespace OrganisationSetup.Areas.Inventory.Services
                     con, transaction
                 );
                 #endregion
-                #region PORTION FOR :: UPSERT INTO dbo.IStockLedger
-                var IStockLedger = new List<IStockLedger_TVP>
+                #region PORTION FOR :: UPSERT INTO dbo.AFInventoryLedger
+                var AFInventoryLedgerInfo = new List<AFInventoryLedger_TVP>();
+                foreach (var ppqd in postedData.PostedDataIAdjustmentPPQD)
                 {
-                    new IStockLedger_TVP
+                    var LedgerPPQD= new AFInventoryLedger_TVP
                     {
-                        Id = 0,
-                        GuID = Guid.NewGuid(),
+                        GuID  = Guid.NewGuid(),
                         LocationId = postedData.LocationId,
-                        TransactionDate = postedData.TransactionDate ?? DateTime.Now,
-                        ProductId = postedData.ProductId,
+                        TransactionDate = transactionDate, 
+                        ProductId = ppqd.ProductId,
+                        Attribute = ppqd.Attribute,
                         RefDocumentType = (int?)DocumentType.inventoryAdjustment,
-                        RefDocumentId = IInventoryAdjustment.insertedId,
-                        Description = $"Adjustment: {postedData.Description} Recorded",
-                        InQty = postedData.QuantityIn ?? 0,
-                        OutQty = postedData.QuantityOut ?? 0,
-                     //   UnitCost = unitCost,
-                     //   CostingModeId = productATI?.CostingModeId,
-                        CreatedOn = DateTime.Now,
-                        CreatedBy = userInfo.UserId,
-                        UpdatedOn = DateTime.Now,
+                        RefDocumentId = (int?)IAdjustment.insertedId,
+                        Description= $"Inventory Adjustment Recorded",
+                        QuantityIn = ppqd.QuantityIn,
+                        QuantityOut = ppqd.QuantityOut,
+                        Debit = ppqd.UnitPurchasePrice * ppqd.QuantityIn,
+                        Credit = ppqd.UnitPurchasePrice * ppqd.QuantityOut,
+                        ReconcillationStatus = (int)ReconcileStatus.reconciled,
+                        CreatedOn= transactionDate,
+                        CreatedBy= userInfo.UserId,
+                        UpdatedOn = transactionDate,
                         UpdatedBy = userInfo.UserId,
-                        DocumentType = (int?)DocumentType.stockLedgerRecord,
+                        DocumentType = (int?)DocumentType.inventoryLedgerRecord,
                         DocumentStatus = (int?)DocumentStatus.active,
-                        Status = true,
+                        Status= true,
                         BranchId = userInfo.BranchId,
                         CompanyId = userInfo.CompanyId
-                    }
-                };
+                    };
+                    AFInventoryLedgerInfo.Add(LedgerPPQD);
+                }
+                var AFInventoryLedger = await _repo.UpsertInto_AFInventoryLedger(
+                    postedData.OperationType,
+                    AFInventoryLedgerInfo,
+                    null,
+                    con,
+                    transaction
+                );
                 #endregion
 
                 #region PORTION FOR :: HANDLE TRANSACTION
-                switch (IInventoryAdjustment.response)
+                switch (IAdjustment.response)
                 {
                     case (int)Code.Created:
                     case (int)Code.Accepted:
                         await transaction.CommitAsync();
-                        return ServiceResult.success(Message.serverResponse(IInventoryAdjustment.response), (int)IInventoryAdjustment.response);
+                        return ServiceResult.success(Message.serverResponse(IAdjustment.response), (int)IAdjustment.response);
                     default:
                         await transaction.RollbackAsync();
                         return ServiceResult.failure(Message.serverResponse((int?)Code.BadRequest), (int)Code.BadRequest);

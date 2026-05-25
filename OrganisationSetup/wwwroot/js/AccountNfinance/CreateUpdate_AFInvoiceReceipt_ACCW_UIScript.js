@@ -2,13 +2,13 @@
 var operationType = $("#OperationType").val();
 var dropDownListInitOption = "<option value='-1' " + (operationType == "INSERT_INTO_DB" ? "selected='selected'" : "") + ">Select an option</option>";
 var customerList = [];
-var paymentReceiptTable = "";
+var invoiceReceiptTable = "";
 
 
 
 /* ------ DOM Elements ------ */
 function domCustomerLedgerTable() {
-    paymentReceiptTable = $('#TablePaymentReceipt').DataTable({
+    invoiceReceiptTable = $('#TableInvoiceReceipt').DataTable({
         "processing": true,
         "serverSide": false,
         "responsive": true,
@@ -48,7 +48,7 @@ function domCustomerLedgerTable() {
 /* ------ Depending DDL's ------ */
 function getBranchList() {
     $.ajax({
-        url: window.basePath + "AccountNfinance/AFPaymentReceiptManagement/populateBranchListByParam",
+        url: window.basePath + "AccountNfinance/AFInvoiceReceiptManagement/populateBranchListByParam",
         type: "GET",
         dataType: "json",
         data: { operationType: operationType },
@@ -73,7 +73,7 @@ function getBranchList() {
 }
 function getCustomerList(customerId) {
     $.ajax({
-        url: window.basePath + "AccountNfinance/AFPaymentReceiptManagement/populateCustomerListByParam",
+        url: window.basePath + "AccountNfinance/AFInvoiceReceiptManagement/populateCustomerListByParam",
         type: "GET",
         dataType: "json",
         data: { operationType: operationType },
@@ -99,7 +99,7 @@ function getCustomerList(customerId) {
 }
 function getvPaymentMethodList() {
     $.ajax({
-        url: window.basePath + "AccountNfinance/AFPaymentReceiptManagement/populatevPaymentMethodListByParam",
+        url: window.basePath + "AccountNfinance/AFInvoiceReceiptManagement/populatevPaymentMethodListByParam",
         type: "GET",
         dataType: "json",
         data: { operationType: operationType },
@@ -120,16 +120,16 @@ function getvPaymentMethodList() {
         }
     });
 }
-function getPaymentReceiptList(customerId) {
-    paymentReceiptTable.clear().draw();
-    paymentReceiptTable.ajax.url((window.basePath + "AccountNfinance/AFPaymentReceiptManagement/populatePaymentReceiptListByParam?operationType=" + operationType + "&customerId=" + customerId)).load();
+function getInvoiceReceiptList(customerId) {
+    invoiceReceiptTable.clear().draw();
+    invoiceReceiptTable.ajax.url((window.basePath + "AccountNfinance/AFInvoiceReceiptManagement/populateInvoiceReceiptListByParam?operationType=" + operationType + "&customerId=" + customerId)).load();
 
 }
 /* ------ Change Cases DDL's ------ */
 function changeEventHandler() {
     $("#DropDownListCustomer").on("change", function () {
         var customerId = $("#DropDownListCustomer :selected").val();
-        getPaymentReceiptList(customerId);
+        getInvoiceReceiptList(customerId);
     });
     $("#ButtonSaveData, #ButtonUpdateData").on("click", function (e) {
         if (validater()) {
@@ -155,7 +155,7 @@ function initialize() {
 }
 /* ------ Validation for user input ------ */
 function validater() {
-    var form = document.getElementById("AFPaymentReceipt");
+    var form = document.getElementById("AFInvoiceReceipt");
     if (!form.checkValidity()) {
         form.classList.add('was-validated');
 
@@ -196,7 +196,7 @@ function createUpdateDataIntoDB() {
         PaymentTypeId: paymentTypeId
     };
     $.ajax({
-        url: window.basePath + "AccountNfinance/AFPaymentReceiptManagement/createUpdatePaymentReceipt",
+        url: window.basePath + "AccountNfinance/AFInvoiceReceiptManagement/createUpdateInvoiceReceipt",
         type: "POST",
         data: JSON.stringify(jsonData),
         contentType: "application/json; charset=utf-8",
@@ -207,7 +207,7 @@ function createUpdateDataIntoDB() {
         success: function (response) {
             if (response.IsSuccess == true) {
                 toastr.success(response.message);
-                $("#AFPaymentReceiptForm").removeClass('was-validated');
+                $("#AFInvoiceReceiptForm").removeClass('was-validated');
             }
             else {
                 toastr.info(response.message);

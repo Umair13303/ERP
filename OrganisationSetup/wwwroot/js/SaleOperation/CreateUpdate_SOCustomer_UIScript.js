@@ -2,6 +2,30 @@
 var operationType = $("#OperationType").val();
 var dropDownListInitOption = "<option value='-1'>Select an option</option>";
 
+
+
+/* ------ Depending DDL's ------ */
+function getvTierTypeList() {
+    $.ajax({
+        url: window.basePath + "SaleOperation/SOCustomerManagement/populatevTierTypeListByParam",
+        type: "GET",
+        dataType: "json",
+        beforeSend: function () {
+
+        },
+        success: function (data) {
+            $.each(data, function (index, item) {
+                $("#DropDownListTierType").append(new Option(item.description, item.id, true, true));
+            });
+        },
+        complete: function () {
+
+        },
+        error: function (xhr, status, error) {
+            console.error("Error: " + error);
+        }
+    });
+}
 /* ------ Change Cases DDL's ------ */
 function changeEventHandler() {
     $("#ButtonSaveData, #ButtonUpdateData").on("click", function (e) {
@@ -68,6 +92,7 @@ function domCustomerSummaryTable() {
 
 /* ------ Call Initial Components ------ */
 function initialize() {
+    getvTierTypeList();
     const intputMasking = new UIMasking();
     intputMasking.initialize();
     changeEventHandler();
@@ -101,6 +126,7 @@ function createUpdateDataIntoDB() {
     var operationType = $("#OperationType").val();
     var guID = $("#GuID").val();
     var description = $("#TextBoxDescription").val();
+    var tierTypeId = $("#DropDownListTierType :selected").val();
     var contact = $("#TextBoxContact").val();
     var email = $("#TextBoxEmail").val();
     var cnicNumber = $("#TextBoxCNICNumber").val();
@@ -117,6 +143,7 @@ function createUpdateDataIntoDB() {
         OperationType: operationType,
         GuID: guID ? guID : null,
         Description: description,
+        TierTypeId:tierTypeId,
         Contact: contact,
         Email: email,
         CNICNumber: cnicNumber,
@@ -154,9 +181,8 @@ function createUpdateDataIntoDB() {
     });
 }
 function clearInputFields() {
-    $(".form-control").val('');
-    $(".select2").val('-1').trigger("change");
-
+    $(".form-control").not("#DropDownListTierType").val('');
+    $(".select2").not("#DropDownListTierType").val('-1').trigger("change");
 }
 
 $(function () {

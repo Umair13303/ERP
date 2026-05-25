@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace OrganisationSetup.Models.DAL;
 
-public partial class ISupplier
+public partial class PSupplier
 {
     public int Id { get; set; }
 

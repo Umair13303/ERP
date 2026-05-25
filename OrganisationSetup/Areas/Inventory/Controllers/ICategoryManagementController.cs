@@ -63,24 +63,12 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
         [HttpPost]
         public async Task<IActionResult> createUpdateCategory([FromBody] PostedData postedData)
         {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors);
-            }
-            if (!ModelState.IsValid) return View(postedData);
-
             var result = await _IuService.updateInsertDataInto_ICategory(postedData);
             return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message });
         }
         [HttpPost]
         public async Task<IActionResult> createUpdateSubCategory([FromBody] PostedData postedData)
         {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors);
-            }
-            if (!ModelState.IsValid) return View(postedData);
-
             var result = await _IuService.updateInsertDataInto_ISubCategory(postedData);
             return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message });
         }

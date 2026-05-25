@@ -12,10 +12,10 @@
         </div>
     </div>
 
-    <form id="AFPaymentReceipt">
+    <form id="AFInvoiceReceipt">
         @Html.Hidden("OperationType", (string)ViewBag.OperationType)
         @Html.Hidden("GuID")
-        @Html.Hidden("PaymentTypeId", (int)PaymentType.onAccount)
+        @Html.Hidden("PaymentTypeId", (int)PaymentType.CustomerAccount)
 
         @if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
         {
@@ -95,8 +95,8 @@
                             <span class="fw-bold text-primary small">PAYMENT HISTORY</span>
                         </div>
                         <div class="table-responsive" style="max-height: 320px; overflow-y: auto;">
-                           <table class="table table-sm table-hover" style="font-size: 0.72rem;" id="TablePaymentReceipt">
-                                <tbody id="TableBodyPaymentReceipt">
+                            <table class="table table-sm table-hover" style="font-size: 0.72rem;" id="TableInvoiceReceipt">
+                                <tbody id="TableBodyInvoiceReceipt">
                                 </tbody>
                             </table>
                         </div>
@@ -109,4 +109,4 @@
 <script>
     var LocationId = @ViewBag.LocationId;
 </script>
-<script src="~/js/accountnfinance/createupdate_afpaymentreceipt_accw_uiscript.js"></script>
+<script src="~/js/accountnfinance/createupdate_afinvoicereceipt_accw_uiscript.js"></script>

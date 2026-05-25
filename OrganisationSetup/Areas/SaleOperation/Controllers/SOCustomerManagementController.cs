@@ -16,11 +16,14 @@ namespace OrganisationSetup.Areas.SaleOperation.Controllers
     {
         private readonly ISaleOperationUpsert _souService;
         private readonly ISaleOperationRetriever _sorService;
+        private readonly ICommon _IcService;
 
-        public SOCustomerManagementController(ISaleOperationUpsert souService, ISaleOperationRetriever sorService)
+
+        public SOCustomerManagementController(ISaleOperationUpsert souService, ISaleOperationRetriever sorService, ICommon icService    )
         {
             _souService = souService;
             _sorService = sorService;
+            _IcService = icService;
         }
         #region PORTION CONTAIN CODE TO: RENDER VIEW
         public IActionResult CreateUpdate_SOCustomer_UI(UISetting ui)
@@ -28,6 +31,15 @@ namespace OrganisationSetup.Areas.SaleOperation.Controllers
             ViewBag.OperationType = ui.OperationType;
             ViewBag.DisplayName = ui.DisplayName;
             return View();
+        }
+        #endregion
+
+        #region PORTION CONTAIN CODE TO: RETURN DEPENDING DDL
+        [HttpGet]
+        public async Task<IActionResult> populatevTierTypeListByParam()
+        {
+            var result = await _IcService.populateTierTypeByParam();
+            return Json(result);
         }
         #endregion
 
@@ -51,12 +63,6 @@ namespace OrganisationSetup.Areas.SaleOperation.Controllers
         [HttpPost]
         public async Task<IActionResult> createUpdateCustomer([FromBody] PostedData postedData)
         {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors);
-            }
-            if (!ModelState.IsValid) return View(postedData);
-
             var result = await _souService.updateInsertDataInto_SOCustomer(postedData);
             return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message });
         }

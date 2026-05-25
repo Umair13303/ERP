@@ -22,7 +22,7 @@ function domsupplierSummaryTable() {
         "ordering": true,
         "searching": true,
         "ajax": {
-            "url": window.basePath + "SaleOperation/ISupplierManagement/populateSupplierSummListByParam?operationType=" + operationType,
+            "url": window.basePath + "SaleOperation/PSupplierManagement/populateSupplierSummListByParam?operationType=" + operationType,
             "type": "GET",
             "dataSrc": "data",
             "error": function (xhr, error, thrown) {
@@ -81,7 +81,7 @@ function initialize() {
 }
 /* ------ Validation for user input ------ */
 function validater() {
-    var form = document.getElementById("ISupplierForm");
+    var form = document.getElementById("PSupplierForm");
     if (!form.checkValidity()) {
         form.classList.add('was-validated');
 
@@ -127,7 +127,7 @@ function createUpdateDataIntoDB() {
         OpeningBalance: openingBalance
     };
     $.ajax({
-        url: window.basePath + "Inventory/ISupplierManagement/createUpdateSupplier",
+        url: window.basePath + "Procurement/PSupplierManagement/createUpdateSupplier",
         type: "POST",
         data: JSON.stringify(jsonData),
         contentType: "application/json; charset=utf-8",
@@ -138,7 +138,7 @@ function createUpdateDataIntoDB() {
         success: function (response) {
             if (response.IsSuccess == true) {
                 toastr.success(response.message);
-                $("#ISupplierForm").removeClass('was-validated');
+                $("#PSupplierForm").removeClass('was-validated');
             }
             else {
                 toastr.info(response.message);

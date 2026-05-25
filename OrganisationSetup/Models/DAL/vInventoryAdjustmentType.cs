@@ -17,5 +17,7 @@ public partial class vInventoryAdjustmentType
 
     public bool IsQuantityOut { get; set; }
 
+    public bool? IsAutoPriceUpdate { get; set; }
+
     public bool? Status { get; set; }
 }
