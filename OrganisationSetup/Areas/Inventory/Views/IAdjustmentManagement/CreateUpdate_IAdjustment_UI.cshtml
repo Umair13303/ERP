@@ -43,32 +43,33 @@
                 </div>
 
                 <div class="row g-1">
-                    <div class="col-md-4 col-sm-12">
+                    <div class="col-md-3 col-sm-12">
                         <div class="form-group">
                             @Html.Label("DropDownListLocation", "Location", new { @class = "col-form-label" })
                             @Html.DropDownList("LocationId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListLocation" })
                         </div>
                     </div>
-                    <div class="col-md-4 col-sm-12">
+                    <div class="col-md-3 col-sm-12">
                         <div class="form-group">
                             @Html.Label("TextBoxTransactionDate", "Transaction Date", new { @class = "col-form-label" })
                             @Html.TextBox("TransactionDate", null, new { @class = "form-control form-control-sm simpleDate", type = "date", required = "required", @id = "TextBoxTransactionDate" })
                         </div>
                     </div>
-                    <div class="col-md-4 col-sm-12">
+                    <div class="col-md-3 col-sm-12">
                         <div class="form-group">
                             @Html.Label("TextBoxDescription", "Description", new { @class = "col-form-label" })
                             @Html.TextBox("Description", null, new { @class = "form-control form-control-sm", placeholder = "Provide Description!", required = "required", @id = "TextBoxDescription" })
                         </div>
                     </div>
-                </div>
-                <div class="row g-1">
-                    <div class="col-md-4 col-sm-12">
+                    <div class="col-md-3 col-sm-12">
                         <div class="form-group">
                             @Html.Label("DropDownListAdjustmentType", "Adjustment Type", new { @class = "col-form-label" })
                             @Html.DropDownList("AdjustmentTypeId", Enumerable.Empty<SelectListItem>(), "Select type...", new { @class = "form-select form-select-sm select2", @id = "DropDownListAdjustmentType" })
                         </div>
                     </div>
+                </div>
+                <div class="row g-1">
+                    
                 </div>
 
                

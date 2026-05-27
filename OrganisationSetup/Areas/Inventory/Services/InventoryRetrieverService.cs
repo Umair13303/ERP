@@ -190,7 +190,8 @@ namespace OrganisationSetup.Areas.Inventory.Services
                         {
                             Id = x.Id,
                             Text = x.Description,
-                            AttIds = x.AttributeIds
+                            AttIds = x.AttributeIds,
+                            IsExpiryApplied =x.IsExpiryApplicable
                         }).ToListAsync();
                 default:
                     return new List<Product_List>();

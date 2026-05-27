@@ -20,6 +20,8 @@ public partial class AFBillPPI
     public decimal DiscountAmount { get; set; }
 
     public decimal ChargedAmount { get; set; }
+    public string? Batch { get; set; }
+    public DateTime? ExpiryDate { get; set; }
 
     public DateTime? CreatedOn { get; set; }
 

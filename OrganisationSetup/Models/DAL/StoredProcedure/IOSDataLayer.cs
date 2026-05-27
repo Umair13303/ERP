@@ -40,7 +40,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
         Task<(int? response, int? insertedId, string? documentCode, decimal? totalBillAmount)> UpsertInto_AFBill(string? operationType, Guid? guId, int? locationId, DateTime? transactionDate, int? supplierId, string? description, decimal dueAmount, int? billTypeId, int? billStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId, List<AFBillPPI_TVP> billPPI, SqlConnection con, SqlTransaction trans);
         Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_AFSupplierLedger(string? operationType, int? companyId, List<AFSupplierLedger_TVP> customerLedger, SqlConnection con, SqlTransaction trans);
         Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_IAdjustment(string operationType, Guid? guID, int? locationId, DateTime? transactionDate, string? description, int? adjustmentTypeId,int? adjustmentStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, bool? status, int? branchId, int? companyId, List<IInventoryAdjustmentPPQD_TVP> details, SqlConnection con, SqlTransaction trans);
-        Task<(int? response, int? insertedIn, string? documentCode)> UpsertInto_AFInventoryLedger(string operationType, List<AFInventoryLedger_TVP> ledgerDetails, string? currentDocumentCode, SqlConnection con, SqlTransaction trans);
+        Task<(int? response, int? insertedIn, string? documentCode)> UpsertInto_AFInventoryLedger(string operationType,int? refDocumentType, List<AFInventoryLedger_TVP> ledgerDetails, string? currentDocumentCode, SqlConnection con, SqlTransaction trans);
 
         #endregion
         #region RETRIEVE OPERATION
@@ -410,7 +410,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             table.Columns.Add("InvoiceId", typeof(int));
             table.Columns.Add("ProductPriceLogId", typeof(int));
             table.Columns.Add("ProductId", typeof(int));
-            table.Columns.Add("ProductCombinationId", typeof(int));
+            table.Columns.Add("Attribute", typeof(string));
             table.Columns.Add("Quantity", typeof(decimal));
             table.Columns.Add("ActualAmount", typeof(decimal));
             table.Columns.Add("DiscountAmount", typeof(decimal));
@@ -431,7 +431,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                     (object?)item.InvoiceId ?? DBNull.Value,
                     (object?)item.ProductPriceLogId ?? DBNull.Value,
                     (object?)item.ProductId ?? DBNull.Value,
-                    (object?)item.ProductCombinationId ?? DBNull.Value,
+                    (object?)item.Attribute ?? DBNull.Value,
                     (object)item.Quantity ?? DBNull.Value,
                     (object)item.ActualAmount ?? DBNull.Value,
                     (object)item.DiscountAmount ?? DBNull.Value,
@@ -703,6 +703,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             table.Columns.Add("GuID", typeof(Guid));
             table.Columns.Add("BillId", typeof(int));
             table.Columns.Add("ProductId", typeof(int));
+            table.Columns.Add("Attribute", typeof(string));
             table.Columns.Add("Quantity", typeof(decimal));
             table.Columns.Add("ActualAmount", typeof(decimal));
             table.Columns.Add("DiscountAmount", typeof(decimal));
@@ -722,6 +723,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                     item.GuID,
                     (object?)item.BillId ?? DBNull.Value,
                     (object?)item.ProductId ?? DBNull.Value,
+                    (object?)item.Attribute ?? DBNull.Value,
                     (object)item.Quantity ?? DBNull.Value,
                     (object)item.ActualAmount ?? DBNull.Value,
                     (object)item.DiscountAmount ?? DBNull.Value,
@@ -859,6 +861,8 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             table.Columns.Add("UnitSalePrice", typeof(decimal));
             table.Columns.Add("QuantityIn", typeof(decimal));
             table.Columns.Add("QuantityOut", typeof(decimal));
+            table.Columns.Add("Batch", typeof(string));
+            table.Columns.Add("ExpiryDate", typeof(DateTime));
             table.Columns.Add("CreatedOn", typeof(DateTime));
             table.Columns.Add("CreatedBy", typeof(int));
             table.Columns.Add("UpdatedOn", typeof(DateTime));
@@ -878,6 +882,8 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                     d.UnitSalePrice,
                     d.QuantityIn ,
                     d.QuantityOut,
+                    d.Batch,
+                    d.ExpiryDate,
                     d.CreatedOn,
                     d.CreatedBy,
                     d.UpdatedOn,
@@ -919,19 +925,20 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                 (string?)documentCodeParam.Value
             );
         }
-        public async Task<(int? response, int? insertedIn, string? documentCode)> UpsertInto_AFInventoryLedger(string operationType,List<AFInventoryLedger_TVP> ledgerDetails, string? currentDocumentCode,SqlConnection con, SqlTransaction trans)
+        public async Task<(int? response, int? insertedIn, string? documentCode)> UpsertInto_AFInventoryLedger(string operationType,int? refDocumentType,List<AFInventoryLedger_TVP> ledgerDetails, string? currentDocumentCode,SqlConnection con, SqlTransaction trans)
         {
             using var cmd = new SqlCommand("[dbo].[AFInventoryLedger_Upsert]", con, trans);
             cmd.CommandType = CommandType.StoredProcedure;
 
             cmd.Parameters.AddWithValue("@OperationType", operationType ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@RefDocumentType", refDocumentType ?? (object)DBNull.Value);
 
             var table = new DataTable();
             table.Columns.Add("GuID", typeof(Guid));
             table.Columns.Add("LocationId", typeof(int));
             table.Columns.Add("TransactionDate", typeof(DateTime));
             table.Columns.Add("ProductId", typeof(int));
-            table.Columns.Add("Attribute", typeof(string)); // String data type to preserve dynamic javascript layout values
+            table.Columns.Add("Attribute", typeof(string));
             table.Columns.Add("RefDocumentType", typeof(int));
             table.Columns.Add("RefDocumentId", typeof(int));
             table.Columns.Add("Description", typeof(string));
@@ -939,6 +946,8 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             table.Columns.Add("QuantityOut", typeof(decimal));
             table.Columns.Add("Debit", typeof(decimal));
             table.Columns.Add("Credit", typeof(decimal));
+            table.Columns.Add("Batch", typeof(string));
+            table.Columns.Add("ExpiryDate", typeof(DateTime));
             table.Columns.Add("ReconcillationStatus", typeof(int));
             table.Columns.Add("CreatedOn", typeof(DateTime));
             table.Columns.Add("CreatedBy", typeof(int));
@@ -967,6 +976,8 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                         item.QuantityOut,
                         item.Debit,
                         item.Credit,
+                        item.Batch ?? (object)DBNull.Value,
+                        item.ExpiryDate ?? (object)DBNull.Value,
                         item.ReconcillationStatus ?? (object)DBNull.Value,
                         item.CreatedOn ?? (object)DBNull.Value,
                         item.CreatedBy ?? (object)DBNull.Value,

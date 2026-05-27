@@ -22,7 +22,8 @@ public partial class IAdjustmentPPQD
     public decimal QuantityIn { get; set; }
 
     public decimal QuantityOut { get; set; }
-
+    public string? Batch { get; set; }
+    public DateTime? ExpiryDate { get; set; }
     public DateTime? CreatedOn { get; set; }
 
     public int? CreatedBy { get; set; }

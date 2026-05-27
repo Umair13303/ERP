@@ -27,6 +27,8 @@ namespace SharedUI.Models.TVP
         public decimal Debit { get; set; }
 
         public decimal Credit { get; set; }
+        public string? Batch { get; set; }
+        public DateTime? ExpiryDate { get; set; }
 
         public int? ReconcillationStatus { get; set; }
 

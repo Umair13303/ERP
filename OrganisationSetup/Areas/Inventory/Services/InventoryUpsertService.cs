@@ -555,6 +555,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                 }
                 var AFInventoryLedger = await _repo.UpsertInto_AFInventoryLedger(
                     postedData.OperationType,
+                    AFInventoryLedgerInfo.FirstOrDefault()?.RefDocumentType,
                     AFInventoryLedgerInfo,
                     null,
                     con,

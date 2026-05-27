@@ -9,9 +9,8 @@ var adjustmentTable;
 function initializeDataTable() {
     adjustmentTable = $('#AdjustmentDetailTable').DataTable({
         destroy: true,
-        searching: true,
+        searching: false,
         ordering: true,
-        info: true,
         columns: [
             { title: 'Product', data: 'ProductName' },
             {
@@ -37,6 +36,27 @@ function initializeDataTable() {
             {
                 title: 'QTY OUT', data: 'QuantityOut',
                 className: 'text-end text-danger fw-bold'
+            },
+            {
+                title: 'Batch',
+                data: 'Batch',
+                render: function (data, type, row) {
+                    // Only render text input if item configuration dictates expiry tracking
+                    if (row.IsExpiryApplied) {
+                        return '<input type="text" class="form-control form-control-sm grid-batch-input" value="' + (data || "") + '" placeholder="Enter Batch">';
+                    }
+                    return '<span class="text-muted">-</span>';
+                }
+            },
+            {
+                title: 'Expiry',
+                data: 'Expiry',
+                render: function (data, type, row) {
+                    if (row.IsExpiryApplied) {
+                        return '<input type="date" class="form-control form-control-sm grid-expiry-input" value="' + (data || "") + '">';
+                    }
+                    return '<span class="text-muted">-</span>';
+                }
             },
             {
                 title: 'ACTIONS',
@@ -138,6 +158,7 @@ function getProductList(productId) {
                     value: p.id,
                     text: p.text,
                     'data-attIds': p.attIds,
+                    'data-isExpiryApplied': p.isExpiryApplied,
                 });
             });
 
@@ -158,8 +179,10 @@ function getProductList(productId) {
 
 /* ------ Grid Actions ------ */
 function addLineItemToStaging() {
-    var productId = $("#DropDownListProduct").val();
     var productName = $("#DropDownListProduct option:selected").text();
+    var productId = $("#DropDownListProduct").val();
+    var isExpiryApplied = $("#DropDownListProduct option:selected").data('isexpiryapplied');
+
     var unitPurchasePrice = parseFloat($("#TextBoxUnitPurchasePrice").val()) || 0;
     var unitSalePrice = parseFloat($("#TextBoxUnitSalePrice").val()) || 0;
     var quantityIn = parseFloat($("#TextBoxQuantityIn").val()) || 0;
@@ -174,6 +197,8 @@ function addLineItemToStaging() {
         return;
     }
 
+    var hasExpiry = (isExpiryApplied === true || isExpiryApplied === "True" || isExpiryApplied === 1 || isExpiryApplied === "1");
+
     var itemAttributes = [];
     var attributeDescriptions = [];
     $("#ContainerStockAttribute .attr-field, #ContainerStockAttribute input").each(function () {
@@ -187,8 +212,7 @@ function addLineItemToStaging() {
     });
 
     var attributeString = attributeDescriptions.length > 0 ? attributeDescriptions.join(', ') : "N/A";
-
-    var lineItem = {
+    var lineItem = {    
         ProductId: productId,
         ProductName: productName,
         UnitPurchasePrice: unitPurchasePrice,
@@ -196,7 +220,10 @@ function addLineItemToStaging() {
         QuantityIn: quantityIn,
         QuantityOut: quantityOut,
         Attribute: itemAttributes,
-        AttributeDisplayString: attributeString
+        AttributeDisplayString: attributeString,
+        IsExpiryApplied: hasExpiry,
+        Batch: "",
+        Expiry: ""
     };
     adjustmentTable.row.add(lineItem).draw(false);
     clearLineItemInputs();
@@ -290,17 +317,21 @@ function createUpdateDataIntoDB() {
             Description: $input.val()
         });
     });
-
-    var iAdjustmentPPQD = adjustmentTable.rows().data().toArray().map(row => {
+    var iAdjustmentPPQD = adjustmentTable.rows().nodes().to$().map(function (index, node) {
+        var row = adjustmentTable.row(node).data();
+        var batch = $(node).find('.grid-batch-input').val() || "";
+        var expiry = $(node).find('.grid-expiry-input').val() || "";
         return {
             ProductId: row.ProductId,
             UnitPurchasePrice: row.UnitPurchasePrice,
             UnitSalePrice: row.UnitSalePrice,
             QuantityIn: row.QuantityIn,
             QuantityOut: row.QuantityOut,
-            Attribute: JSON.stringify(row.Attribute),
+            Attribute: (row.Attribute && row.Attribute.length > 0) ? JSON.stringify(row.Attribute) : null,
+            Batch: batch,
+            Expiry: expiry
         };
-    });
+    }).get();
     var jsonData = {
         OperationType: operationType,
         GuID: adjustmentGuID ? adjustmentGuID : null,
@@ -308,9 +339,9 @@ function createUpdateDataIntoDB() {
         TransactionDate: transactionDate,
         Description: description,
         AdjustmentTypeId: adjustmentTypeId,
-        Attribute: attribute,
         PostedDataIAdjustmentPPQD: iAdjustmentPPQD
     };
+
     $.ajax({
         url: window.basePath + "Inventory/IAdjustmentManagement/createUpdateInventoryAdjustment",
         type: "POST",
