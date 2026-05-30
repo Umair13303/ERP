@@ -1,4 +1,3 @@
-
 name: Build and Deploy to MonsterASP
 on:
   push:
@@ -17,25 +16,13 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Publish App
-        # This compiles your raw code into the 'publish-out' folder
+        # This compiles your application into the 'publish-out' folder
         run: dotnet publish -c Release -o ./publish-out
 
-      - name: Stop Application
-        # This creates the 'kill switch' file to unlock the DLLs on the server
-        run: |
-          echo "Site is updating, please wait..." > ./publish-out/app_offline.htm
-
-      - name: Upload to MonsterASP via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - name: Deploy via WebDeploy
+        # This pushes the compiled package securely using your publish profile secret
+        uses: azure/webapps-deploy@v3
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./publish-out/
-          server-dir: /wwwroot/
-          # This deletes old files and replaces them with the new ones
-          dangerous-clean-slate: true
-
-      # NOTE: The app_offline.htm file is uploaded in the step above. 
-      # ASP.NET Core will automatically restart once you delete that file 
-      # or simply overwrite it in your next push.
+          app-name: 'site71747'
+          publish-profile: ${{ secrets.WEBDEPLOY_PUBLISH_PROFILE }}
+          package: ./publish-out
