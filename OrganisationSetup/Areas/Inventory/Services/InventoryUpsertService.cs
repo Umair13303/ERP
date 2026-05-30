@@ -540,6 +540,8 @@ namespace OrganisationSetup.Areas.Inventory.Services
                         QuantityOut = ppqd.QuantityOut,
                         Debit = ppqd.UnitPurchasePrice * ppqd.QuantityIn,
                         Credit = ppqd.UnitPurchasePrice * ppqd.QuantityOut,
+                        Batch = ppqd.Batch,
+                        ExpiryDate = ppqd.ExpiryDate,
                         ReconcillationStatus = (int)ReconcileStatus.reconciled,
                         CreatedOn= transactionDate,
                         CreatedBy= userInfo.UserId,

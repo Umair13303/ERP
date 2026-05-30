@@ -329,7 +329,7 @@ function createUpdateDataIntoDB() {
             QuantityOut: row.QuantityOut,
             Attribute: (row.Attribute && row.Attribute.length > 0) ? JSON.stringify(row.Attribute) : null,
             Batch: batch,
-            Expiry: expiry
+            ExpiryDate: expiry
         };
     }).get();
     var jsonData = {
@@ -365,7 +365,7 @@ function createUpdateDataIntoDB() {
         },
         complete: function () {
             stopLoading();
-            clearInputFields();
+            //clearInputFields();
         }
     });
 }
