@@ -1,4 +1,5 @@
 name: Build and Deploy to MonsterASP
+
 on:
   push:
     branches: [ main ]
@@ -6,6 +7,7 @@ on:
 jobs:
   deploy-job:
     runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -16,9 +18,11 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Publish App
+        # This compiles your raw code into the 'publish-out' folder
         run: dotnet publish -c Release -o ./publish-out
 
-      - name: Stop Application (App Offline)
+      - name: Stop Application
+        # This creates the 'kill switch' file to unlock the DLLs on the server
         run: |
           echo "Site is updating, please wait..." > ./publish-out/app_offline.htm
 
@@ -30,4 +34,5 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./publish-out/
           server-dir: /
+          # This deletes old files and replaces them with the new ones
           dangerous-clean-slate: true
