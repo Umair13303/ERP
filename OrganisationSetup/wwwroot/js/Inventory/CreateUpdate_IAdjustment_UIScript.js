@@ -365,7 +365,7 @@ function createUpdateDataIntoDB() {
         },
         complete: function () {
             stopLoading();
-            //clearInputFields();
+            clearInputFields();
         }
     });
 }

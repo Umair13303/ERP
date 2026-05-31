@@ -708,6 +708,8 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             table.Columns.Add("ActualAmount", typeof(decimal));
             table.Columns.Add("DiscountAmount", typeof(decimal));
             table.Columns.Add("ChargedAmount", typeof(decimal));
+            table.Columns.Add("Batch", typeof(string));
+            table.Columns.Add("ExpiryDate", typeof(DateTime));
             table.Columns.Add("CreatedOn", typeof(DateTime));
             table.Columns.Add("CreatedBy", typeof(int));
             table.Columns.Add("UpdatedOn", typeof(DateTime));
@@ -728,6 +730,8 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                     (object)item.ActualAmount ?? DBNull.Value,
                     (object)item.DiscountAmount ?? DBNull.Value,
                     (object)item.ChargedAmount ?? DBNull.Value,
+                    (object)item.Batch ?? DBNull.Value,
+                    (object)item.ExpiryDate ?? DBNull.Value,
                     (object?)item.CreatedOn ?? DBNull.Value,
                     (object?)item.CreatedBy ?? DBNull.Value,
                     (object?)item.UpdatedOn ?? DBNull.Value,

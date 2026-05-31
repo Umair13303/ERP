@@ -25,7 +25,7 @@
     </div>
 
 
-    <form id="AFPaymentReceipt">
+    <form id="AFBillReceipt">
         @Html.Hidden("OperationType", (string)ViewBag.OperationType)
         @Html.Hidden("GuID")
         @Html.Hidden("PaymentTypeId", (int)PaymentType.BillWise)
@@ -74,8 +74,8 @@
 
                     <div class="col-sm-12 col-md-3">
                         <div class="form-group">
-                            @Html.Label("DropDownListCustomer", "Customer", new { @class = "col-form-label col-form-label-sm" })
-                            @Html.DropDownList("CustomerId", Enumerable.Empty<SelectListItem>(), "Select An Option", new { @class = "form-select form-select-sm select2", @id = "DropDownListCustomer" })
+                            @Html.Label("DropDownListSupplier", "Supplier", new { @class = "col-form-label col-form-label-sm" })
+                            @Html.DropDownList("SupplierId", Enumerable.Empty<SelectListItem>(), "Select An Option", new { @class = "form-select form-select-sm select2", @id = "DropDownListSupplier" })
                         </div>
                     </div>
                        <div class="col-sm-12 col-md-3">
@@ -113,3 +113,4 @@
 <script>
     var LocationId = @ViewBag.LocationId;
 </script>
+<script src="~/js/accountnfinance/createupdate_afbillreceipt_billw_uiscript.js"></script>
