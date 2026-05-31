@@ -18,9 +18,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
         Task<ServiceResult> updateInsertDataInto_AFChartOfAccount(PostedData postedData, bool? isCustomerAutoAccount);
         Task<ServiceResult> updateInsertDataInto_AFInvoice(PostedData postedData, List<AFInvoicePPI_TVP> invoicePPI);
         Task<ServiceResult> updateInsertDataInto_AFInvoiceReceipt(PostedData postedData);
-
-
-
+        Task<ServiceResult> updateInsertDataInto_AFBillReceipt(PostedData postedData);
     }
     public class AccountNfinanceUpsertService : IAccountNfinanceUpsert
     {
@@ -322,6 +320,168 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                         case (int)Code.Accepted:
                             await transaction.CommitAsync();
                             return ServiceResult.success(Message.serverResponse(AFInvoiceReceipt.response), (int)AFInvoiceReceipt.response);
+                        default:
+                            await transaction.RollbackAsync();
+                            return ServiceResult.failure(Message.serverResponse((int?)Code.BadRequest), (int)Code.BadRequest);
+                    }
+                    #endregion
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return ServiceResult.failure(Message.serverResponse((int?)Code.InternalServerError), (int)Code.InternalServerError);
+                }
+                finally
+                {
+                    if (con.State == System.Data.ConnectionState.Open)
+                        await con.CloseAsync();
+                }
+            }
+            else
+            {
+                return ServiceResult.failure(Message.serverResponse((int?)Code.Conflict), (int)Code.Conflict);
+            }
+        }
+        public async Task<ServiceResult> updateInsertDataInto_AFBillReceipt(PostedData postedData)
+        {
+            var userInfo = _currentUser;
+
+            if (!userInfo.IsAuthenticated)
+                return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
+
+            #region PORTION FOR :: DOCUMENT SETTING ON BASIS OF OperationType
+            Guid? billReceiptGuID = Guid.Empty;
+            Guid? supplierLedgerGuID = Guid.Empty;
+            if (postedData.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB) || postedData.OperationType == nameof(OperationType.MPO_LIST))
+            {
+                billReceiptGuID = Guid.NewGuid();
+                supplierLedgerGuID = Guid.NewGuid();
+            }
+            else
+            {
+                billReceiptGuID = postedData.GuID;
+            }
+            bool? isOperationPermitted = true;
+            //bool? isOperationPermitted = await _validationService.isAFPaymentReceiptValid(postedData.OperationType, paymentReceiptGuID);
+            #endregion
+
+            if (isOperationPermitted == true)
+            {
+                var con = (SqlConnection)_eRPOSContext.Database.GetDbConnection();
+                await con.OpenAsync();
+                using var transaction = con.BeginTransaction();
+                try
+                {
+                    await _eRPOSContext.Database.UseTransactionAsync(transaction);
+                    DateTime? transactionDate = postedData.TransactionDate;
+
+                    #region PORTION FOR :: UPSERT INTO dbo.AFBillReceipt
+                    var AFBillReceipt = await _repo.UpsertInto_AFBillReceipt(
+                                                      postedData.OperationType,
+                                                      billReceiptGuID,
+                                                      postedData.LocationId,
+                                                      transactionDate,
+                                                      postedData.SupplierId,
+                                                      postedData.BillId,
+                                                      postedData.Description,
+                                                      postedData.PaymentTypeId,
+                                                      postedData.PaymentMethodId,
+                                                      postedData.Reference,
+                                                      postedData.ReceiptAmount,
+                                                      (int?)PaymentStatus.verified,
+                                                      DateTime.Now,
+                                                      userInfo.UserId,
+                                                      DateTime.Now,
+                                                      userInfo.UserId,
+                                                      (int?)DocumentType.billReceipt,
+                                                      (int?)DocumentStatus.active,
+                                                      userInfo.BranchId,
+                                                      userInfo.CompanyId,
+                                                      con, transaction);
+                    #endregion
+
+
+                    #region PORTION FOR :: FILL & UPSERT SupplierLedger
+                    string supplierLedgerDescription = postedData!.Description;
+                    List<AFSupplierLedger_TVP> supplierLedger = new List<AFSupplierLedger_TVP>
+                        {
+                            new AFSupplierLedger_TVP
+                            {
+                                Id = 0,
+                                GuID = supplierLedgerGuID,
+                                Code= "",
+                                LocationId = postedData.LocationId,
+                                TransactionDate= transactionDate,
+                                SupplierId = postedData.SupplierId,
+                                RefDocumentType = (int?)DocumentType.billReceipt,
+                                RefDocumentId=AFBillReceipt.insertedId,
+                                Description= supplierLedgerDescription,
+                                Debit= 0,
+                                Credit =postedData.ReceiptAmount,
+                                ReconcillationStatus= (int?)ReconcileStatus.reconciled,
+                                CreatedOn = DateTime.Now,
+                                CreatedBy = userInfo.UserId,
+                                UpdatedOn = DateTime.Now,
+                                UpdatedBy = userInfo.UserId,
+                                DocumentType = (int?)DocumentType.supplierLedgerRecord,
+                                DocumentStatus = (int?)DocumentStatus.active,
+                                Status = true,
+                                BranchId= userInfo.BranchId,
+                                CompanyId = userInfo.CompanyId
+                            }
+                        };
+
+                    #region PORTION FOR :: UPSERT INTO dbo.AFSupplierLedger
+                    var AFSupplierLedger = await _repo.UpsertInto_AFSupplierLedger(
+                                                postedData.OperationType,
+                                                userInfo.CompanyId,
+                                                supplierLedger,
+                                                con, transaction);
+
+                    #endregion
+
+                    #endregion
+
+                    switch (postedData.PaymentTypeId)
+                    {
+                        case (int)PaymentType.BillWise:
+                            #region PORTION FOR :: UPDATE OUTSTANDING DUE AMOUNT ON dbo.AFBill
+
+                            var AFBill = await _eRPOSContext.AFBill
+                                                               .Where(x => x.Id == postedData.BillId && x.Status == true)
+                                                               .FirstOrDefaultAsync();
+                            if (AFBill != null)
+                            {
+                                AFBill.DueAmount = (decimal)AFBill.DueAmount - (decimal)postedData.ReceiptAmount;
+                                AFBill.DueAmount = AFBill.DueAmount < 0 ? 0 : AFBill.DueAmount;
+                                if (postedData.ReceiptAmount < AFBill.DueAmount)
+                                {
+                                    AFBill.BillStatus = (int?)InvoiceStatus.partialPaid;
+                                }
+                                else if (postedData.ReceiptAmount == AFBill.DueAmount)
+                                {
+                                    AFBill.BillStatus = (int?)InvoiceStatus.paid;
+                                }
+                                _eRPOSContext.Entry(AFBill).Property(x => x.DueAmount).IsModified = true;
+                                await _eRPOSContext.SaveChangesAsync();
+                            }
+                            else
+                            {
+                                AFBillReceipt.response = (int)Code.NotFound;
+                            }
+                            #endregion
+                            break;
+                        case (int)PaymentType.SupplierAccount:
+                                break;
+                    }
+
+                    #region PORTION FOR :: HANDLE TRANSACTION
+                    switch (AFBillReceipt.response)
+                    {
+                        case (int)Code.Created:
+                        case (int)Code.Accepted:
+                            await transaction.CommitAsync();
+                            return ServiceResult.success(Message.serverResponse(AFBillReceipt.response), (int)AFBillReceipt.response);
                         default:
                             await transaction.RollbackAsync();
                             return ServiceResult.failure(Message.serverResponse((int?)Code.BadRequest), (int)Code.BadRequest);

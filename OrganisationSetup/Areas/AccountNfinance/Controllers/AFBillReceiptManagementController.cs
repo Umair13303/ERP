@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OrganisationSetup.Areas.AccountNfinance.Services;
 using OrganisationSetup.Areas.ApplicationConfiguration.Services;
 using OrganisationSetup.Areas.CompanySetup.Services;
+using OrganisationSetup.Areas.Procurement.Services;
 using OrganisationSetup.Areas.SaleOperation.Services;
 using OrganisationSetup.Models.DAL;
 using OrganisationSetup.Services;
@@ -21,17 +22,17 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
     {
 
         private readonly ICommon _commonsServices;
-        private readonly ISaleOperationRetriever _sorService;
+        private readonly IProcurementRetriever _prService;
         private readonly IApplicationConfigurationRetriever _acrService;
         private readonly IAccountNfinanceRetriever _anfrService;
         private readonly TempUser _currentUser;
         private readonly IAccountNfinanceUpsert _anfuService;
 
 
-        public AFBillReceiptManagementController(ICommon commonsServices,ISaleOperationRetriever sorService, IApplicationConfigurationRetriever acrService, IAccountNfinanceRetriever anfrService, TempUser currentUser, IAccountNfinanceUpsert anfuService)
+        public AFBillReceiptManagementController(ICommon commonsServices, IProcurementRetriever prService, IApplicationConfigurationRetriever acrService, IAccountNfinanceRetriever anfrService, TempUser currentUser, IAccountNfinanceUpsert anfuService)
         {
             _commonsServices = commonsServices;
-            _sorService = sorService;
+            _prService = prService;
             _acrService = acrService;
             _anfrService = anfrService;
             _currentUser = currentUser;
@@ -62,9 +63,9 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
             return Json(result);
         }
         [HttpGet]
-        public async Task<IActionResult> populateCustomerListByParam(string operationType)
+        public async Task<IActionResult> populateSupplierByParam(string operationType)
         {
-            var result = await _sorService.populateCustomerByParam(operationType, (int?)FilterConditions.SOCustomer_Operation_ByCompany);
+            var result = await _prService.populateSupplierByParam(operationType, (int?)FilterConditions.PSupplier_Operation_ByCompany);
             return Json(result);
         }
         [HttpGet]
@@ -77,9 +78,9 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
 
         #region PORTION CONTAIN CODE TO: RETURN RECORD LIST
         [HttpGet]
-        public async Task<IActionResult> populateInvoiceListByParam(string operationType,Guid? guid, int? customerId, int?[] invoiceStatus)
+        public async Task<IActionResult> populateBillListByParam(string operationType,Guid? guid, int? supplierId, int?[] billStatus)
         {
-            var result = await _anfrService.populateInvoiceByParam(operationType, guid, customerId, invoiceStatus);
+            var result = await _anfrService.populateBillByParam(operationType, guid, supplierId, billStatus);
             return Json(new { data = result });
         }
         [HttpGet]
@@ -92,15 +93,9 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
 
         #region PORTION CONTAIN CODE TO: ADD/EDIT/DELETE DOCUMENT
         [HttpPost]
-        public async Task<IActionResult> createUpdateInvoiceReceipt([FromBody] PostedData postedData)
+        public async Task<IActionResult> createUpdateBillReceipt([FromBody] PostedData postedData)
         {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors);
-            }
-            if (!ModelState.IsValid) return View(postedData);
-
-            var result = await _anfuService.updateInsertDataInto_AFInvoiceReceipt(postedData);
+            var result = await _anfuService.updateInsertDataInto_AFBillReceipt(postedData);
             return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message });
         }
         #endregion

@@ -20,6 +20,12 @@ namespace SharedUI.Models.ViewModels
             public string? Text { get; set; }
             public string? Contact { get; set; }
         }
+        public class Supplier_List
+        {
+            public int? Id { get; set; }
+            public string? Text { get; set; }
+            public string? Contact { get; set; }
+        }
         public class Product_List
         {
             public int? Id { get; set; }
@@ -43,6 +49,20 @@ namespace SharedUI.Models.ViewModels
             public int? InvoiceTypeId { get; set; }
             public int? InvoiceStatus { get; set; }
             public int? InvoiceId { get; set; }
+        }
+        public class Bill_List
+        {
+            public string? SupplierName { get; set; }
+            public string? Code { get; set; }
+            public string? TransactionDate { get; set; }
+            public decimal GrossAmount { get; set; }
+            public decimal DiscountAmount { get; set; }
+            public decimal NetAmount { get; set; }
+            public decimal DueAmount { get; set; }
+            public Guid? GuID { get; set; }
+            public int? BillTypeId { get; set; }
+            public int? BillStatus { get; set; }
+            public int? BillId { get; set; }
         }
         public class RptCustomerSummary_List
         {

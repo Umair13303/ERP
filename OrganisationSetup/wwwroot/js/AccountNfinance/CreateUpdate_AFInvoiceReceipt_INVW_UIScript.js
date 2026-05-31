@@ -244,7 +244,8 @@ function createUpdateDataIntoDB(btnElement) {
             $(btnElement).prop("disabled", true);
         },
         success: function (response) {
-                $("#AFInvoiceReceipt").removeClass("was-validated");
+            toastr.success(response.message);
+            $("#AFInvoiceReceipt").removeClass("was-validated");
         },
         error: function (xhr) {
             toastr.error("System Error: " + xhr.statusText);

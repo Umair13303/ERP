@@ -41,7 +41,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
         Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_AFSupplierLedger(string? operationType, int? companyId, List<AFSupplierLedger_TVP> customerLedger, SqlConnection con, SqlTransaction trans);
         Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_IAdjustment(string operationType, Guid? guID, int? locationId, DateTime? transactionDate, string? description, int? adjustmentTypeId,int? adjustmentStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, bool? status, int? branchId, int? companyId, List<IInventoryAdjustmentPPQD_TVP> details, SqlConnection con, SqlTransaction trans);
         Task<(int? response, int? insertedIn, string? documentCode)> UpsertInto_AFInventoryLedger(string operationType,int? refDocumentType, List<AFInventoryLedger_TVP> ledgerDetails, string? currentDocumentCode, SqlConnection con, SqlTransaction trans);
-
+        Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_AFBillReceipt(string? operationType, Guid? guId, int? locationId, DateTime? transactionDate, int? supplierId, int? billId, string? description, int? paymentTypeId, int? paymentMethodId, string? reference, decimal? receiptAmount, int? paymentStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId, SqlConnection con, SqlTransaction trans);
         #endregion
         #region RETRIEVE OPERATION
         Task<IReadOnlyList<DTObject.Invoice_List>> ret_Invoice_ByParam(Guid? guId, int? customerId, int?[] documentStatusIds, int?[] invoiceStatusIds,string connStr);
@@ -49,6 +49,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
         Task<IReadOnlyList<DTObject.RptSaleLedger_List>> ret_RptSaleLedger_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] invoiceStatusIds, int?[] documentStatusIds, string connStr);
         Task<IReadOnlyList<DTObject.RptInvoiceReceipt_List>> ret_RptInvoiceReceipt_ByParam(int?[] paymentStatusIds, int?[] documentStatusIds, int? branchId, int? companyId, int? customerId, string connStr);
         Task<IReadOnlyList<DTObject.RptInventoryAdjustment_List>> ret_RptInventoryAdjustment_ByParam(int?[] adjustmentStatusIds, int?[] documentStatusIds, int? locationId, int? branchId, int? companyId, int? productId, string connStr);
+        Task<IReadOnlyList<DTObject.Bill_List>> ret_Bill_ByParam(Guid? guId, int? supplierId, int?[] documentStatusIds, int?[] billStatusIds, string connStr);
         #endregion
 
     }
@@ -1027,6 +1028,50 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                 documentCodeParam.Value != DBNull.Value ? (string?)documentCodeParam.Value : string.Empty
             );
         }
+        public async Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_AFBillReceipt(string? operationType, Guid? guId, int? locationId, DateTime? transactionDate, int? supplierId, int? billId, string? description, int? paymentTypeId, int? paymentMethodId, string? reference, decimal? receiptAmount, int? paymentStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId, SqlConnection con, SqlTransaction trans)
+        {
+            using var cmd = new SqlCommand("AFBillReceipt_Upsert", con, trans);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.AddWithValue("@DB_OperationType", (object)operationType! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@GuID", (object)guId! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@LocationId", (object)locationId! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@TransactionDate", (object)transactionDate! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@SupplierId", (object)supplierId! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@BillId", (object)billId! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Description", (object)description! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@PaymentTypeId", (object)paymentTypeId! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@PaymentMethodId", (object)paymentMethodId! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Reference", (object)reference! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ReceiptAmount", (object)receiptAmount! ?? 0);
+            cmd.Parameters.AddWithValue("@PaymentStatus", (object)paymentStatus! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@CreatedOn", (object)createdOn! ?? DateTime.Now);
+            cmd.Parameters.AddWithValue("@CreatedBy", (object)createdBy! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@UpdatedOn", (object)updatedOn! ?? DateTime.Now);
+            cmd.Parameters.AddWithValue("@UpdatedBy", (object)updatedBy! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@DocumentType", (object)documentType! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@DocumentStatus", (object)documentStatus! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Status", true);
+            cmd.Parameters.AddWithValue("@BranchId", (object)branchId! ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@CompanyId", (object)companyId! ?? DBNull.Value);
+
+            var insertedIdParam = new SqlParameter("@InsertedId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+            var documentCodeParam = new SqlParameter("@DocumentCode", SqlDbType.NVarChar, -1) { Direction = ParameterDirection.Output };
+            var responseParam = new SqlParameter("@Response", SqlDbType.Int) { Direction = ParameterDirection.Output };
+
+            cmd.Parameters.Add(insertedIdParam);
+            cmd.Parameters.Add(documentCodeParam);
+            cmd.Parameters.Add(responseParam);
+
+            await cmd.ExecuteNonQueryAsync();
+
+            return (
+                response: responseParam.Value == DBNull.Value ? null : (int?)responseParam.Value,
+                insertedId: insertedIdParam.Value == DBNull.Value ? null : (int?)insertedIdParam.Value,
+                documentCode: documentCodeParam.Value == DBNull.Value ? null : (string?)documentCodeParam.Value
+            );
+        }
+
         #endregion
 
         #region RETRIEVE OPERATION SP
@@ -1129,6 +1174,26 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             try
             {
                 var result = await db.QueryAsync<DTObject.RptInventoryAdjustment_List>("[dbo].[RptInventoryAdjustment_GLBParam]", parameters, commandType: CommandType.StoredProcedure);
+                return result.ToList().AsReadOnly();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public async Task<IReadOnlyList<DTObject.Bill_List>> ret_Bill_ByParam(Guid? guId, int? supplierId, int?[] documentStatusIds, int?[] billStatusIds, string connStr)
+        {
+            using IDbConnection db = new SqlConnection(connStr);
+            var parameters = new
+            {
+                GuID = guId,
+                SupplierId = supplierId,
+                DocumentStatus = documentStatusIds != null ? string.Join(",", documentStatusIds) : null,
+                BillStatusIds = billStatusIds != null ? string.Join(",", billStatusIds) : null,
+            };
+            try
+            {
+                var result = await db.QueryAsync<DTObject.Bill_List>("[dbo].[AFBill_GLBParam]", parameters, commandType: CommandType.StoredProcedure);
                 return result.ToList().AsReadOnly();
             }
             catch (Exception ex)

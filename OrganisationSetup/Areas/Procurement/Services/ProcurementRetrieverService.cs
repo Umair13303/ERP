@@ -13,7 +13,9 @@ namespace OrganisationSetup.Areas.Procurement.Services
 {
     public interface IProcurementRetriever
     {
+        Task<List<Supplier_List>> populateSupplierByParam(string? operationType, int? filterConditionId);
     }
+
     public class ProcurementRetrieverService : IProcurementRetriever
     {
         private readonly TempUser _currentUser;
@@ -28,9 +30,34 @@ namespace OrganisationSetup.Areas.Procurement.Services
             _eRPOSContext = eRPOSC;
             _httpContextAccessor = httpContextAccessor;
             _commonsServices = commonsServices;
-
         }
-     
-    }
+        public async Task<List<Supplier_List>> populateSupplierByParam(string? operationType, int? filterConditionId)
+        {
+            var userInfo = _currentUser;
+            if (!userInfo.IsAuthenticated)
+            {
+                return new List<Supplier_List>();
+            }
 
+            int?[]? documentStatusIds = await _commonsServices.getDocumentStatusByParam(operationType);
+            if (documentStatusIds == null) return new List<Supplier_List>();
+            switch (filterConditionId)
+            {
+                case ((int?)FilterConditions.PSupplier_Operation_ByCompany):
+                    return await _eRPOSContext.PSupplier.AsNoTracking()
+                        .Where(x =>
+                        x.CompanyId == userInfo.CompanyId
+                        && x.BranchId == userInfo.BranchId
+                        && x.Status == true
+                        && documentStatusIds.Contains(x.DocumentStatus)).Select(x => new Supplier_List
+                        {
+                            Id = x.Id,
+                            Text = x.Description,
+                            Contact = x.Contact,
+                        }).ToListAsync();
+                default:
+                    return new List<Supplier_List>();
+            }
+        }
+    }
 }

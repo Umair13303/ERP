@@ -32,13 +32,11 @@ function domBillTable() {
                 "title": "Bill Summary",
                 "data": null,
                 "render": function (data, type, row) {
-                    return "<b>Actual Cost:</b> " + data.taxableAmount.toFixed(2) + "<br>" +
+                    return "<b>Net Amount:</b> " + data.netAmount.toFixed(2) + "<br>" +
                         "<hr style='margin: 5px 0;'>" +
-                        "<b>Net Total:</b> " + data.netAmount.toFixed(2);
-
+                        "<b>Due Amount:</b> " + data.dueAmount.toFixed(2);
                 }
             },
-            { "data": "dueAmount", "title": "Receivable" },
             {
                 "title": "Description",
                 "data": null,
@@ -54,10 +52,10 @@ function domBillTable() {
                 }
             },
             {
-                "title": "Invoice Status",
+                "title": "Bill Status",
                 "data": null,
                 "render": function (data, type, row) {
-                    return GetInvoiceStatus(data.invoiceStatus)
+                    return GetInvoiceStatus(data.billStatus)
                 }
             },
             {
@@ -68,7 +66,7 @@ function domBillTable() {
                 }
             },
             { "data": "guID", "title": "GuID", visible:false },
-            { "data": "invoiceId", "title": "InvoiceId", visible: false },
+            { "data": "billId", "title": "BillId", visible: false },
         ],
         columnDefs: [
         ],
@@ -109,7 +107,7 @@ function getBranchList() {
 }
 function getSupplierList(supplierId) {
     $.ajax({
-        url: window.basePath + "AccountNfinance/AFBillReceiptManagement/populateCustomerListByParam",
+        url: window.basePath + "AccountNfinance/AFBillReceiptManagement/populateSupplierByParam",
         type: "GET",
         dataType: "json",
         data: { operationType: operationType },
@@ -158,7 +156,7 @@ function getvPaymentMethodList() {
 }
 function getBillList(supplierId) {
     billTable.clear().draw();
-    billTable.ajax.url((window.basePath + "AccountNfinance/AFBillReceiptManagement/populateInvoiceListByParam?supplierId=" + supplierId + "&operationType=" + operationType)).load();
+    billTable.ajax.url((window.basePath + "AccountNfinance/AFBillReceiptManagement/populateBillListByParam?supplierId=" + supplierId + "&operationType=" + operationType)).load();
 
 }
 /* ------ Change Cases DDL's ------ */
@@ -225,7 +223,7 @@ function createUpdateDataIntoDB(btnElement) {
         OperationType: $("#OperationType").val(),
         LocationId: $("#DropDownListLocation :selected").val(),
         TransactionDate: $("#TextBoxTransactionDate").val(),
-        supplierId: $("#DropDownListCustomer :selected").val(),
+        supplierId: $("#DropDownListSupplier :selected").val(),
         PaymentMethodId: $("#DropDownListPaymentMethod :selected").val(),
         Reference: $("#TextBoxReference").val(),
         BillId: billId,
@@ -234,7 +232,7 @@ function createUpdateDataIntoDB(btnElement) {
         PaymentTypeId: $("#PaymentTypeId").val(),
     };
     $.ajax({
-        url: window.basePath + "AccountNfinance/AFBillReceiptManagement/createUpdateInvoiceReceipt",
+        url: window.basePath + "AccountNfinance/AFBillReceiptManagement/createUpdateBillReceipt",
         type: "POST",
         data: JSON.stringify(jsonData),
         contentType: "application/json; charset=utf-8",
@@ -244,7 +242,8 @@ function createUpdateDataIntoDB(btnElement) {
             $(btnElement).prop("disabled", true);
         },
         success: function (response) {
-                $("#AFBillReceipt").removeClass("was-validated");
+            toastr.success(response.message);
+            $("#AFBillReceipt").removeClass("was-validated");
         },
         error: function (xhr) {
             toastr.error("System Error: " + xhr.statusText);

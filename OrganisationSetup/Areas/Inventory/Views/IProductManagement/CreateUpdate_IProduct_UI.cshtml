@@ -111,7 +111,7 @@
                     <div class="col-sm-12 col-md-2" style="display:@prodattribute.Display">
                         <div class="form-group">
                             @Html.Label("DropDownListAttribute", "Attributes", new { @class = "col-form-label" })
-                            @Html.DropDownList("AttributeIds", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListAttribute",multiple=true })
+                            @Html.DropDownList("AttributeIds", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListAttribute",multiple=true })
                         </div>
                     </div>
                     <div class="col-sm-12 col-md-3">
@@ -209,19 +209,19 @@
                     <div class="col-sm-12 col-md-4">
                         <div class="form-group">
                             @Html.Label("DropDownListInventoryAccount", "Inventory Account", new { @class = "col-form-label" })
-                            @Html.DropDownList("InventoryAccountId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @disabled = IsDisabled, required = "required", @id = "DropDownListInventoryAccount" })
+                            @Html.DropDownList("InventoryAccountId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListInventoryAccount" })
                         </div>
                     </div>
                     <div class="col-sm-12 col-md-4">
                         <div class="form-group">
                             @Html.Label("DropDownListSaleRevenueAccount", "Sale/Revenue Account", new { @class = "col-form-label" })
-                            @Html.DropDownList("SaleRevenueAccountId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @disabled = IsDisabled, required = "required", @id = "DropDownListSaleRevenueAccount" })
+                            @Html.DropDownList("SaleRevenueAccountId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListSaleRevenueAccount" })
                         </div>
                     </div>
                     <div class="col-sm-12 col-md-4">
                         <div class="form-group">
                             @Html.Label("DropDownListCostOfSaleAccount", "Cost Of Sale Account", new { @class = "col-form-label" })
-                            @Html.DropDownList("CostOfSaleAccountId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @disabled = IsDisabled, required = "required", @id = "DropDownListCostOfSaleAccount" })
+                            @Html.DropDownList("CostOfSaleAccountId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListCostOfSaleAccount" })
                         </div>
                     </div>
                 </div>
@@ -230,19 +230,19 @@
                         <div class="col-sm-12 col-md-4">
                             <div class="form-group">
                                 @Html.Label("DropDownListItemType", "Item Type", new { @class = "col-form-label" })
-                            @Html.DropDownList("ItemTypeId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @disabled = IsDisabled, required = "required", @id = "DropDownListItemType" })
+                            @Html.DropDownList("ItemTypeId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2",  required = "required", @id = "DropDownListItemType" })
                             </div>
                         </div>
                         <div class="col-sm-12 col-md-4">
                             <div class="form-group">
                                 @Html.Label("DropDownListHSCode", "HS Code", new { @class = "col-form-label" })
-                            @Html.DropDownList("HSCodeId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @disabled = IsDisabled, required = "required", @id = "DropDownListHSCode" })
+                            @Html.DropDownList("HSCodeId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2",required = "required", @id = "DropDownListHSCode" })
                             </div>
                         </div>
                         <div class="col-sm-12 col-md-4">
                             <div class="form-group">
                                 @Html.Label("DropDownListSaleTaxType", "Sale Tax Type", new { @class = "col-form-label" })
-                                @Html.DropDownList("SaleTaxTypeId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @disabled = IsDisabled, required = "required", @id = "DropDownListSaleTaxType" })
+                                @Html.DropDownList("SaleTaxTypeId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2",required = "required", @id = "DropDownListSaleTaxType" })
                             </div>
                         </div>
                     </div>
@@ -250,7 +250,7 @@
                         <div class="col-sm-12 col-md-4">
                             <div class="form-group">
                                 @Html.Label("DropDownListCostingMode", "Costing Mode", new { @class = "col-form-label" })
-                                @Html.DropDownList("CostingModeId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @disabled = IsDisabled, required = "required", @id = "DropDownListCostingMode" })
+                                @Html.DropDownList("CostingModeId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2",  required = "required", @id = "DropDownListCostingMode" })
                             </div>
                         </div>
                     </div>

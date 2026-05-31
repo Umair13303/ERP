@@ -85,6 +85,7 @@ namespace SharedUI.Models.SQLParameters
         public decimal? QuantityOut { get; set; }
         public int? AdjustmentTypeId { get; set; }
         public int? SupplierId { get; set; }
+        public int? BillId { get; set; }
         public string? InvoiceNo { get; set; }
         public decimal UnitPurchasePrice { get; set; }
         public decimal UnitSalePrice { get; set; }

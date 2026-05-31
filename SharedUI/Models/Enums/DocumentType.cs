@@ -41,7 +41,9 @@ namespace SharedUI.Models.Enums
         bill = 22,
         billProduct = 23,
         billProductSupplierOB = 24,
-        supplierLedgerRecord = 25
+        supplierLedgerRecord = 25,
+        billReceipt = 26,
+
     }
     public enum StockAdjustmentType
     {
