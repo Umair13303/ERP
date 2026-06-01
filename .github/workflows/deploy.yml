@@ -26,6 +26,17 @@ jobs:
         run: |
           echo "Site is updating, please wait..." > ./publish-out/app_offline.htm
 
+      - name: Purge Remote wwwroot Directory
+        # This connects via FTP and forcefully deletes everything inside /wwwroot before the upload
+        uses: charliealbright/ftp-action@v1
+        with:
+          host: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          commands: |
+            cd /wwwroot
+            rm -rf *
+
       - name: Upload to MonsterASP via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -33,6 +44,5 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./publish-out/
-          server-dir: /
-          # This deletes old files and replaces them with the new ones
+          server-dir: /wwwroot/
           dangerous-clean-slate: true
