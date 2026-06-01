@@ -166,8 +166,8 @@ function changeEventHandler() {
         getBillList(supplierId);
     });
     $("#ButtonSaveData, #ButtonUpdateData").on("click", function (e) {
+        e.preventDefault();
         if (validater()) {
-            e.preventDefault();
             createUpdateDataIntoDB();
         }
     });
@@ -244,6 +244,8 @@ function createUpdateDataIntoDB(btnElement) {
         success: function (response) {
             toastr.success(response.message);
             $("#AFBillReceipt").removeClass("was-validated");
+            getBillList($("#DropDownListSupplier :selected").val());
+            clearInputFields();
         },
         error: function (xhr) {
             toastr.error("System Error: " + xhr.statusText);
@@ -255,9 +257,8 @@ function createUpdateDataIntoDB(btnElement) {
     });
 }
 function clearInputFields() {
-    $(".form-control").not("#DropDownListLocation").val('');
-    $(".select2").not("#DropDownListLocation").val('-1').trigger("change");
-
+    $(".form-control").not("#DropDownListLocation,#DropDownListSupplier").val('');
+    $(".select2").not("#DropDownListLocation,#DropDownListSupplier").val('-1').trigger("change");
 }
 $(function () {
     if (typeof setupGlobalAjax === "function") setupGlobalAjax();

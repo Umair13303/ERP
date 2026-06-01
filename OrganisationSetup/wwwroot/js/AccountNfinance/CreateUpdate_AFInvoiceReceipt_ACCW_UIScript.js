@@ -7,7 +7,7 @@ var invoiceReceiptTable = "";
 
 
 /* ------ DOM Elements ------ */
-function domCustomerLedgerTable() {
+function domInvoiceReceiptTable() {
     invoiceReceiptTable = $('#TableInvoiceReceipt').DataTable({
         "processing": true,
         "serverSide": false,
@@ -132,8 +132,8 @@ function changeEventHandler() {
         getInvoiceReceiptList(customerId);
     });
     $("#ButtonSaveData, #ButtonUpdateData").on("click", function (e) {
+        e.preventDefault();
         if (validater()) {
-            e.preventDefault();
             createUpdateDataIntoDB();
         }
     });
@@ -143,7 +143,7 @@ function changeEventHandler() {
 function initialize() {
     getBranchList();
     getvPaymentMethodList();
-    domCustomerLedgerTable();
+    domInvoiceReceiptTable();
     const intputMasking = new UIMasking();
     intputMasking.initialize();
     $('.select2:not(#DropDownListCustomer)').select2({
@@ -205,26 +205,22 @@ function createUpdateDataIntoDB() {
             initLoading();
         },
         success: function (response) {
-            if (response.IsSuccess == true) {
-                toastr.success(response.message);
-                $("#AFInvoiceReceiptForm").removeClass('was-validated');
-            }
-            else {
-                toastr.info(response.message);
-            }
+            toastr.success(response.message);
+            $("#AFInvoiceReceiptForm").removeClass('was-validated');
         },
         error: function (xhr) {
             toastr.error("System Error: " + xhr.statusText);
         },
         complete: function () {
+            getInvoiceReceiptList($("#DropDownListCustomer :selected").val());
             stopLoading();
             clearInputFields();
         }
     });
 }
 function clearInputFields() {
-    $(".form-control").not("#DropDownListLocation").val('');
-    $(".select2").not("#DropDownListLocation").val('-1').trigger("change");
+    $(".form-control").not("#DropDownListLocation,#DropDownListSupplier").val('');
+    $(".select2").not("#DropDownListLocation,#DropDownListSupplier").val('-1').trigger("change");
 
 }
 $(function () {

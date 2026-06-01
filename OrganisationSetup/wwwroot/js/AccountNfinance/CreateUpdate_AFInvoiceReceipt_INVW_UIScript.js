@@ -32,13 +32,10 @@ function domInvoiceTable() {
                 "title": "Invoice Summary",
                 "data": null,
                 "render": function (data, type, row) {
-                    return "<b>Actual Cost:</b> " + data.taxableAmount.toFixed(2) + "<br>" +
-                        "<hr style='margin: 5px 0;'>" +
-                        "<b>Net Total:</b> " + data.netAmount.toFixed(2);
-
+                    return "<b>Net Total:</b> " + data.netAmount.toFixed(2) + "<br>" +
+                        "<b>Receivable:</b> " + data.dueAmount.toFixed(2);
                 }
             },
-            { "data": "dueAmount", "title": "Receivable" },
             {
                 "title": "Description",
                 "data": null,
@@ -246,6 +243,8 @@ function createUpdateDataIntoDB(btnElement) {
         success: function (response) {
             toastr.success(response.message);
             $("#AFInvoiceReceipt").removeClass("was-validated");
+            getInvoiceList($("#DropDownListCustomer :selected").val());
+            clearInputFields();
         },
         error: function (xhr) {
             toastr.error("System Error: " + xhr.statusText);
@@ -257,9 +256,8 @@ function createUpdateDataIntoDB(btnElement) {
     });
 }
 function clearInputFields() {
-    $(".form-control").not("#DropDownListLocation").val('');
-    $(".select2").not("#DropDownListLocation").val('-1').trigger("change");
-
+    $(".form-control").not("#DropDownListLocation,#DropDownListCustomer").val('');
+    $(".select2").not("#DropDownListLocation,#DropDownListCustomer").val('-1').trigger("change");
 }
 $(function () {
     if (typeof setupGlobalAjax === "function") setupGlobalAjax();
