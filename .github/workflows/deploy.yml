@@ -27,15 +27,10 @@ jobs:
           echo "Site is updating, please wait..." > ./publish-out/app_offline.htm
 
       - name: Purge Remote wwwroot Directory
-        # This connects via FTP and forcefully deletes everything inside /wwwroot before the upload
-        uses: charliealbright/ftp-action@v1
-        with:
-          host: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          commands: |
-            cd /wwwroot
-            rm -rf *
+        # Installs standard Linux ftp tools and explicitly wipes out everything in /wwwroot
+        run: |
+          sudo apt-get update && sudo apt-get install -y lftp
+          lftp -e "set ftp:ssl-allow no; open ${{ secrets.FTP_SERVER }}; user ${{ secrets.FTP_USERNAME }} '${{ secrets.FTP_PASSWORD }}'; glob -a rm -rf /wwwroot/*; quit"
 
       - name: Upload to MonsterASP via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
