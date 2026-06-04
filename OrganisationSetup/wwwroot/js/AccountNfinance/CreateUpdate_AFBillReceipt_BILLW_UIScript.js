@@ -1,7 +1,7 @@
 ﻿/* ------ Global Variable ------ */
 var operationType = $("#OperationType").val();
 var dropDownListInitOption = "<option value='-1' " + (operationType == "INSERT_INTO_DB" ? "selected='selected'" : "") + ">Select an option</option>";
-var customerList = [];
+var supplierList = [];
 var billTable = "";
 /* ------ DOM Elements ------ */
 

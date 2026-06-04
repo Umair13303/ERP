@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OrganisationSetup.Areas.ApplicationConfiguration.Services;
 using OrganisationSetup.Areas.Inventory.Services;
+using OrganisationSetup.Areas.Procurement.Services;
 using OrganisationSetup.Services;
 using SharedUI.Models.Configurations;
 using SharedUI.Models.Contexts;
@@ -17,15 +18,17 @@ namespace OrganisationSetup.Areas.Procurement.Controllers
         private readonly TempUser _currentUser;
         private readonly IApplicationConfigurationRetriever _acrService;
         private readonly IInventoryRetriever _irService;
+        private readonly IProcurementRetriever _prService;
 
 
 
-        public PPurchaseManagementController(ICommon commonsServices,TempUser currentUser, IApplicationConfigurationRetriever acrService, IInventoryRetriever irService)
+        public PPurchaseManagementController(ICommon commonsServices,TempUser currentUser, IApplicationConfigurationRetriever acrService, IInventoryRetriever irService, IProcurementRetriever prService)
         {
             _commonsServices = commonsServices;
             _currentUser = currentUser;
             _acrService = acrService;
             _irService = irService;
+            _prService = prService;
         }
         #region PORTION CONTAIN CODE TO: RENDER VIEW
 
@@ -46,17 +49,10 @@ namespace OrganisationSetup.Areas.Procurement.Controllers
             var result = await _acrService.populateBranchByParam(operationType, (int?)FilterConditions.acBranch_Operation_ByAllowedBranches, null);
             return Json(result);
         }
-
         [HttpGet]
-        public async Task<IActionResult> populatevInventoryAdjustmentTypeListByParam()
+        public async Task<IActionResult> populateSupplierByParam(string operationType)
         {
-            var result = await _commonsServices.populateInventoryAdjustmentTypeByParam();
-            return Json(result);
-        }
-        [HttpGet]
-        public async Task<IActionResult> populatevAttributeListByParam()
-        {
-            var result = await _commonsServices.populateAttributeByParam();
+            var result = await _prService.populateSupplierByParam(operationType, (int?)FilterConditions.PSupplier_Operation_ByCompany);
             return Json(result);
         }
         [HttpGet]
@@ -65,6 +61,13 @@ namespace OrganisationSetup.Areas.Procurement.Controllers
             var result = await _irService.populateProductByParam(operationType,(int?)FilterConditions.IProduct_Operation_ALLActive_ByCompany, searchParam);
             return Json(result);
         }
+        [HttpGet]
+        public async Task<IActionResult> populatevAttributeListByParam()
+        {
+            var result = await _commonsServices.populateAttributeByParam();
+            return Json(result);
+        }
+
         #endregion
 
     }
