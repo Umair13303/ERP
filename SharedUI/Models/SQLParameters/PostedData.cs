@@ -49,11 +49,11 @@ namespace SharedUI.Models.SQLParameters
         public string? CNICNumber { get; set; }
         public string? Reference { get; set; }
         public decimal CriticalLimit { get; set; }
-        public decimal OpeningBalance { get; set; }
-        public decimal Credit { get; set; }
-        public decimal Debit { get; set; }
-        public decimal DueAmount { get; set; }
-        public decimal ReceiptAmount { get; set; }
+        public decimal? OpeningBalance { get; set; }
+        public decimal? Credit { get; set; }
+        public decimal? Debit { get; set; }
+        public decimal? DueAmount { get; set; }
+        public decimal? ReceiptAmount { get; set; }
         public DateTime? TransactionDate { get; set; }
         public DateTime? CreatedOn { get; set; }
         public int? CreatedBy { get; set; }
@@ -87,8 +87,8 @@ namespace SharedUI.Models.SQLParameters
         public int? SupplierId { get; set; }
         public int? BillId { get; set; }
         public string? InvoiceNo { get; set; }
-        public decimal UnitPurchasePrice { get; set; }
-        public decimal UnitSalePrice { get; set; }
+        public decimal? UnitPurchasePrice { get; set; }
+        public decimal? UnitSalePrice { get; set; }
 
         public List<IInventoryAdjustmentPPQD_TVP> PostedDataIAdjustmentPPQD { get; set; }
 

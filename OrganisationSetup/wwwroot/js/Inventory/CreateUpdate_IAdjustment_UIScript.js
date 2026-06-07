@@ -321,6 +321,7 @@ function createUpdateDataIntoDB() {
         var row = adjustmentTable.row(node).data();
         var batch = $(node).find('.grid-batch-input').val() || "";
         var expiry = $(node).find('.grid-expiry-input').val() || "";
+        var expiryDate = (expiry && expiry.trim() !== "") ? expiry : null;
         return {
             ProductId: row.ProductId,
             UnitPurchasePrice: row.UnitPurchasePrice,
@@ -329,7 +330,7 @@ function createUpdateDataIntoDB() {
             QuantityOut: row.QuantityOut,
             Attribute: (row.Attribute && row.Attribute.length > 0) ? JSON.stringify(row.Attribute) : null,
             Batch: batch,
-            ExpiryDate: expiry
+            ExpiryDate: expiryDate
         };
     }).get();
     var jsonData = {

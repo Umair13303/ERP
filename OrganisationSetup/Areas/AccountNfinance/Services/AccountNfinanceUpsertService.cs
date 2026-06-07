@@ -417,7 +417,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                 RefDocumentId=AFBillReceipt.insertedId,
                                 Description= supplierLedgerDescription,
                                 Debit= 0,
-                                Credit =postedData.ReceiptAmount,
+                                Credit =(decimal)postedData.ReceiptAmount,
                                 ReconcillationStatus= (int?)ReconcileStatus.reconciled,
                                 CreatedOn = DateTime.Now,
                                 CreatedBy = userInfo.UserId,
