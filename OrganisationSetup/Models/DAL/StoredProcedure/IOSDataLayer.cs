@@ -411,7 +411,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             table.Columns.Add("InvoiceId", typeof(int));
             table.Columns.Add("ProductPriceLogId", typeof(int));
             table.Columns.Add("ProductId", typeof(int));
-            table.Columns.Add("Attribute", typeof(string));
+            table.Columns.Add("ProductCombinationId", typeof(int));
             table.Columns.Add("Quantity", typeof(decimal));
             table.Columns.Add("ActualAmount", typeof(decimal));
             table.Columns.Add("DiscountAmount", typeof(decimal));
@@ -432,7 +432,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                     (object?)item.InvoiceId ?? DBNull.Value,
                     (object?)item.ProductPriceLogId ?? DBNull.Value,
                     (object?)item.ProductId ?? DBNull.Value,
-                    (object?)item.Attribute ?? DBNull.Value,
+                    (object?)item.ProductCombinationId ?? DBNull.Value,
                     (object)item.Quantity ?? DBNull.Value,
                     (object)item.ActualAmount ?? DBNull.Value,
                     (object)item.DiscountAmount ?? DBNull.Value,

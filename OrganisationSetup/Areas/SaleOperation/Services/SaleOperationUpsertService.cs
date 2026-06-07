@@ -141,7 +141,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                                 InvoiceId = 0,
                                 ProductPriceLogId=0,
                                 ProductId = 0,
-                                Attribute = "[]",
+                                ProductCombinationId = null,
                                 Quantity = 0,
                                 ActualAmount = (decimal)postedData.OpeningBalance!,
                                 DiscountAmount = 0,
