@@ -212,15 +212,15 @@ function createUpdateDataIntoDB() {
             toastr.error("System Error: " + xhr.statusText);
         },
         complete: function () {
-            getInvoiceReceiptList($("#DropDownListCustomer :selected").val());
+            getInvoiceReceiptList(customerId);
             stopLoading();
             clearInputFields();
         }
     });
 }
 function clearInputFields() {
-    $(".form-control").not("#DropDownListLocation,#DropDownListSupplier").val('');
-    $(".select2").not("#DropDownListLocation,#DropDownListSupplier").val('-1').trigger("change");
+    $(".form-control").not("#DropDownListLocation,#DropDownListCustomer").val('');
+    $(".select2").not("#DropDownListLocation,#DropDownListCustomer").val('-1').trigger("change");
 
 }
 $(function () {
