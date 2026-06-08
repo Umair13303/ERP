@@ -33,6 +33,16 @@ namespace SharedUI.Models.ViewModels
             public string? AttIds { get; set; }
             public bool? IsExpiryApplied { get; set; }
         }
+        public class Product_Master_List
+        {
+            public Guid? GuID { get; set; }
+            public string? Description { get; set; }
+            public string? Category { get; set; }
+            public string? SubCategory { get; set; }
+            public string? Brand { get; set; }
+            public string? ProductType { get; set; }
+            public int? DocumentStatus { get; set; }
+        }
         public class Invoice_List
         {
             public string? CustomerName { get; set; }

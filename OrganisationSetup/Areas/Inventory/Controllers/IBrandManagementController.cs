@@ -33,7 +33,7 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
 
         #region PORTION CONTAIN CODE TO: RENDER DOCUMENT LIST
         [HttpGet]
-        public async Task<IActionResult> populateBrandListByParam(string operationType)
+        public async Task<IActionResult> populateBrandMasterListByParam(string operationType)
         {
             var result = await _IrService.populateBrandByParam(operationType, (int?)FilterConditions.IBrand_Operation_ByCompany);
             return Json(new { data = result });

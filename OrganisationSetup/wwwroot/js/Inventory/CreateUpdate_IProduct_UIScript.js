@@ -1,6 +1,7 @@
 ﻿/* ------ Global Variable ------ */
 var operationType = $("#OperationType").val();
 var dropDownListInitOption = "<option value='-1' " + (operationType == "INSERT_INTO_DB" ? "selected='selected'" : "") + ">Select an option</option>";
+var productTable = "";
 
 /* ------ Depending DDL's ------ */
 function getvAttributeList() {
@@ -368,6 +369,70 @@ function changeEventHandler() {
             createUpdateDataIntoDB();
         }
     });
+    $("#ButtonSearchProductMaster").on("click", function (e) {
+        if (validater()) {
+            e.preventDefault();
+            productTable.ajax.reload(null, false);
+        }
+    });
+}
+
+/* ------ MPO Operation ------ */
+function domProductTable() {
+    productTable = $('#TableProduct').DataTable({
+        "processing": true,
+        "serverSide": false,
+        "responsive": true,
+        "ordering": false,
+        "searching": true,
+        "ajax": {
+            "url": window.basePath + "Inventory/IProductManagement/populateProductMasterListBySearch",
+            "data": function (d) {
+                d.brandId = $("#DropDownListBrand :selected").val();
+                d.sectionId = $("#DropDownListSection :selected").val();
+                d.categoryId = $("#DropDownListCategory :selected").val();
+                d.subCategoryId = $("#DropDownListSubCategory :selected").val();
+                d.productTypeId = $("#DropDownListProductType :selected").val();
+            },
+            "type": "GET",
+            "dataSrc": "data",
+        },
+        "oLanguage": {
+            "oPaginate": {
+                "sPrevious": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>',
+                "sNext": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>'
+            },
+            "sInfo": "Showing page _PAGE_ of _PAGES_",
+            "sSearch": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>',
+            "sSearchPlaceholder": "Search...",
+            "sLengthMenu": "Results :  _MENU_"
+        },
+        "lengthMenu": [5, 10, 25, 50, 75, 100],
+        "columns": [
+            { "data": null, "title": "#" },
+            { "data": "brand", "title": "Brand" },
+            { "data": "description", "title": "Product" },
+            { "data": "category", "title": "Category" },
+            { "data": "subCategory", "title": "Sub Category" },
+            { "data": "subCategory", "title": "Sub Category" },
+            { "data": "productType", "title": "Fabric Type" },
+            {
+                "title": "Action(s)",
+                "data": null,
+                "render": function (data, type, row) {
+                    return 'N/A'
+                }
+            },
+            { "data": "guID", "title": "GuID", visible: false },
+        ],
+        columnDefs: [
+        ],
+    });
+    productTable.on('order.dt search.dt', function () {
+        productTable.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+            cell.innerHTML = i + 1;
+        });
+    }).draw();
 }
 
 /* ------ Call Initial Components ------ */
@@ -391,6 +456,7 @@ function initialize() {
         width: '100%'
     });
     changeEventHandler();
+    domProductTable();
 }
 /* ------ Validation for user input ------ */
 function validater() {

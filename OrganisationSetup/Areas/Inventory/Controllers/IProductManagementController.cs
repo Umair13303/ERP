@@ -138,6 +138,15 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
 
         #endregion
 
+        #region PORTION CONTAIN CODE TO: RENDER DOCUMENT LIST
+
+        [HttpGet]
+        public async Task<IActionResult> populateProductMasterListBySearch(int? brandId, int? sectionId, int? categoryId, int? subCategoryId, int? productTypeId)
+        {
+            var result = await _IrService.populateProductMasterBySearch(brandId,sectionId,categoryId, subCategoryId,productTypeId);
+            return Json(new { data = result });
+        }
+        #endregion
 
         #region PORTION CONTAIN CODE TO: ADD/EDIT/DELETE DOCUMENT
         [HttpPost]

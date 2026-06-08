@@ -18,6 +18,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         Task<List<ISubCategory>> populateSubCategoryByParam(string? operationType, int? filterConditionId, int? categoryId);
         Task<List<IBrand>> populateBrandByParam(string? operationType, int? filterConditionId);
         Task<List<Product_List>> populateProductByParam(string? operationType, int? filterConditionId, string searchParam);
+        Task<List<Product_Master_List>> populateProductMasterBySearch(int? brandId, int? sectionId, int? categoryId, int? subCategoryId, int? productTypeId);
     }
     public class InventoryRetrieverService : IInventoryRetriever
     {
@@ -27,7 +28,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         private readonly ICommon _commonsServices;
 
 
-        public InventoryRetrieverService(TempUser currentUser,ERPOrganisationSetupContext eRPOSC, IHttpContextAccessor httpContextAccessor, ICommon commonsServices)
+        public InventoryRetrieverService(TempUser currentUser, ERPOrganisationSetupContext eRPOSC, IHttpContextAccessor httpContextAccessor, ICommon commonsServices)
         {
             _currentUser = currentUser;
             _eRPOSContext = eRPOSC;
@@ -57,7 +58,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                         {
                             Id = x.Id,
                             GuID = x.GuID,
-                            DepartmentId= x.DepartmentId,
+                            DepartmentId = x.DepartmentId,
                             Description = x.Description
                         }).ToListAsync();
                 default:
@@ -158,7 +159,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
             var result = await (
                 from sc in _eRPOSContext.ISubCategory
                 join c in _eRPOSContext.ICategory on sc.CategoryId equals c.Id
-                where (sc.Status == true && c.Status == true )
+                where (sc.Status == true && c.Status == true)
                 select new DTObject.SubCategory_List
                 {
                     Category = c.Description,
@@ -191,11 +192,41 @@ namespace OrganisationSetup.Areas.Inventory.Services
                             Id = x.Id,
                             Text = x.Description,
                             AttIds = x.AttributeIds,
-                            IsExpiryApplied =x.IsExpiryApplicable
+                            IsExpiryApplied = x.IsExpiryApplicable
                         }).ToListAsync();
                 default:
                     return new List<Product_List>();
             }
+        }
+        public async Task<List<Product_Master_List>> populateProductMasterBySearch(int? brandId, int? sectionId, int? categoryId, int? subCategoryId, int? productTypeId)
+        {
+            var userInfo = _currentUser;
+            if (!userInfo.IsAuthenticated)
+            {
+                return new List<Product_Master_List>();
+            }
+            return await (from p in _eRPOSContext.IProduct.AsNoTracking().Where(p => p.CompanyId == userInfo.CompanyId && p.Status == true)
+                          join s in _eRPOSContext.ISection.AsNoTracking().Where(s => s.Id == sectionId || sectionId == -1)
+                            on p.SectionId equals s.Id
+                          join c in _eRPOSContext.ICategory.AsNoTracking().Where(c => c.Id == categoryId || categoryId == -1)
+                            on p.CategoryId equals c.Id
+                          join sc in _eRPOSContext.ISubCategory.AsNoTracking().Where(sc => sc.Id == subCategoryId || subCategoryId == -1)
+                            on p.SubCategoryId equals sc.Id
+                          join b in _eRPOSContext.IBrand.AsNoTracking().Where(b => b.Id == brandId || brandId == -1)
+                            on p.BrandId equals b.Id
+                          join vPT in _eRPOSContext.vProductType.AsNoTracking().Where(vPT => vPT.Id == productTypeId || productTypeId == -1)
+                            on p.ProductTypeId equals vPT.Id
+
+                          select new Product_Master_List
+                          {
+                              GuID = p.GuID,
+                              Description = p.Description,
+                              Category = c.Description,    
+                              SubCategory = sc.Description,
+                              Brand = b.Description,
+                              ProductType = vPT.Description,
+                              DocumentStatus = p.DocumentStatus
+                          }).ToListAsync();
         }
 
     }
