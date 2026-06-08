@@ -14,10 +14,13 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
     {
         private readonly IInventoryUpsert _acuService;
         private readonly ICommon _commonsServices;
-        public IBrandManagementController(IInventoryUpsert acCompanyService, ICommon commonsServices)
+        private readonly IInventoryRetriever _IrService;
+
+        public IBrandManagementController(IInventoryUpsert acCompanyService, ICommon commonsServices, IInventoryRetriever irService)
         {
             _commonsServices = commonsServices;
             _acuService = acCompanyService;
+            _IrService = irService;
         }
         #region PORTION CONTAIN CODE TO: RENDER VIEW
         public IActionResult CreateUpdate_IBrand_UI(UISetting ui)
@@ -28,6 +31,14 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
         }
         #endregion
 
+        #region PORTION CONTAIN CODE TO: RENDER DOCUMENT LIST
+        [HttpGet]
+        public async Task<IActionResult> populateBrandListByParam(string operationType)
+        {
+            var result = await _IrService.populateBrandByParam(operationType, (int?)FilterConditions.IBrand_Operation_ByCompany);
+            return Json(new { data = result });
+        }
+        #endregion
 
         #region PORTION CONTAIN CODE TO: ADD/EDIT/DELETE DOCUMENT
         [HttpPost]

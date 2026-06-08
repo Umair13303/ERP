@@ -74,6 +74,16 @@ namespace SharedUI.Models.ViewModels
             public decimal Receipt { get; set; }
             public decimal Due { get; set; }
         }
+        public class RptSupplierSummary_List
+        {
+            public int? SupplierId { get; set; }
+            public string? Code { get; set; }
+            public string? Description { get; set; }
+            public string? Contact { get; set; }
+            public decimal Receivable { get; set; }
+            public decimal Receipt { get; set; }
+            public decimal Due { get; set; }
+        }
         public class RptSaleLedger_List
         {
             public int? Customer { get; set; }

@@ -50,6 +50,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
         Task<IReadOnlyList<DTObject.RptInvoiceReceipt_List>> ret_RptInvoiceReceipt_ByParam(int?[] paymentStatusIds, int?[] documentStatusIds, int? branchId, int? companyId, int? customerId, string connStr);
         Task<IReadOnlyList<DTObject.RptInventoryAdjustment_List>> ret_RptInventoryAdjustment_ByParam(int?[] adjustmentStatusIds, int?[] documentStatusIds, int? locationId, int? branchId, int? companyId, int? productId, string connStr);
         Task<IReadOnlyList<DTObject.Bill_List>> ret_Bill_ByParam(Guid? guId, int? supplierId, int?[] documentStatusIds, int?[] billStatusIds, string connStr);
+        Task<IReadOnlyList<DTObject.RptSupplierSummary_List>> ret_RptSupplierSummary_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] billStatusIds, int?[] documentStatusIds, string connStr);
         #endregion
 
     }
@@ -1201,6 +1202,28 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                 throw ex;
             }
         }
+        public async Task<IReadOnlyList<DTObject.RptSupplierSummary_List>> ret_RptSupplierSummary_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] billStatusIds, int?[] documentStatusIds, string connStr)
+        {
+            using IDbConnection db = new SqlConnection(connStr);
+            var parameters = new
+            {
+                CompanyId = companyId,
+                BranchId = branchId,
+                PaymentStatusIds = paymentStatusIds != null ? string.Join(",", paymentStatusIds) : null,
+                BillStatusIds = billStatusIds != null ? string.Join(",", billStatusIds) : null,
+                DocumentStatusIds = documentStatusIds != null ? string.Join(",", documentStatusIds) : null,
+            };
+            try
+            {
+                var result = await db.QueryAsync<DTObject.RptSupplierSummary_List>("[dbo].[RptSupplierSummary_GLBParam]", parameters, commandType: CommandType.StoredProcedure);
+                return result.ToList().AsReadOnly();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
         #endregion
+
     }
 }

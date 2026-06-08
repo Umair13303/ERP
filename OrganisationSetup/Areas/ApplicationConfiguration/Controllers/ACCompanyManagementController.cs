@@ -51,12 +51,6 @@ namespace OrganisationSetup.Areas.ApplicationConfiguration.Controllers
         [HttpPost]
         public async Task<IActionResult> createUpdateCompany([FromBody] PostedData postedData)
         {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors);
-            }
-            if (!ModelState.IsValid) return View(postedData);
-            
             var result = await _acuService.updateInsertDataInto_ACCompany(postedData);
             return Json(new {IsSuccess= result.IsSuccess, responseCode = result.StatusCode, message = result.Message });
         }
