@@ -25,6 +25,10 @@ namespace OrganisationSetup.Areas.Inventory.Services
         Task<ServiceResult> updateInsertDataInto_IProductATI(PostedData postedData);
         Task<ServiceResult> updateInsertDataInto_IAdjustment(PostedData postedData);
 
+        #region SOFT DELETE INVENTORY DOCUMENT
+        Task<ServiceResult> updateDocument_BrandByGuID(Guid? guid, bool? status, int documentStatus = (int)DocumentStatus.active);
+
+        #endregion
     }
     public class InventoryUpsertService : IInventoryUpsert
     {
@@ -584,5 +588,35 @@ namespace OrganisationSetup.Areas.Inventory.Services
                 return ServiceResult.failure("System error: " + ex.Message, (int)Code.InternalServerError);
             }
         }
+
+        #region SOFT DELETE INVENTORY DOCUMENT
+        public async Task<ServiceResult> updateDocument_BrandByGuID(Guid? guid, bool? status, int documentStatus = (int)DocumentStatus.active)
+        {
+            var userInfo = _currentUser;
+            if (!userInfo.IsAuthenticated)
+                return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
+
+            try
+            {
+                var record = _eRPOSContext.IBrand.Where(x => x.GuID == guid).FirstOrDefault();
+                if (record == null)
+                {
+                    return ServiceResult.failure(Message.serverResponse((int?)Code.BadRequest), (int)Code.BadRequest);
+                }
+                if (status == false)
+                {
+                    documentStatus = (int)DocumentStatus.deleted;
+                }
+                record.Status = status;
+                record.DocumentStatus = documentStatus;
+                await _eRPOSContext.SaveChangesAsync();
+                return ServiceResult.success("Brand updated successfully.", (int)Code.OK); 
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult.failure($"Internal server error: {ex.Message}", (int)Code.InternalServerError);
+            }
+        }
+        #endregion  
     }
 }

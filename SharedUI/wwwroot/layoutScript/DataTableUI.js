@@ -65,4 +65,9 @@
         const Btn = '<input type="button" class="btn btn-sm btn-success' + Class + '" onclick="createUpdateDataIntoDB(this)" id="' + ElementId + '" value="' + Display + '" />'
         return Btn;
     }
+    static HTML_TBL_DELETE_BTN(text, functionCall) {
+        return `<button type="button" class="btn btn-danger btn-sm" onclick="${functionCall}" title="${text}" aria-label="${text}">
+                <i class="fas fa-trash-alt" aria-hidden="true"></i>
+            </button>`;
+    }
 }

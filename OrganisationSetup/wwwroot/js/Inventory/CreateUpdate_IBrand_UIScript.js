@@ -49,7 +49,7 @@ function domBrandTable() {
                 "title": "Action(s)",
                 "data": null,
                 "render": function (data, type, row) {
-                    return 'N/A'
+                    return HTML_DATATABLE_UTIL.HTML_TBL_DELETE_BTN("Delete Row", `deleteDocumentByGuID('${row.guID}')`);
                 }
             },
             { "data": "guID", "title": "GuID", visible: false },
@@ -62,6 +62,34 @@ function domBrandTable() {
             cell.innerHTML = i + 1;
         });
     }).draw();
+}
+function deleteDocumentByGuID(guID) {
+    var status = false;
+    $.ajax({
+        url: window.basePath + "Inventory/IBrandManagement/updateDocumentStatus",
+        type: "POST",
+        data: JSON.stringify({ 'GuID': guID, 'Status': status }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        beforeSend: function () {
+            initLoading();
+        },
+        success: function (response) {
+            if (response.IsSuccess == true) {
+                toastr.success(response.message);
+            }
+            else {
+                toastr.info(response.message);
+            }
+        },
+        error: function (xhr) {
+            toastr.error("System Error: " + xhr.statusText);
+        },
+        complete: function () {
+            stopLoading();
+            brandTable.ajax.reload();
+        }
+    });
 }
 
 /* ------ Call Initial Components ------ */

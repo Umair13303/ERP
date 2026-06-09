@@ -47,6 +47,12 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
             var result = await _acuService.updateInsertDataInto_IBrand(postedData);
             return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message });
         }
+        [HttpPost]
+        public async Task<IActionResult> updateDocumentStatus([FromBody] PostedData postedData)
+        {
+            var result = await _acuService.updateDocument_BrandByGuID(postedData.GuID, postedData.Status);
+            return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message });
+        }
         #endregion
     }
 }
