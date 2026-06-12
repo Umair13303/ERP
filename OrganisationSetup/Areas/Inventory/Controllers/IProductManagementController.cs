@@ -141,9 +141,9 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
         #region PORTION CONTAIN CODE TO: RENDER DOCUMENT LIST
 
         [HttpGet]
-        public async Task<IActionResult> populateProductMasterListBySearch(int? brandId, int? sectionId, int? categoryId, int? subCategoryId, int? productTypeId)
+        public async Task<IActionResult> populateProductMasterListBySearch(int brandId = -1, int sectionId = -1, int categoryId = -1, int subCategoryId = -1, int productTypeId = -1)
         {
-            var result = await _IrService.populateProductMasterBySearch(brandId,sectionId,categoryId, subCategoryId,productTypeId);
+            var result = await _IrService.populateProductMasterBySearch(brandId,sectionId,categoryId, subCategoryId,productTypeId,true);
             return Json(new { data = result });
         }
         #endregion

@@ -18,7 +18,9 @@ namespace OrganisationSetup.Areas.Inventory.Services
         Task<List<ISubCategory>> populateSubCategoryByParam(string? operationType, int? filterConditionId, int? categoryId);
         Task<List<IBrand>> populateBrandByParam(string? operationType, int? filterConditionId);
         Task<List<Product_List>> populateProductByParam(string? operationType, int? filterConditionId, string searchParam);
-        Task<List<Product_Master_List>> populateProductMasterBySearch(int? brandId, int? sectionId, int? categoryId, int? subCategoryId, int? productTypeId);
+        Task<List<Product_Master_List>> populateProductMasterBySearch(int brandId, int sectionId, int categoryId, int subCategoryId, int productTypeId, bool? status = true);
+        Task<List<Category_Master_List>> populateCategoryMasterBySearch(int? departmentId, int? sectionId, bool? status = true);
+        Task<List<SubCategory_Master_List>> populateSubCategoryMasterBySearch(int? departmentId, int? sectionId,int? categoryId, bool? status = true);
     }
     public class InventoryRetrieverService : IInventoryRetriever
     {
@@ -198,21 +200,65 @@ namespace OrganisationSetup.Areas.Inventory.Services
                     return new List<Product_List>();
             }
         }
-        public async Task<List<Product_Master_List>> populateProductMasterBySearch(int? brandId, int? sectionId, int? categoryId, int? subCategoryId, int? productTypeId)
+        public async Task<List<Category_Master_List>> populateCategoryMasterBySearch(int? departmentId, int? sectionId, bool? status = true)
+        {
+            var userInfo = _currentUser;
+            if (!userInfo.IsAuthenticated)
+            {
+                return new List<Category_Master_List>();
+            }
+            return await (from c in _eRPOSContext.ICategory.AsNoTracking().Where(c => c.CompanyId == userInfo.CompanyId && (c.Status == status || status== null) )
+                          join s in _eRPOSContext.ISection.AsNoTracking().Where(s => s.Id == sectionId || sectionId == -1 && (s.Status == status || status == null))
+                            on c.SectionId equals s.Id
+
+                          select new Category_Master_List
+                          {
+                              GuID = c.GuID,
+                              Code= c.Code,
+                              Description = c.Description,
+                              Section = s.Description,
+                              DocumentStatus = c.DocumentStatus
+                          }).ToListAsync();
+        }
+        public async Task<List<SubCategory_Master_List>> populateSubCategoryMasterBySearch(int? departmentId, int? sectionId,int? categoryId, bool? status = true)
+        {
+            var userInfo = _currentUser;
+            if (!userInfo.IsAuthenticated)
+            {
+                return new List<SubCategory_Master_List>();
+            }
+            return await (from sc in _eRPOSContext.ISubCategory.AsNoTracking().Where(c => c.CompanyId == userInfo.CompanyId && (c.Status == status || status == null))
+                          join c in _eRPOSContext.ICategory.AsNoTracking().Where(c => c.CompanyId == userInfo.CompanyId && (c.Status == status || status == null))
+                            on sc.CategoryId equals c.Id
+                          join s in _eRPOSContext.ISection.AsNoTracking().Where(s => s.Id == sectionId || sectionId == -1 && (s.Status == status || status == null))
+                            on c.SectionId equals s.Id
+
+                          select new SubCategory_Master_List
+                          {
+                              GuID = c.GuID,
+                              Code = c.Code,
+                              Description = sc.Description,
+                              Category = c.Description,
+                              Section = s.Description,
+                              DocumentStatus = c.DocumentStatus
+                          }).ToListAsync();
+        }
+
+        public async Task<List<Product_Master_List>> populateProductMasterBySearch(int brandId, int sectionId, int categoryId, int subCategoryId, int productTypeId, bool? status = true)
         {
             var userInfo = _currentUser;
             if (!userInfo.IsAuthenticated)
             {
                 return new List<Product_Master_List>();
             }
-            return await (from p in _eRPOSContext.IProduct.AsNoTracking().Where(p => p.CompanyId == userInfo.CompanyId && p.Status == true)
-                          join s in _eRPOSContext.ISection.AsNoTracking().Where(s => s.Id == sectionId || sectionId == -1)
+            return await (from p in _eRPOSContext.IProduct.AsNoTracking().Where(p => p.CompanyId == userInfo.CompanyId && (p.Status == status || status == null))
+                          join s in _eRPOSContext.ISection.AsNoTracking().Where(s => s.Id == sectionId || sectionId == -1 && (s.Status == status || status == null))
                             on p.SectionId equals s.Id
-                          join c in _eRPOSContext.ICategory.AsNoTracking().Where(c => c.Id == categoryId || categoryId == -1)
+                          join c in _eRPOSContext.ICategory.AsNoTracking().Where(c => c.Id == categoryId || categoryId == -1 && (c.Status == status || status == null))
                             on p.CategoryId equals c.Id
-                          join sc in _eRPOSContext.ISubCategory.AsNoTracking().Where(sc => sc.Id == subCategoryId || subCategoryId == -1)
+                          join sc in _eRPOSContext.ISubCategory.AsNoTracking().Where(sc => sc.Id == subCategoryId || subCategoryId == -1 && (sc.Status == status || status == null))
                             on p.SubCategoryId equals sc.Id
-                          join b in _eRPOSContext.IBrand.AsNoTracking().Where(b => b.Id == brandId || brandId == -1)
+                          join b in _eRPOSContext.IBrand.AsNoTracking().Where(b => b.Id == brandId || brandId == -1 && (b.Status == status || status == null))
                             on p.BrandId equals b.Id
                           join vPT in _eRPOSContext.vProductType.AsNoTracking().Where(vPT => vPT.Id == productTypeId || productTypeId == -1)
                             on p.ProductTypeId equals vPT.Id
@@ -220,6 +266,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                           select new Product_Master_List
                           {
                               GuID = p.GuID,
+                              Code = p.Code,
                               Description = p.Description,
                               Category = c.Description,    
                               SubCategory = sc.Description,

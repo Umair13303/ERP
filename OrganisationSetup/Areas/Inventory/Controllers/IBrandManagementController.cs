@@ -48,7 +48,7 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
             return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message });
         }
         [HttpPost]
-        public async Task<IActionResult> updateDocumentStatus([FromBody] PostedData postedData)
+        public async Task<IActionResult> updateBrandDocumentStatus([FromBody] PostedData postedData)
         {
             var result = await _acuService.updateDocument_BrandByGuID(postedData.GuID, postedData.Status);
             return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message });

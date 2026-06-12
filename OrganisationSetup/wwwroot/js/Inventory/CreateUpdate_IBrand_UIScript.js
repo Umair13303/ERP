@@ -66,7 +66,7 @@ function domBrandTable() {
 function deleteDocumentByGuID(guID) {
     var status = false;
     $.ajax({
-        url: window.basePath + "Inventory/IBrandManagement/updateDocumentStatus",
+        url: window.basePath + "Inventory/IBrandManagement/updateBrandDocumentStatus",
         type: "POST",
         data: JSON.stringify({ 'GuID': guID, 'Status': status }),
         contentType: "application/json; charset=utf-8",

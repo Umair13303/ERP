@@ -59,6 +59,20 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
             return Json(result);
         }
         #endregion
+        #region PORTION CONTAIN CODE TO: RENDER DOCUMENT LIST
+        [HttpGet]
+        public async Task<IActionResult> populateCategoryMasterListByParam(int departmentId = -1,int sectionId = -1)
+        {
+            var result = await _IrService.populateCategoryMasterBySearch(departmentId, sectionId,true);
+            return Json(new { data = result });
+        }
+        [HttpGet]
+        public async Task<IActionResult> populateSubCategoryMasterListByParam(int departmentId = -1,int sectionId = -1, int categoryId = -1)
+        {
+            var result = await _IrService.populateSubCategoryMasterBySearch(departmentId, sectionId, categoryId,true);
+            return Json(new { data = result });
+        }
+        #endregion
         #region PORTION CONTAIN CODE TO: ADD/EDIT/DELETE DOCUMENT
         [HttpPost]
         public async Task<IActionResult> createUpdateCategory([FromBody] PostedData postedData)
@@ -70,6 +84,18 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
         public async Task<IActionResult> createUpdateSubCategory([FromBody] PostedData postedData)
         {
             var result = await _IuService.updateInsertDataInto_ISubCategory(postedData);
+            return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message });
+        }
+        [HttpPost]
+        public async Task<IActionResult> updateCategoryDocumentStatus([FromBody] PostedData postedData)
+        {
+            var result = await _IuService.updateDocument_CategoryByGuID(postedData.GuID, postedData.Status);
+            return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message });
+        }
+        [HttpPost]
+        public async Task<IActionResult> updateSubCategoryDocumentStatus([FromBody] PostedData postedData)
+        {
+            var result = await _IuService.updateDocument_CategoryByGuID(postedData.GuID, postedData.Status);
             return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message });
         }
         #endregion
