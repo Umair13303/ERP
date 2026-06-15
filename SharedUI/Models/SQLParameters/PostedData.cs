@@ -54,6 +54,9 @@ namespace SharedUI.Models.SQLParameters
         public decimal? Debit { get; set; }
         public decimal? DueAmount { get; set; }
         public decimal? ReceiptAmount { get; set; }
+        public decimal? ActualAmount { get; set; }
+        public decimal? DiscountAmount { get; set; }
+        public decimal? ChargedAmount { get; set; }
         public DateTime? TransactionDate { get; set; }
         public DateTime? CreatedOn { get; set; }
         public int? CreatedBy { get; set; }
@@ -91,6 +94,7 @@ namespace SharedUI.Models.SQLParameters
         public decimal? UnitSalePrice { get; set; }
 
         public List<IInventoryAdjustmentPPQD_TVP> PostedDataIAdjustmentPPQD { get; set; }
+        public List<AFBillPPI_TVP> PostedDataAFBillPPI { get; set; }
 
     }
 

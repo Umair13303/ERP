@@ -12,6 +12,17 @@
                            ${disabled ? 'disabled' : ''}>
                 </div>`;
         return html;
+
+    }
+    static gridNumericBox(name, value, cssClass = "") {
+        var safeValue = parseFloat(value ?? 0).toFixed(2);
+
+        return `<input type="number" 
+                   name="${name}"
+                   value="${safeValue}" 
+                   class="form-control form-control-sm text-end ${cssClass}" 
+                   step="0.01" 
+                   min="0">`;
     }
 }
 

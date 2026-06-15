@@ -9,7 +9,7 @@ namespace SharedUI.Models.Enums
     public enum BillType
     {
         OpeningBalanceBILL = 1,
-        PurchaseBILL = 2
+        PurchaseBILLDirect = 2
     }
 
 }

@@ -2,6 +2,7 @@
 var operationType = $("#OperationType").val();
 var dropDownListInitOption = "<option value='-1'>Select an option</option>";
 var attributeList = [];
+var supplierList = [];
 var productList = [];
 var adjustmentTable;
 
@@ -65,13 +66,26 @@ function initializeDataTable() {
                 orderable: false,
                 searchable: false,
                 render: function (data, type, row, meta) {
-                    return gridButton.deleteInList("", "Delete Adjustment", "");
+                    return HTML_DATATABLE_UTIL.HTML_TBL_DELETE_BTN("", "");
                 }
             }
         ],
         language: {
             emptyTable: "No items added yet. Click 'Add Item' above."
+        },
+        initComplete: function () {
+            var $tableBody = $('#AdjustmentDetailTable').find('tbody');
+            $tableBody.off('click', '.btn-danger');
+            $tableBody.on('click', '.btn-danger', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var $rowElement = $(this).closest('tr');
+                if (adjustmentTable) {
+                    adjustmentTable.row($rowElement).remove().draw(false);
+                }
+            });
         }
+
     });
 }
 
@@ -236,6 +250,7 @@ function clearLineItemInputs() {
     $("#ContainerStockAttribute").empty();
     $("#DivVariantInformation").slideUp('fast');
 }
+
 /* ------ Change Cases DDL's ------ */
 function changeEventHandler() {
     $("#DropDownListProduct").on("change", function () {
@@ -321,6 +336,7 @@ function createUpdateDataIntoDB() {
         var row = adjustmentTable.row(node).data();
         var batch = $(node).find('.grid-batch-input').val() || "";
         var expiry = $(node).find('.grid-expiry-input').val() || "";
+        batch = (batch && batch.trim() !== "") ? batch : null;
         var expiryDate = (expiry && expiry.trim() !== "") ? expiry : null;
         return {
             ProductId: row.ProductId,

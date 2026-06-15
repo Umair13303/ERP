@@ -29,7 +29,6 @@ namespace OrganisationSetup.Areas.Inventory.Services
         Task<ServiceResult> updateDocument_BrandByGuID(Guid? guid, bool? status, int documentStatus = (int)DocumentStatus.active);
         Task<ServiceResult> updateDocument_CategoryByGuID(Guid? guid, bool? status, int documentStatus = (int)DocumentStatus.active);
         Task<ServiceResult> updateDocument_SubCategoryByGuID(Guid? guid, bool? status, int documentStatus = (int)DocumentStatus.active);
-
         #endregion
     }
     public class InventoryUpsertService : IInventoryUpsert
@@ -544,6 +543,8 @@ namespace OrganisationSetup.Areas.Inventory.Services
                         Description= $"Inventory Adjustment Recorded",
                         QuantityIn = ppqd.QuantityIn,
                         QuantityOut = ppqd.QuantityOut,
+                        UnitPurchasePrice = ppqd.UnitPurchasePrice,
+                        UnitSalePrice = ppqd.UnitSalePrice,
                         Debit = ppqd.UnitPurchasePrice * ppqd.QuantityIn,
                         Credit = ppqd.UnitPurchasePrice * ppqd.QuantityOut,
                         Batch = ppqd.Batch,
@@ -565,7 +566,6 @@ namespace OrganisationSetup.Areas.Inventory.Services
                     postedData.OperationType,
                     AFInventoryLedgerInfo.FirstOrDefault()?.RefDocumentType,
                     AFInventoryLedgerInfo,
-                    null,
                     con,
                     transaction
                 );

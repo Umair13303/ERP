@@ -10,6 +10,7 @@ namespace SharedUI.Models.TVP
         public int? ProductId { get; set; }
         public int? ProductCombinationId { get; set; }
         public decimal Quantity { get; set; }
+        public decimal UnitSalePrice { get; set; }
         public decimal ActualAmount { get; set; }
         public decimal DiscountAmount { get; set; }
         public decimal ChargedAmount { get; set; }
@@ -29,6 +30,7 @@ namespace SharedUI.Models.TVP
         public int? ProductId { get; set; }
         public string? Attribute { get; set; }
         public decimal Quantity { get; set; }
+        public decimal UnitPurchasePrice { get; set; }
         public decimal ActualAmount { get; set; }
         public decimal DiscountAmount { get; set; }
         public decimal ChargedAmount { get; set; }

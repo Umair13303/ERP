@@ -1,0 +1,136 @@
+﻿@using SharedUI.Models.Enums
+@{
+    Layout = "LayoutOne";
+}
+
+<div class="container-fluid py-2">
+
+    <div class="d-flex justify-content-between align-items-center border-bottom mb-4 pb-3">
+        <div>
+            <h5 class="fw-bold mb-0">@ViewBag.DisplayName</h5>
+            <p class="text-muted small mb-0">Fill in the form to create / update record.</p>
+        </div>
+    </div>
+
+    <form id="AFBillForm">
+        @Html.Hidden("OperationType", (string)ViewBag.OperationType)
+        @Html.Hidden("GuID")
+
+        @if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
+        {
+            <div class="card mb-3">
+                <div class="card-header">
+                    <div class="row mb-0">
+                        <div class="col-sm-12 col-md-6">
+                            <div class="form-group">
+                                @Html.Label("DropDownListDocument", "Document (Bill)", new { @class = "col-form-label" })
+                                @Html.DropDownList("DocumentGuID", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListDocument" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (ViewBag.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB) || ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
+        {
+            <div class="card mb-0 shadow-sm">
+                <div class="card-body">
+                    <div class="col-12 mb-0">
+                        <div class="bg-light rounded-2 border-start border-primary border-4 p-2">
+                            <span class="fw-bold text-primary small"><i class="fa-solid fa-file-lines me-2"></i> BILLING INFORMATION</span>
+                        </div>
+                    </div>
+                    <div class="row g-1">
+                        <div class="col-md-3 col-sm-12">
+                            <div class="form-group">
+                                @Html.Label("DropDownListLocation", "Location", new { @class = "col-form-label" })
+                                @Html.DropDownList("LocationId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListLocation" })
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-12">
+                            <div class="form-group">
+                                @Html.Label("TextBoxTransactionDate", "Transaction Date", new { @class = "col-form-label" })
+                                @Html.TextBox("TransactionDate", null, new { @class = "form-control form-control-sm simpleDate", type = "date", required = "required", @id = "TextBoxTransactionDate" })
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-12">
+                            <div class="form-group">
+                                @Html.Label("DropDownListSupplier", "Supplier", new { @class = "col-form-label" })
+                                @Html.DropDownList("SupplierId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListSupplier" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-1">
+                        <div class="col-md-3 col-sm-12">
+                            <div class="form-group">
+                                @Html.Label("TextBoxDescription", "Description", new { @class = "col-form-label" })
+                                @Html.TextArea("Description", null, new { @class = "form-control form-control-sm", placeholder = "Provide Description!", required = "required", @id = "TextBoxDescription" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                @Html.Label("DropDownListProduct", "Product", new { @class = "col-form-label" })
+                                @Html.DropDownList("ProductId", Enumerable.Empty<SelectListItem>(), "Search & select product...", new { @class = "form-select form-select-sm select2", @id = "DropDownListProduct" })
+                            </div>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <div class="w-100 bg-light rounded-2 border-start border-warning border-1 p-2" id="DivVariantInformation" style="display:none; min-height: 38px;">
+                                <span class="fw-bold text-warning small d-block"><i class="fa-solid fa-tags me-2"></i> VARIANT INFO:</span>
+                                <div class="row mb-0 mt-0 fw-bold text-danger small" id="ContainerStockAttribute"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card mb-4 mt-2 shadow-sm">
+                        <div class="card-body p-2">
+                            <table id="BillDetailTable" class="table table-striped table-hover table-bordered table-sm mb-2" width="100%">
+                                <thead class="table-light">
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mb-3">
+                        @if (ViewBag.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB))
+                        {
+                            <button type="button" id="ButtonSaveData" class="btn btn-success btn-sm px-4 shadow-sm">
+                                <i class="fa-solid fa-cloud-arrow-up me-1"></i> Save
+                            </button>
+                        }
+                        else if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
+                        {
+                            <button type="button" id="ButtonUpdateData" class="btn btn-success btn-sm px-4 shadow-sm">
+                                <i class="fa-solid fa-cloud-arrow-up me-1"></i> Update
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        @if(ViewBag.OperationType == nameof(OperationType.MPO_LIST))
+        {
+
+            <div class="row g-3 mt-3">
+                <div class="col-12 mt-4">
+                    <div class="bg-light rounded-2 border-start border-primary border-4 p-2">
+                        <span class="fw-bold text-primary small"><i class="fa-solid fa-building me-2"></i> BILL LIST</span>
+                    </div>
+                </div>
+                <div class="bootstrap-admin-panel-content">
+                    <table class="table table-bordered table-sm order-column stripe table-hover" style="width: 100%" id="TableBill">
+                        <tbody id="TableBodyBill">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+    </form>
+</div>
+
+<script>
+    var LocationId = @ViewBag.LocationId;
+</script>
+<script src="~/js/accountnfinance/createupdate_afbill_dir_uiscript.js"></script>

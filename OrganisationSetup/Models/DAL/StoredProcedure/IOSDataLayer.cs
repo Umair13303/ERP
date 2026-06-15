@@ -40,7 +40,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
         Task<(int? response, int? insertedId, string? documentCode, decimal? totalBillAmount)> UpsertInto_AFBill(string? operationType, Guid? guId, int? locationId, DateTime? transactionDate, int? supplierId, string? description, decimal dueAmount, int? billTypeId, int? billStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId, List<AFBillPPI_TVP> billPPI, SqlConnection con, SqlTransaction trans);
         Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_AFSupplierLedger(string? operationType, int? companyId, List<AFSupplierLedger_TVP> customerLedger, SqlConnection con, SqlTransaction trans);
         Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_IAdjustment(string operationType, Guid? guID, int? locationId, DateTime? transactionDate, string? description, int? adjustmentTypeId,int? adjustmentStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, bool? status, int? branchId, int? companyId, List<IInventoryAdjustmentPPQD_TVP> details, SqlConnection con, SqlTransaction trans);
-        Task<(int? response, int? insertedIn, string? documentCode)> UpsertInto_AFInventoryLedger(string operationType,int? refDocumentType, List<AFInventoryLedger_TVP> ledgerDetails, string? currentDocumentCode, SqlConnection con, SqlTransaction trans);
+        Task<(int? response, int? insertedIn, string? documentCode)> UpsertInto_AFInventoryLedger(string operationType,int? refDocumentType, List<AFInventoryLedger_TVP> ledgerDetails, SqlConnection con, SqlTransaction trans);
         Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_AFBillReceipt(string? operationType, Guid? guId, int? locationId, DateTime? transactionDate, int? supplierId, int? billId, string? description, int? paymentTypeId, int? paymentMethodId, string? reference, decimal? receiptAmount, int? paymentStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId, SqlConnection con, SqlTransaction trans);
         #endregion
         #region RETRIEVE OPERATION
@@ -414,6 +414,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             table.Columns.Add("ProductId", typeof(int));
             table.Columns.Add("ProductCombinationId", typeof(int));
             table.Columns.Add("Quantity", typeof(decimal));
+            table.Columns.Add("UnitSalePrice", typeof(decimal));
             table.Columns.Add("ActualAmount", typeof(decimal));
             table.Columns.Add("DiscountAmount", typeof(decimal));
             table.Columns.Add("ChargedAmount", typeof(decimal));
@@ -435,6 +436,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                     (object?)item.ProductId ?? DBNull.Value,
                     (object?)item.ProductCombinationId ?? DBNull.Value,
                     (object)item.Quantity ?? DBNull.Value,
+                    (object)item.UnitSalePrice ?? DBNull.Value,
                     (object)item.ActualAmount ?? DBNull.Value,
                     (object)item.DiscountAmount ?? DBNull.Value,
                     (object)item.ChargedAmount ?? DBNull.Value,
@@ -707,6 +709,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             table.Columns.Add("ProductId", typeof(int));
             table.Columns.Add("Attribute", typeof(string));
             table.Columns.Add("Quantity", typeof(decimal));
+            table.Columns.Add("UnitPurchasePrice", typeof(decimal));
             table.Columns.Add("ActualAmount", typeof(decimal));
             table.Columns.Add("DiscountAmount", typeof(decimal));
             table.Columns.Add("ChargedAmount", typeof(decimal));
@@ -729,6 +732,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                     (object?)item.ProductId ?? DBNull.Value,
                     (object?)item.Attribute ?? DBNull.Value,
                     (object)item.Quantity ?? DBNull.Value,
+                    (object)item.UnitPurchasePrice ?? DBNull.Value,
                     (object)item.ActualAmount ?? DBNull.Value,
                     (object)item.DiscountAmount ?? DBNull.Value,
                     (object)item.ChargedAmount ?? DBNull.Value,
@@ -931,7 +935,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                 (string?)documentCodeParam.Value
             );
         }
-        public async Task<(int? response, int? insertedIn, string? documentCode)> UpsertInto_AFInventoryLedger(string operationType,int? refDocumentType,List<AFInventoryLedger_TVP> ledgerDetails, string? currentDocumentCode,SqlConnection con, SqlTransaction trans)
+        public async Task<(int? response, int? insertedIn, string? documentCode)> UpsertInto_AFInventoryLedger(string operationType,int? refDocumentType,List<AFInventoryLedger_TVP> ledgerDetails,SqlConnection con, SqlTransaction trans)
         {
             using var cmd = new SqlCommand("[dbo].[AFInventoryLedger_Upsert]", con, trans);
             cmd.CommandType = CommandType.StoredProcedure;
@@ -950,6 +954,8 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             table.Columns.Add("Description", typeof(string));
             table.Columns.Add("QuantityIn", typeof(decimal));
             table.Columns.Add("QuantityOut", typeof(decimal));
+            table.Columns.Add("UnitPurchasePrice", typeof(decimal));
+            table.Columns.Add("UnitSalePrice", typeof(decimal));
             table.Columns.Add("Debit", typeof(decimal));
             table.Columns.Add("Credit", typeof(decimal));
             table.Columns.Add("Batch", typeof(string));
@@ -980,6 +986,8 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                         item.Description ?? (object)DBNull.Value,
                         item.QuantityIn,
                         item.QuantityOut,
+                        item.UnitPurchasePrice,
+                        item.UnitSalePrice,
                         item.Debit,
                         item.Credit,
                         item.Batch ?? (object)DBNull.Value,
@@ -1015,7 +1023,6 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             var documentCodeParam = new SqlParameter("@documentCode", SqlDbType.NVarChar, -1)
             {
                 Direction = ParameterDirection.Output,
-                Value = string.IsNullOrEmpty(currentDocumentCode) ? (object)DBNull.Value : currentDocumentCode
             };
 
             cmd.Parameters.Add(responseParam);

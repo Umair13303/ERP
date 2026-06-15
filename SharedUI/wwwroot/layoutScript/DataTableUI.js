@@ -66,8 +66,51 @@
         return Btn;
     }
     static HTML_TBL_DELETE_BTN(text, functionCall) {
-        return `<button type="button" class="btn btn-danger btn-sm" onclick="${functionCall}" title="${text}" aria-label="${text}">
+        return `<button type="button" class="btn btn-danger btn-sm delete" onclick="${functionCall}" title="${text}" aria-label="${text}">
                 <i class="fas fa-trash-alt" aria-hidden="true"></i>
             </button>`;
+    }
+    static HTML_TBL_INPUT(name, cssClass, value, isDisabled) {
+        var fieldName = name || "";
+        var elementClass = cssClass || "";
+        var elementValue = (value !== undefined && value !== null) ? value : "";
+        var disabledAttribute = isDisabled ? "disabled" : "";
+        var elementId = "TextBox" + fieldName;
+
+        return `<input type="text" 
+                   id="${elementId}" 
+                   name="${fieldName}" 
+                   class="form-control  ${name} ${elementClass}" 
+                   value="${elementValue}" 
+                   ${disabledAttribute} />`;
+    }
+    static HTML_GENERIC_ATTRIBUTE(attIdsString, attributeList) {
+
+        if (!attIdsString || attIdsString.toString().trim() === "") {
+            return "N/A";
+        }
+
+        var productAttIds = attIdsString.toString().split(',').map(id => id.trim());
+        var htmlContent = "";
+
+        $.each(productAttIds, function (index, attId) {
+            var matchedAttribute = attributeList.find(attr => (attr.id || attr.Id).toString() === attId);
+            if (matchedAttribute) {
+                var label = matchedAttribute.description || matchedAttribute.Description || "Attribute";
+
+                htmlContent += `
+                <div class="d-flex align-items-center mb-1 me-2" style="gap: 5px;">
+                    <span class="fw-bold text-secondary small">${label}:</span>
+                    <input type="text" 
+                           class="form-control form-control-sm attr-field" 
+                           data-attribute-id="${attId}" 
+                           placeholder="Value..." 
+                           style="width: 100px; height: 30px;" />
+                </div>`;
+            }
+        });
+
+        return htmlContent !== "" ? `<div class="d-flex flex-wrap">${htmlContent}</div>` : "N/A";
+
     }
 }

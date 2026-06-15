@@ -138,9 +138,12 @@ namespace OrganisationSetup.Areas.Procurement.Services
                                 BillId = 0,
                                 ProductId = 0,
                                 Quantity = 0,
+                                UnitPurchasePrice = 0,
                                 ActualAmount = (decimal)postedData.OpeningBalance!,
                                 DiscountAmount = 0,
                                 ChargedAmount =  (decimal)postedData.OpeningBalance!,
+                                Batch =  null,
+                                ExpiryDate =  null,
                                 CreatedOn = DateTime.Now,
                                 CreatedBy = userInfo.UserId,
                                 UpdatedOn = DateTime.Now,
@@ -249,6 +252,5 @@ namespace OrganisationSetup.Areas.Procurement.Services
             }
 
         }
-       
     }
 }
