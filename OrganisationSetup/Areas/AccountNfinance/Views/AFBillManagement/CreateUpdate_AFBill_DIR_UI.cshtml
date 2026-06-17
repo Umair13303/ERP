@@ -112,19 +112,72 @@
         @if(ViewBag.OperationType == nameof(OperationType.MPO_LIST))
         {
 
-            <div class="row g-3 mt-3">
-                <div class="col-12 mt-4">
-                    <div class="bg-light rounded-2 border-start border-primary border-4 p-2">
-                        <span class="fw-bold text-primary small"><i class="fa-solid fa-building me-2"></i> BILL LIST</span>
+              <div class="row">
+                    <div class="col-lg-3 border-end">
+                        <div class="row g-3">
+                        <div class="card-body p-2">
+                            <div class="w-100 mb-2">
+                                <div class="bg-light rounded-1 border-start border-primary border-4 p-1 px-2 d-flex align-items-center justify-content-between">
+                                    <span class="fw-bold text-primary tracking-wide" style="font-size: 0.825rem;">
+                                        <i class="fa-solid fa-boxes-stacked me-1"></i> SEARCH FILTER
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12 col-sm-12">
+                                <div class="form-group">
+                                    @Html.Label("DropDownListLocation", "Location", new { @class = "col-form-label" })
+                                    @Html.DropDownList("LocationId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListLocation" })
+                                </div>
+                            </div>
+                            <div class="col-md-12 col-sm-12">
+                                <div class="form-group">
+                                    @Html.Label("TextBoxTransactionDate", "Transaction Date", new { @class = "col-form-label" })
+                                    @Html.TextBox("TransactionDate", null, new { @class = "form-control form-control-sm simpleDate", type = "date", required = "required", @id = "TextBoxTransactionDate" })
+                                </div>
+                            </div>
+                            <div class="col-md-12 col-sm-12">
+                                <div class="form-group">
+                                    @Html.Label("DropDownListSupplier", "Supplier", new { @class = "col-form-label" })
+                                    @Html.DropDownList("SupplierId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListSupplier" })
+                                </div>
+                            </div>
+                            <div class="col-md-12 col-sm-12">
+                                <div class="form-group">
+                                    @Html.Label("DropDownListDocumentStatus", "Document Status", new { @class = "col-form-label" })
+                                    @Html.DropDownList("DocumentStatusIds", (IEnumerable<SelectListItem>)ViewBag.DocumentStatusList, "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListDocumentStatus" })
+                                </div>
+                            </div>
+                            <div class="col-md-12 col-sm-12">
+                                <div class="form-group">
+                                    @Html.Label("DropDownListBillStatus", "Bill Status", new { @class = "col-form-label" })
+                                    @Html.DropDownList("BillStatusIds", (IEnumerable<SelectListItem>)ViewBag.BillStatusList, "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListBillStatus" })
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-md-6 mt-1">
+                                <div class="form-group mb-0">
+                                    <button type="button" value="Search & View" id="ButtonSearchBillMaster" class="btn btn-sm btn-primary w-100 p-0 d-flex align-items-center justify-content-center" style="height: 28px;" title="Search Bill">
+                                        <i class="fa-solid fa-magnifying-glass fs-7"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-9 border-end">
+                    <div class="row g-3 mt-3">
+                        <div class="bootstrap-admin-panel-content">
+                            <table class="table table-bordered table-sm order-column stripe table-hover" style="width: 100%" id="TableBill">
+                                <tbody id="TableBodyBill">
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-                <div class="bootstrap-admin-panel-content">
-                    <table class="table table-bordered table-sm order-column stripe table-hover" style="width: 100%" id="TableBill">
-                        <tbody id="TableBodyBill">
-                        </tbody>
-                    </table>
-                </div>
+
             </div>
+
+
         }
 
     </form>

@@ -49,7 +49,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
         Task<IReadOnlyList<DTObject.RptSaleLedger_List>> ret_RptSaleLedger_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] invoiceStatusIds, int?[] documentStatusIds, string connStr);
         Task<IReadOnlyList<DTObject.RptInvoiceReceipt_List>> ret_RptInvoiceReceipt_ByParam(int?[] paymentStatusIds, int?[] documentStatusIds, int? branchId, int? companyId, int? customerId, string connStr);
         Task<IReadOnlyList<DTObject.RptInventoryAdjustment_List>> ret_RptInventoryAdjustment_ByParam(int?[] adjustmentStatusIds, int?[] documentStatusIds, int? locationId, int? branchId, int? companyId, int? productId, string connStr);
-        Task<IReadOnlyList<DTObject.Bill_List>> ret_Bill_ByParam(Guid? guId, int? supplierId, int?[] documentStatusIds, int?[] billStatusIds, string connStr);
+        Task<IReadOnlyList<DTObject.Bill_List>> ret_Bill_ByParam(Guid? guId, int?[] supplierIds, int?[] documentStatusIds, int?[] billStatusIds, DateTime? transactionDate, string connStr);
         Task<IReadOnlyList<DTObject.RptSupplierSummary_List>> ret_RptSupplierSummary_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] billStatusIds, int?[] documentStatusIds, string connStr);
         #endregion
 
@@ -1189,15 +1189,16 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                 throw ex;
             }
         }
-        public async Task<IReadOnlyList<DTObject.Bill_List>> ret_Bill_ByParam(Guid? guId, int? supplierId, int?[] documentStatusIds, int?[] billStatusIds, string connStr)
+        public async Task<IReadOnlyList<DTObject.Bill_List>> ret_Bill_ByParam(Guid? guId, int?[] supplierIds, int?[] documentStatusIds, int?[] billStatusIds,DateTime? transactionDate, string connStr)
         {
             using IDbConnection db = new SqlConnection(connStr);
             var parameters = new
             {
                 GuID = guId,
-                SupplierId = supplierId,
-                DocumentStatus = documentStatusIds != null ? string.Join(",", documentStatusIds) : null,
+                SupplierIds = supplierIds != null ? string.Join(",", supplierIds) : null,
+                DocumentStatusIds = documentStatusIds != null ? string.Join(",", documentStatusIds) : null,
                 BillStatusIds = billStatusIds != null ? string.Join(",", billStatusIds) : null,
+                TransactionDate = transactionDate
             };
             try
             {

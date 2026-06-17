@@ -4,13 +4,26 @@ var dropDownListInitOption = "<option value='-1'>Select an option</option>";
 var attributeList = [];
 var productList = [];
 var billPPITable;
+var billTable;
 
 /* ------ UI COMPONENTS ------ */
 function initializeDataTable() {
     billPPITable = $('#BillDetailTable').DataTable({
-        destroy: true,
-        searching: false,
-        ordering: true,
+        "processing": true,
+        "serverSide": false,
+        "responsive": true,
+        "ordering": false,
+        "searching": true,
+        "oLanguage": {
+            "oPaginate": {
+                "sPrevious": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>',
+                "sNext": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>'
+            },
+            "sInfo": "Showing page _PAGE_ of _PAGES_",
+            "sSearch": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>',
+            "sSearchPlaceholder": "Search...",
+            "sLengthMenu": "Results :  _MENU_"
+        },
         columns: [
             { title: 'Product', data: 'ProductName' },
             {
@@ -71,7 +84,6 @@ function initializeDataTable() {
 function inputsUISetup() {
     $(".simpleDatePicker").attr("type", "date");
 }
-
 
 /* ------ Depending DDL's ------ */
 function getBranchList() {
@@ -269,7 +281,7 @@ function changeEventHandler() {
     $("#DropDownListProduct").on("change", function () {
         addLineItemToStaging();
     });
-   $('#BillDetailTable').on('input change', '.UnitPurchasePrice, .Quantity, .DiscountAmount', function () {
+    $('#BillDetailTable').on('input change', '.UnitPurchasePrice, .Quantity, .DiscountAmount', function () {
         var $row = $(this).closest('tr');
 
        var unitPurchasePrice = parseFloat($row.find('.UnitPurchasePrice').val()) || 0;
@@ -293,8 +305,58 @@ function changeEventHandler() {
             createUpdateDataIntoDB();
         }
     });
+    $("#ButtonSearchBillMaster").on("click", function (e) {
+        if (validater()) {
+            e.preventDefault();
+            billTable.ajax.reload(null, false);
+        }
+    });
 }
 
+/* ------ MPO Operation ------ */
+function domBillTable() {
+    billTable = $('#TableBill').DataTable({
+        "processing": true,
+        "serverSide": false,
+        "responsive": true,
+        "ordering": false,
+        "searching": true,
+        "ajax": {
+            "url": window.basePath + "AccountNfinance/AFBillManagement/populateBillMasterListBySearch",
+            "data": function (d) {
+                d.operationType = operationType;
+                d.supplierIds = $("#DropDownListSupplier :selected").val();
+                d.billStatusIds = $("#DropDownListBillStatus :selected").val();
+                d.transactionDate = $("#TextBoxTransactionDate").val();
+                d.documentStatusIds = $("#DropDownListDocumentStatus :selected").val();
+                d.billStatus = $("#DropDownListBillStatus :selected").val();
+            },
+            "type": "GET",
+            "dataSrc": "data",
+        },
+        "oLanguage": {
+            "oPaginate": {
+                "sPrevious": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>',
+                "sNext": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>'
+            },
+            "sInfo": "Showing page _PAGE_ of _PAGES_",
+            "sSearch": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>',
+            "sSearchPlaceholder": "Search...",
+            "sLengthMenu": "Results :  _MENU_"
+        },
+        columns: [
+            { title: 'Date', data: 'transactionDate' },
+            { title: 'Code', data: 'code' },
+            { title: 'Supplier', data: 'supplierName' },
+            { title: 'GROSS AMT', data: 'grossAmount' },
+            { title: 'DISC AMT', data: 'discountAmount' },
+            { title: 'NET AMT', data: 'netAmount' },
+            { title: 'DUE AMT', data: 'dueAmount' },
+            { title: 'DOC', data: 'docStatus' },
+            { title: 'BILLING', data: 'billStatus' },
+        ],
+    });
+}
 
 /* ------ Call Initial Components ------ */
 function initialize() {
@@ -308,6 +370,7 @@ function initialize() {
     $('.select2').select2({
         width: '100%'
     });
+    domBillTable();
 }
 
 /* ------ Validation for user input ------ */

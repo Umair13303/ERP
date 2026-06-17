@@ -156,7 +156,7 @@ function getvPaymentMethodList() {
 }
 function getBillList(supplierId) {
     billTable.clear().draw();
-    billTable.ajax.url((window.basePath + "AccountNfinance/AFBillReceiptManagement/populateBillListByParam?supplierId=" + supplierId + "&operationType=" + operationType)).load();
+    billTable.ajax.url((window.basePath + "AccountNfinance/AFBillReceiptManagement/populateBillListByParam?supplierIds=" + supplierId + "&operationType=" + operationType)).load();
 
 }
 /* ------ Change Cases DDL's ------ */

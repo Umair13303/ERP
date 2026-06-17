@@ -17,7 +17,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
         Task<AFChartOfAccount> populateChartOfAccountInfo(Guid? guid);
         Task<IEnumerable<DTObject.Invoice_List>> populateInvoiceByParam(string operationType, Guid? guid, int? customerId, int?[]invoiceStatus);
         Task<IEnumerable<DTObject.RptInvoiceReceipt_List>> populateInvoiceReceiptByParam(string operationType, int? customerId);
-        Task<IEnumerable<DTObject.Bill_List>> populateBillByParam(string operationType, Guid? guId, int? supplierId, int?[] billStatus);
+        Task<IEnumerable<DTObject.Bill_List>> populateBillByParam(string operationType, Guid? guId, int?[] supplierIds, int?[] billStatusIds, DateTime? transactionDate);
     }
     public class AccountNfinanceRetrieverService : IAccountNfinanceRetriever
     {
@@ -113,7 +113,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                 _connectionString
             );
         }
-        public async Task<IEnumerable<DTObject.Bill_List>> populateBillByParam(string operationType, Guid? guId, int? supplierId, int?[] billStatus)
+        public async Task<IEnumerable<DTObject.Bill_List>> populateBillByParam(string operationType, Guid? guId, int?[] supplierIds, int?[] billStatusIds, DateTime? transactionDate)
         {
             var userInfo = _currentUser;
             if (!userInfo.IsAuthenticated) return new List<DTObject.Bill_List>();
@@ -121,9 +121,10 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
 
             return await _repo.ret_Bill_ByParam(
                 guId,
-                supplierId,
+                supplierIds,
                 documentStatusIds,
-                billStatus,
+                billStatusIds,
+                transactionDate,
                 _connectionString
             );
         }

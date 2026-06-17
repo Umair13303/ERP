@@ -22,9 +22,11 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
         private readonly IInventoryRetriever _irService;
         private readonly IProcurementRetriever _prService;
         private readonly IAccountNfinanceUpsert _anfuService;
+        private readonly IAccountNfinanceRetriever _anfrService;
 
 
-        public AFBillManagementController(ICommon commonsServices,TempUser currentUser, IApplicationConfigurationRetriever acrService, IInventoryRetriever irService, IProcurementRetriever prService, IAccountNfinanceUpsert anfuService)
+
+        public AFBillManagementController(ICommon commonsServices,TempUser currentUser, IApplicationConfigurationRetriever acrService, IInventoryRetriever irService, IProcurementRetriever prService, IAccountNfinanceUpsert anfuService, IAccountNfinanceRetriever anfrService)
         {
             _commonsServices = commonsServices;
             _currentUser = currentUser;
@@ -32,7 +34,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
             _irService = irService;
             _prService = prService;
             _anfuService = anfuService;
-
+            _anfrService = anfrService;
         }
         #region PORTION CONTAIN CODE TO: RENDER VIEW
 
@@ -41,6 +43,35 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
             ViewBag.OperationType = ui.OperationType;
             ViewBag.DisplayName = ui.DisplayName;
             ViewBag.LocationId = _currentUser.BranchId;
+            if(ui.OperationType == nameof(OperationType.MPO_LIST))
+            {
+                var documentStatusList = Enum.GetValues(typeof(DocumentStatus))
+                        .Cast<DocumentStatus>()
+                        .Select(e => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                        {
+                            Value = ((int)e).ToString(),
+                            Text = e.ToString().ToUpper()
+                        }).ToList();
+                var billStatusList = Enum.GetValues(typeof(BillStatus))
+                        .Cast<BillStatus>()
+                        .Select(e => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                        {
+                            Value = ((int)e).ToString(),
+                            Text = e.ToString().ToUpper()
+                        }).ToList();
+                documentStatusList.Insert(0, new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                {
+                    Value = null,
+                    Text = "All"
+                });
+                billStatusList.Insert(0, new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                {
+                    Value = null,
+                    Text = "All"
+                });
+                ViewBag.DocumentStatusList = documentStatusList;
+                ViewBag.BillStatusList = billStatusList;
+            }
             return View();
         }
 
@@ -73,7 +104,15 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
         }
 
         #endregion
-
+        
+        #region PORTION CONTAIN CODE TO: RETURN RECORD LIST
+        [HttpGet]
+        public async Task<IActionResult> populateBillMasterListBySearch(string operationType, Guid? guid, int?[] supplierIds, int?[] billStatusIds, DateTime? transactionDate)
+        {
+            var result = await _anfrService.populateBillByParam(operationType, guid, supplierIds, billStatusIds, transactionDate);
+            return Json(new { data = result });
+        }
+        #endregion
 
         #region PORTION CONTAIN CODE TO: ADD/EDIT/DELETE DOCUMENT
         [HttpPost]
