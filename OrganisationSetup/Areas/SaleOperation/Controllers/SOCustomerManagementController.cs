@@ -45,11 +45,11 @@ namespace OrganisationSetup.Areas.SaleOperation.Controllers
 
         #region PORTION CONTAIN CODE TO: RETURN RECORD LIST
         [HttpGet]
-        public async Task<IActionResult> populateCustomerSummListByParam(string operationType)
+        public async Task<IActionResult> populateCustomerSummListByParam(string operationType, int?[]? customerIds=null)
         {
             try
             {
-                var result = await _sorService.populateCustomerSummByParam(operationType);
+                var result = await _sorService.populateCustomerSummByParam(operationType, customerIds);
                 return Json(new { data = result });
             }
             catch (Exception ex)

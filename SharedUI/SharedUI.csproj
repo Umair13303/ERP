@@ -12,6 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\OrganisationSetup\wwwroot\js\AccountNfinance\CreateUpdate_AFInvoice_DIR_UI.js" Link="CreateUpdate_AFInvoice_DIR_UI.js" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.23" />
   </ItemGroup>
 

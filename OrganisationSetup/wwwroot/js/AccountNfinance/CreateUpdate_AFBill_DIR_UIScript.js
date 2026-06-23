@@ -414,8 +414,8 @@ function createUpdateDataIntoDB() {
             var unitPurchasePrice = parseFloat($(node).find('.UnitPurchasePrice').val()) || 0;
             var quantity = parseFloat($(node).find('.Quantity').val()) || 0;
             var discountAmount = parseFloat($(node).find('.DiscountAmount').val()) || 0;
-            var actualAmount = parseFloat($(node).find('.ActualAmount').text()) || (unitPurchasePrice * quantity);
-            var chargedAmount = parseFloat($(node).find('.ChargedAmount').text()) || (actualAmount - discountAmount);
+            var actualAmount = parseFloat($(node).find('.ActualAmount').val()) || (unitPurchasePrice * quantity);
+            var chargedAmount = parseFloat($(node).find('.ChargedAmount').val()) || (actualAmount - discountAmount);
             var batch = $(node).find('input[name="Batch"]').val() || "";
             var expiry = $(node).find('input[name="ExpiryDate"]').val() || "";
 

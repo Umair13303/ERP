@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,6 +32,7 @@ namespace SharedUI.Models.ViewModels
             public string? Text { get; set; }
             public string? AttIds { get; set; }
             public bool? IsExpiryApplied { get; set; }
+            public decimal? UnitSalePrice { get; set; }
         }
         public class Product_Master_List
         {

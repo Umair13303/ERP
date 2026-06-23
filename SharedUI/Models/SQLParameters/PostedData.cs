@@ -95,6 +95,7 @@ namespace SharedUI.Models.SQLParameters
 
         public List<IInventoryAdjustmentPPQD_TVP> PostedDataIAdjustmentPPQD { get; set; }
         public List<AFBillPPI_TVP> PostedDataAFBillPPI { get; set; }
+        public List<AFInvoicePPI_TVP> PostedDataAFInvoicePPI { get; set; }
 
     }
 

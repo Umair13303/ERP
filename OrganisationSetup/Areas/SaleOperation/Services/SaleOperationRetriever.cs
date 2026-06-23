@@ -15,7 +15,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
     public interface ISaleOperationRetriever
     {
         Task<List<Customer_List>> populateCustomerByParam(string? operationType, int? filterConditionId);
-        Task<IEnumerable<DTObject.RptCustomerSummary_List>> populateCustomerSummByParam(string operationType);
+        Task<IEnumerable<DTObject.RptCustomerSummary_List>> populateCustomerSummByParam(string operationType, int?[]? customerId);
     }
     public class SaleOperationRetrieverService : ISaleOperationRetriever
     {
@@ -64,7 +64,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                     return new List<Customer_List>();
             }
         }
-        public async Task<IEnumerable<DTObject.RptCustomerSummary_List>> populateCustomerSummByParam(string operationType)
+        public async Task<IEnumerable<DTObject.RptCustomerSummary_List>> populateCustomerSummByParam(string operationType, int?[]? customerIds)
         {
             var userInfo = _currentUser;
             if (!userInfo.IsAuthenticated) return new List<DTObject.RptCustomerSummary_List>();
@@ -78,6 +78,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                 paymentStatusIds,
                 invoiceStatusIds,
                 documentStatusIds,
+                customerIds,
                 _connectionString
             );
         }

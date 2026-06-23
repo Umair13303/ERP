@@ -1,0 +1,143 @@
+@using SharedUI.Models.Enums
+@{
+    Layout = "LayoutOne";
+}
+<style>
+    /* Main Product Table Spacing Cleanups */
+    #InvoiceDetailTable tbody input.form-control,
+    #InvoiceDetailTable tbody select.form-control {
+        height: 1.6rem !important;
+        font-size: 0.72rem !important;
+        padding: 0.15rem 0.3rem !important;
+        margin: 0 !important;
+    }
+
+    #InvoiceDetailTable tbody td {
+        padding: 0.25rem 0.4rem !important;
+        vertical-align: middle !important;
+    }
+
+    #InvoiceDetailTable thead th {
+        font-size: 0.72rem !important;
+        padding: 0.4rem !important;
+    }
+
+    /* --- FIXED SUMMARY SECTION TABLE STYLES --- */
+    .pos-summary-panel table {
+        background-color: transparent !important;
+        margin-bottom: 0 !important;
+    }
+
+        .pos-summary-panel table td,
+        .pos-summary-panel table th {
+            background-color: transparent !important;
+            border-color: #e9ecef !important;
+        }
+
+    .pos-summary-panel input.form-control,
+    .pos-summary-panel select.form-select {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+</style>
+
+<form id="AFInvoiceForm">
+    @Html.Hidden("OperationType", (string)ViewBag.OperationType)
+    @Html.Hidden("GuID")
+
+    <div class="card-body p-2">
+        <div class="w-100 mb-2">
+            <div class="bg-white rounded-1 border-start border-primary border-4 p-1 px-2 d-flex align-items-center justify-content-between shadow-sm">
+                <span class="fw-bold text-primary" style="font-size: 0.82rem;">
+                    <i class="fa-solid fa-file-invoice-dollar me-1"></i> SALES INVOICE
+                </span>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2" style="font-size: 0.65rem;">POINT OF SALE</span>
+            </div>
+        </div>
+
+        <div class="row bg-white rounded-1 border mx-0 align-items-end p-2 mt-1 mb-2 g-2 shadow-sm">
+            <div class="col-6 col-sm-4 col-md-3">
+                @Html.Label("DropDownListLocation", "Location", new { @class = "form-label text-secondary fw-semibold mb-0" })
+                @Html.DropDownList("LocationId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListLocation" })
+            </div>
+            <div class="col-6 col-sm-4 col-md-3">
+                <label class="form-label text-secondary fw-semibold mb-0" style="font-size:0.72rem;">Invoice Date</label>
+                @Html.Label("TextBoxTransactionDate", "Date", new { @class = "form-label text-secondary fw-semibold mb-0" })
+                @Html.TextBox("TransactionDate", null, new { @class = "form-control form-control-sm simpleDatePicker", type = "date", required = "required", @id = "TextBoxTransactionDate" })
+            </div>
+            <div class="col-12 col-sm-4 col-md-3">
+                <div class="d-flex align-items-center gap-1 mb-0">
+                    @Html.CheckBox("CheckBoxIsCustomerFixed", false, new { @class = "form-check-input mt-0", @id = "CheckBoxIsCustomerFixed" })
+                    @Html.Label("DropDownListCustomer", "Walk In Customer", new { @class = "form-label text-secondary fw-semibold mb-0" })
+                </div>
+                @Html.DropDownList("CustomerId", Enumerable.Empty<SelectListItem>(), "Select Customer...", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListCustomer" })
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label text-secondary fw-semibold mb-0" style="font-size:0.72rem;">Contact / Phone</label>
+                @Html.TextBox("Contact", null, new { @class = "form-control form-control-sm contact", placeholder = "Customer contact...", @id = "TextBoxContact" })
+            </div>
+        </div>
+        <div class="row mx-0 g-2">
+            <div class="col-12 col-lg-8 border rounded-1 p-2 bg-white shadow-sm">
+                <div class="mb-2 col-8">
+                    @Html.DropDownList("DropDownListProduct", Enumerable.Empty<SelectListItem>(), "SEARCH & ADD PRODUCT...", new { @class = "form-select form-select-sm select2 fw-bold", @id = "DropDownListProduct" })
+                </div>
+                <div class="table-responsive" style="max-height: 360px; overflow-y: auto;">
+                    <table class="table table-sm table-bordered align-middle text-center mb-0 w-100" id="InvoiceDetailTable" style="font-size: 0.75rem;">
+                        <thead class="table-light text-uppercase fw-bold text-secondary"></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <button type="button" id="ButtonAddLineItem" class="d-none"></button>
+            </div>
+            <div class="col-12 col-lg-4 border rounded-1 p-2 bg-white shadow-sm">
+                <table class="table table-sm table-bordered align-middle text-center mb-0 w-100" id="InvoiceDetailSummTable">
+                    <thead class="table-light text-uppercase fw-bold text-secondary">
+                        <tr>
+                            <th class="text-end" colspan="3">
+                                <div class="btn-group btn-group-sm shadow-sm" role="group">
+                                    <button type="button" id="ButtonPrintInvoice" class="btn btn-success btn-sm">
+                                        <i class="fa-solid fa-print fa-cloud-arrow-up me-1"></i> Invoice
+                                    </button>
+                                    <button type="button" id="ButtonPrintLedger" class="btn btn-warning btn-sm">
+                                        <i class="fa-solid fa-print fa-cloud-arrow-up me-1"></i> Ledger
+                                    </button>
+                                </div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="2" class="text-start px-2 fw-semibold">PREVIOUS BALANCE</td>
+                            <td class="text-end px-2"><span class="fw-bold text-danger" id="SpanPreviousBalance">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" class="text-start px-2 fw-semibold">NET RECEIVABLE</td>
+                            <td class="text-end px-2"><span class="fw-bold text-danger" id="SpanNetReceivable">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" class="text-start px-2 fw-semibold">AMOUNT RECEIVED</td>
+                            <td class="text-end px-2">
+                                @Html.TextBox("ReceiptAmount", 0.00, new { @class = "form-control form-control-sm text-end", placeholder = "Amount Received", @id = "TextBoxReceiptAmount" })
+                        </tr>
+                        <tr>
+                            <td colspan="2" class="text-start px-2 fw-semibold">CHANGE RETURN</td>
+                            <td class="text-end px-2"><span class="fw-bold text-primary" id="SpanChangeReturn">0.00</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <fieldset class="border rounded-2 px-3 pb-2 mt-3" style="border-color: #ced4da; transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;" onfocuswithin="this.style.borderColor='#86b7fe'; this.style.boxShadow='0 0 0 0.25rem rgba(13, 110, 253, 0.25)'" onfocusout="this.style.borderColor='#ced4da'; this.style.boxShadow='none'">
+                    <legend class="float-none w-auto px-2 mb-0 fw-bold" style="font-size: 0.85rem; color: #5c758e; letter-spacing: 0.5px;">ADDITIONAL NOTE</legend>
+                    <textarea class="form-control border-0 shadow-none p-0 bg-transparent" id="AdditionalNote" name="AdditionalNote" rows="3" placeholder="Type your notes here..."></textarea>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+    var LocationId = @ViewBag.LocationId;
+</script>
+<script src="~/js/accountnfinance/createupdate_afinvoice_dir_ui.js"></script>

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using NuGet.ProjectModel;
 using OrganisationSetup.Models.DAL;
 using OrganisationSetup.Services;
@@ -185,17 +185,23 @@ namespace OrganisationSetup.Areas.Inventory.Services
             switch (filterConditionId)
             {
                 case ((int?)FilterConditions.IProduct_Operation_ALLActive_ByCompany):
-                    return await _eRPOSContext.IProduct.AsNoTracking()
-                        .Where(x =>
-                        x.CompanyId == userInfo.CompanyId
-                        && x.Status == true
-                        && documentStatusIds.Contains(x.DocumentStatus)).Select(x => new Product_List
-                        {
-                            Id = x.Id,
-                            Text = x.Description,
-                            AttIds = x.AttributeIds,
-                            IsExpiryApplied = x.IsExpiryApplicable
-                        }).ToListAsync();
+                    return await (from x in _eRPOSContext.IProduct.AsNoTracking()
+                                  where x.CompanyId == userInfo.CompanyId
+                                     && x.Status == true
+                                     && documentStatusIds.Contains(x.DocumentStatus)
+                                  let price = _eRPOSContext.AFProductPriceLog.AsNoTracking()
+                                      .Where(p => p.ProductId == x.Id && p.Status == true && p.CompanyId == userInfo.CompanyId)
+                                      .OrderByDescending(p => p.CreatedOn)
+                                      .Select(p => (decimal?)p.DefaultSalePrice)
+                                      .FirstOrDefault()
+                                  select new Product_List
+                                  {
+                                      Id = x.Id,
+                                      Text = x.Description,
+                                      AttIds = x.AttributeIds,
+                                      IsExpiryApplied = x.IsExpiryApplicable,
+                                      UnitSalePrice = price ?? 0m
+                                  }).ToListAsync();
                 default:
                     return new List<Product_List>();
             }

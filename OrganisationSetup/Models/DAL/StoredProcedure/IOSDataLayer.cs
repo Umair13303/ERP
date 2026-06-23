@@ -45,7 +45,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
         #endregion
         #region RETRIEVE OPERATION
         Task<IReadOnlyList<DTObject.Invoice_List>> ret_Invoice_ByParam(Guid? guId, int? customerId, int?[] documentStatusIds, int?[] invoiceStatusIds,string connStr);
-        Task<IReadOnlyList<DTObject.RptCustomerSummary_List>> ret_RptCustomerSummary_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] invoiceStatusIds, int?[] documentStatusIds, string connStr);
+        Task<IReadOnlyList<DTObject.RptCustomerSummary_List>> ret_RptCustomerSummary_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] invoiceStatusIds, int?[] documentStatusIds, int?[]? customerIds, string connStr);
         Task<IReadOnlyList<DTObject.RptSaleLedger_List>> ret_RptSaleLedger_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] invoiceStatusIds, int?[] documentStatusIds, string connStr);
         Task<IReadOnlyList<DTObject.RptInvoiceReceipt_List>> ret_RptInvoiceReceipt_ByParam(int?[] paymentStatusIds, int?[] documentStatusIds, int? branchId, int? companyId, int? customerId, string connStr);
         Task<IReadOnlyList<DTObject.RptInventoryAdjustment_List>> ret_RptInventoryAdjustment_ByParam(int?[] adjustmentStatusIds, int?[] documentStatusIds, int? locationId, int? branchId, int? companyId, int? productId, string connStr);
@@ -1103,7 +1103,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                 throw ex;
             }
         }
-        public async Task<IReadOnlyList<DTObject.RptCustomerSummary_List>> ret_RptCustomerSummary_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] invoiceStatusIds, int?[] documentStatusIds, string connStr)
+        public async Task<IReadOnlyList<DTObject.RptCustomerSummary_List>> ret_RptCustomerSummary_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] invoiceStatusIds, int?[] documentStatusIds, int?[]? customerIds,string connStr)
         {
             using IDbConnection db = new SqlConnection(connStr);
             var parameters = new
@@ -1113,6 +1113,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                 PaymentStatusIds = paymentStatusIds != null ? string.Join(",", paymentStatusIds) : null,
                 InvoiceStatusIds = invoiceStatusIds != null ? string.Join(",", invoiceStatusIds) : null,
                 DocumentStatusIds = documentStatusIds != null ? string.Join(",", documentStatusIds) : null,
+                CustomerIds = customerIds != null ? string.Join(",", customerIds) : null,
             };
             try
             {

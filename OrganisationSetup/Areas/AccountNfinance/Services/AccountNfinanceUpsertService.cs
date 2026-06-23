@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using OrganisationSetup.Models.DAL;
 using OrganisationSetup.Models.DAL.StoredProcedure;
@@ -16,7 +16,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
     public interface IAccountNfinanceUpsert
     {
         Task<ServiceResult> updateInsertDataInto_AFChartOfAccount(PostedData postedData, bool? isCustomerAutoAccount);
-        Task<ServiceResult> updateInsertDataInto_AFInvoice(PostedData postedData, List<AFInvoicePPI_TVP> invoicePPI);
+        Task<ServiceResult> updateInsertDataInto_AFInvoice(PostedData postedData);
         Task<ServiceResult> updateInsertDataInto_AFInvoiceReceipt(PostedData postedData);
         Task<ServiceResult> updateInsertDataInto_AFBill(PostedData postedData);
         Task<ServiceResult> updateInsertDataInto_AFBillReceipt(PostedData postedData);
@@ -106,7 +106,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
             }
 
         }
-        public async Task<ServiceResult> updateInsertDataInto_AFInvoice(PostedData postedData, List<AFInvoicePPI_TVP> invoicePPI)
+        public async Task<ServiceResult> updateInsertDataInto_AFInvoice(PostedData postedData)
         {
             var userInfo = _currentUser;
 
@@ -114,15 +114,18 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                 return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
             #region PORTION FOR :: DOCUMENT SETTING ON BASIS OF OperationType
             Guid? invoiceGuID = Guid.Empty;
+            Guid? customerLedgerGuID = Guid.Empty;
+
             if (postedData.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB))
             {
                 invoiceGuID = Guid.NewGuid();
+                customerLedgerGuID = Guid.NewGuid();
             }
             else
             {
                 invoiceGuID = postedData.GuID;
             }
-            bool? isOperationPermitted = await _validationService.isAFInvoiceValid(postedData.OperationType, invoiceGuID, postedData.Description);
+            bool? isOperationPermitted = true; //await _validationService.isAFInvoiceValid(postedData.OperationType, invoiceGuID, postedData.Description);
             #endregion
             if (isOperationPermitted == true)
             {
@@ -131,6 +134,11 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                 using var transaction = con.BeginTransaction();
                 try
                 {
+                    decimal invoiceChargedAmount = postedData.PostedDataAFInvoicePPI.Sum(x => x.ChargedAmount);
+                    decimal receiptAmount = postedData.ReceiptAmount ?? 0m;
+                    decimal dueAmount = Math.Max(0, invoiceChargedAmount - receiptAmount);
+                    
+                    postedData.Description = "POS Direct Invoice Generated, Amounting +" + invoiceChargedAmount + " + @ " + DateTime.UtcNow;
                     #region PORTION FOR :: UPSERT INTO dbo.AFInvoice
                     var AFInvoice = await _repo.UpsertInto_AFInvoice(
                                                   postedData.OperationType,
@@ -140,7 +148,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                   postedData.CustomerId,
                                                   postedData.Description,
                                                   postedData.FBRStamp,
-                                                  (decimal)postedData.DueAmount,
+                                                  dueAmount,
                                                   postedData.InvoiceTypeId,
                                                   postedData.InvoiceStatus,
                                                   DateTime.Now,
@@ -151,9 +159,158 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                   (int?)DocumentStatus.active,
                                                   userInfo.BranchId,
                                                   userInfo.CompanyId,
-                                                  invoicePPI,
+                                                  postedData.PostedDataAFInvoicePPI,
                                                   con, transaction
                                                   );
+                    #endregion
+                    #region PORTION FOR :: FILL & UPSERT CustomerLedger
+                    List<AFCustomerLedger_TVP> customerLedger = new List<AFCustomerLedger_TVP>
+                    {
+                            new AFCustomerLedger_TVP
+                            {
+                                Id = 0,
+                                GuID = customerLedgerGuID,
+                                Code= "",
+                                LocationId = userInfo.BranchId,
+                                TransactionDate= postedData.TransactionDate,
+                                CustomerId = postedData.CustomerId,
+                                RefDocumentType = (int?)DocumentType.invoice,
+                                RefDocumentId=AFInvoice.insertedId,
+                                Description= postedData.Description,
+                                Debit= (decimal)AFInvoice.totalInvoiceAmount,
+                                Credit =0,
+                                ReconcillationStatus= (int?)ReconcileStatus.reconciled,
+                                CreatedOn = DateTime.Now,
+                                CreatedBy = userInfo.UserId,
+                                UpdatedOn = DateTime.Now,
+                                UpdatedBy = userInfo.UserId,
+                                DocumentType = (int?)DocumentType.customerLedgerRecord,
+                                DocumentStatus = (int?)DocumentStatus.active,
+                                Status = true,
+                                BranchId= userInfo.BranchId,
+                                CompanyId = userInfo.CompanyId
+                            } 
+                    };
+
+                    #region PORTION FOR :: UPSERT INTO dbo.AFCustomerLedger
+                    var AFCustomerLedger = await _repo.UpsertInto_AFCustomerLedger(
+                                                postedData.OperationType,
+                                                userInfo.CompanyId,
+                                                customerLedger,
+                                                con, transaction);
+
+                    #endregion
+                    #endregion
+                    #region PORTION FOR :: IF PAID, GENERATE RECEIPT AND LEDGER CREDIT
+                    string receiptDescription = "POS Cash received against Invoice #" + AFInvoice.documentCode;
+                    if (receiptAmount > 0)
+                    {
+                        var receiptResult = await _repo.UpsertInto_AFInvoiceReceipt(
+                            postedData.OperationType,
+                            Guid.NewGuid(),
+                            postedData.LocationId,
+                            postedData.TransactionDate,
+                            postedData.CustomerId,
+                            AFInvoice.insertedId,
+                            receiptDescription,
+                            (int?)PaymentType.InvoiceWise,
+                            postedData.PaymentMethodId ?? 1, // Default to 1 (Cash)
+                            postedData.Reference,
+                            receiptAmount,
+                            (int?)PaymentStatus.verified,
+                            DateTime.Now,
+                            userInfo.UserId,
+                            DateTime.Now,
+                            userInfo.UserId,
+                            (int?)DocumentType.invoiceReceipt,
+                            (int?)DocumentStatus.active,
+                            userInfo.BranchId,
+                            userInfo.CompanyId,
+                            con, transaction
+                        );
+
+                        List<AFCustomerLedger_TVP> receiptCustomerLedger = new List<AFCustomerLedger_TVP>
+                        {
+                            new AFCustomerLedger_TVP
+                            {
+                                Id = 0,
+                                GuID = Guid.NewGuid(),
+                                Code = "",
+                                LocationId = userInfo.BranchId,
+                                TransactionDate = postedData.TransactionDate,
+                                CustomerId = postedData.CustomerId,
+                                RefDocumentType = (int?)DocumentType.invoiceReceipt,
+                                RefDocumentId = receiptResult.insertedId,
+                                Description = receiptDescription,
+                                Debit = 0,
+                                Credit = receiptAmount,
+                                ReconcillationStatus = (int?)ReconcileStatus.reconciled,
+                                CreatedOn = DateTime.Now,
+                                CreatedBy = userInfo.UserId,
+                                UpdatedOn = DateTime.Now,
+                                UpdatedBy = userInfo.UserId,
+                                DocumentType = (int?)DocumentType.customerLedgerRecord,
+                                DocumentStatus = (int?)DocumentStatus.active,
+                                Status = true,
+                                BranchId = userInfo.BranchId,
+                                CompanyId = userInfo.CompanyId
+                            }
+                        };
+
+                        await _repo.UpsertInto_AFCustomerLedger(
+                            postedData.OperationType,
+                            userInfo.CompanyId,
+                            receiptCustomerLedger,
+                            con, transaction
+                        );
+                    }
+                    #endregion
+                    #region PORTION FOR :: PREPARE InventoryLedger TVP (Stock OUT)
+                    var InventoryLedger = new List<AFInventoryLedger_TVP>();
+
+                    if (postedData.PostedDataAFInvoicePPI != null && postedData.PostedDataAFInvoicePPI.Any())
+                    {
+                        foreach (var item in postedData.PostedDataAFInvoicePPI)
+                        {
+                            InventoryLedger.Add(new AFInventoryLedger_TVP
+                            {
+                                GuID = Guid.NewGuid(),
+                                LocationId = postedData.LocationId,
+                                TransactionDate = postedData.TransactionDate,
+                                ProductId = item.ProductId,
+                                //Attribute = item.Attribute,
+                                RefDocumentType = (int?)DocumentType.invoice,
+                                RefDocumentId = AFInvoice.insertedId,
+                                Description = postedData.Description?.Trim(),
+                                QuantityIn = 0,
+                                QuantityOut = item.Quantity,
+                                UnitPurchasePrice =  0,
+                                UnitSalePrice = item.UnitSalePrice,
+                                Debit = 0,
+                                Credit = item.ChargedAmount,
+                                Batch = "",//item.Batch,
+                                ExpiryDate = null, //item.ExpiryDate,
+                                ReconcillationStatus = (int)ReconcileStatus.reconciled,
+                                CreatedOn = DateTime.Now,
+                                CreatedBy = userInfo.UserId,
+                                UpdatedOn = DateTime.Now,
+                                UpdatedBy = userInfo.UserId,
+                                DocumentType = (int?)DocumentType.inventoryLedgerRecord,
+                                DocumentStatus = (int?)DocumentStatus.active,
+                                Status = true,
+                                BranchId = userInfo.BranchId,
+                                CompanyId = userInfo.CompanyId
+                            });
+                        }
+                    }
+                    #endregion
+
+                    #region PORTION FOR :: UPSERT INTO dbo.AFInventoryLedger (Stock OUT)
+                    var AFInventoryLedger = await _repo.UpsertInto_AFInventoryLedger(
+                                                    postedData.OperationType,
+                                                    (int?)DocumentType.invoice,
+                                                    InventoryLedger,
+                                                    con, transaction);
                     #endregion
 
                     #region PORTION FOR :: HANLDE TRANSACTION
@@ -289,15 +446,16 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                                .FirstOrDefaultAsync();
                             if (AFInvoice != null)
                             {
-                                AFInvoice.DueAmount = (decimal)AFInvoice.DueAmount - (decimal)postedData.ReceiptAmount;
-                                AFInvoice.DueAmount = AFInvoice.DueAmount < 0 ? 0 : AFInvoice.DueAmount;
-                                if (postedData.ReceiptAmount < AFInvoice.DueAmount)
-                                {
-                                    AFInvoice.InvoiceStatus = (int?)InvoiceStatus.partialPaid;
-                                }
-                                else if (postedData.ReceiptAmount == AFInvoice.DueAmount)
+                                decimal oldDueAmount = AFInvoice.DueAmount;
+                                decimal newDueAmount = Math.Max(0m, oldDueAmount - (decimal)postedData.ReceiptAmount);
+                                AFInvoice.DueAmount = newDueAmount;
+                                if (newDueAmount == 0)
                                 {
                                     AFInvoice.InvoiceStatus = (int?)InvoiceStatus.paid;
+                                }
+                                else if (newDueAmount < oldDueAmount)
+                                {
+                                    AFInvoice.InvoiceStatus = (int?)InvoiceStatus.partialPaid;
                                 }
                                 _eRPOSContext.Entry(AFInvoice).Property(x => x.DueAmount).IsModified = true;
                                 await _eRPOSContext.SaveChangesAsync();
@@ -383,7 +541,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                             Id = 0,
                             GuID = Guid.NewGuid(),
                             BillId = 0,
-                            ProductId = 0,
+                            ProductId = item.ProductId,
                             Attribute = item.Attribute,
                             Quantity = item.Quantity,
                             UnitPurchasePrice = (decimal)item.UnitPurchasePrice,
@@ -489,8 +647,8 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                 QuantityOut = 0,
                                 UnitPurchasePrice = item.UnitPurchasePrice,
                                 UnitSalePrice = 0,
-                                Debit = 0,
-                                Credit = item.ActualAmount,
+                                Debit = item.ChargedAmount,
+                                Credit = 0,
                                 Batch = item.Batch,
                                 ExpiryDate = item.ExpiryDate,
                                 ReconcillationStatus = (int)ReconcileStatus.reconciled,
@@ -650,17 +808,15 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                                .FirstOrDefaultAsync();
                             if (AFBill != null)
                             {
-                                AFBill.DueAmount = (decimal)AFBill.DueAmount - (decimal)postedData.ReceiptAmount;
-                                AFBill.DueAmount = AFBill.DueAmount < 0 ? 0 : AFBill.DueAmount;
-                                if (postedData.ReceiptAmount < AFBill.DueAmount)
-                                {
-                                    AFBill.BillStatus = (int?)InvoiceStatus.partialPaid;
-                                }
-                                else if (postedData.ReceiptAmount == AFBill.DueAmount)
-                                {
+                                decimal oldDueAmount = AFBill.DueAmount ?? 0m;
+                                decimal newDueAmount = Math.Max(0m, oldDueAmount - (decimal)postedData.ReceiptAmount);
+                                AFBill.DueAmount = newDueAmount;
+                                if (newDueAmount == 0)
                                     AFBill.BillStatus = (int?)InvoiceStatus.paid;
-                                }
-                                _eRPOSContext.Entry(AFBill).Property(x => x.DueAmount).IsModified = true;
+                                else if (newDueAmount < oldDueAmount)
+                                    AFBill.BillStatus = (int?)InvoiceStatus.partialPaid;
+                                AFBill.UpdatedBy = userInfo.UserId;
+                                AFBill.UpdatedOn = DateTime.Now;
                                 await _eRPOSContext.SaveChangesAsync();
                             }
                             else
