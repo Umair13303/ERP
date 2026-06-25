@@ -53,7 +53,6 @@
 
     <form id="IProductForm">
 
-        @Html.Hidden("OperationType", ViewBag.OperationType == nameof(OperationType.MPO_LIST) ? nameof(OperationType.UPDATE_DATA_INTO_DB) : (string)ViewBag.OperationType)
         @Html.Hidden("OperationType", (string)ViewBag.OperationType)
         @Html.Hidden("GuID")
         @{
@@ -199,7 +198,7 @@
                     <div class="col-sm-12 col-md-3">
                         <div class="form-group">
                             @Html.Label("DropDownListSaleUnit", "Sale Unit", new { @class = "col-form-label" })
-                            @Html.DropDownList("SaleUnitId", Enumerable.Empty<SelectListItem>(), "Select Sale Unit", new { @class = "form-select form-select-sm select2", @id = "DropDownListSaleUnit" })
+                            @Html.DropDownList("SaleUnitId", Enumerable.Empty<SelectListItem>(), "Select Sale Unit", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListSaleUnit" })
                         </div>
                     </div>
                 </div>

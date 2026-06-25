@@ -148,7 +148,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                   postedData.CustomerId,
                                                   postedData.Description,
                                                   postedData.FBRStamp,
-                                                  dueAmount,
+                                                  invoiceChargedAmount,
                                                   postedData.InvoiceTypeId,
                                                   postedData.InvoiceStatus,
                                                   DateTime.Now,

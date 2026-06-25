@@ -24,10 +24,6 @@ namespace SharedUI.Models.Enums
         brand = 12,
         product = 13,
         productATI = 14,
-        inventoryAdjustment = 26,
-        inventoryAdjustmentProductInformation = 27,
-        inventoryLedgerRecord = 28,
-
         // SALE
         customer = 15,
         invoice = 16,
@@ -35,15 +31,20 @@ namespace SharedUI.Models.Enums
         invoiceProductCustomerOB = 18,
         customerLedgerRecord = 19,
         invoiceReceipt = 20,
+        supplier = 21,
 
         // PURCHASE
-        supplier = 21,
         bill = 22,
         billProduct = 23,
         billProductSupplierOB = 24,
         supplierLedgerRecord = 25,
         billReceipt = 26,
 
+        // INVENTORY
+        inventoryAdjustment = 27,
+        inventoryAdjustmentProductInformation = 28,
+        inventoryLedgerRecord = 29,
+        
     }
     public enum StockAdjustmentType
     {

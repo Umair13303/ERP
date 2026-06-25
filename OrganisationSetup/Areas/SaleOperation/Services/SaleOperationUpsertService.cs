@@ -88,7 +88,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                                                       chartOfAccountGuID,
                                                       postedData.DefaultReceivableAccount?.Trim(),
                                                       (int?)AccountCategory.ACCOUNTS_RECEIVABLE,
-                                                      (int?)FinancialStatement.INCOME_STATEMENT,
+                                                      (int?)FinancialStatement.BALANCE_SHEET,
                                                       DateTime.Now,
                                                       userInfo.UserId,
                                                       DateTime.Now,

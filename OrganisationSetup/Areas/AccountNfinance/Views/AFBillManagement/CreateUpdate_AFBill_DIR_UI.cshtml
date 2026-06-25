@@ -56,7 +56,7 @@
                         <div class="col-md-3 col-sm-12">
                             <div class="form-group">
                                 @Html.Label("DropDownListSupplier", "Supplier", new { @class = "col-form-label" })
-                                @Html.DropDownList("SupplierId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListSupplier" })
+                                @Html.DropDownList("SupplierId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListSupplier" })
                             </div>
                         </div>
                     </div>
