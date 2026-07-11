@@ -29,9 +29,17 @@ public partial class AFInventoryLedger
 
     public decimal QuantityOut { get; set; }
 
+    public decimal UnitPurchasePrice { get; set; }
+
+    public decimal UnitSalePrice { get; set; }
+
     public decimal Debit { get; set; }
 
     public decimal Credit { get; set; }
+
+    public string? Batch { get; set; }
+
+    public DateTime? ExpiryDate { get; set; }
 
     public int? ReconcillationStatus { get; set; }
 

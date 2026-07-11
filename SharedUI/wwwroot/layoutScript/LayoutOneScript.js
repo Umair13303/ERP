@@ -86,7 +86,9 @@ window.onbeforeunload = () => {
 };
 
 function GetInvoiceStatus(InvoiceStatus) {
-    var Badge = "";
+    var BadgeColor = "";
+    var Display = "";
+
     switch (InvoiceStatus) {
         case 1:
             BadgeColor = "warning";

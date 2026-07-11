@@ -70,6 +70,7 @@ namespace SharedUI.Models.SQLParameters
         public bool? IsSaleTaxExclusive { get; set; }
         public bool IsExpiryApplicable { get; set; }
         public bool? Status { get; set; }
+        public bool IsWalkInCustomer { get; set; }
         public int? BranchId { get; set; }
         public int? BrandId { get; set; }
         public int? CompanyId { get; set; }

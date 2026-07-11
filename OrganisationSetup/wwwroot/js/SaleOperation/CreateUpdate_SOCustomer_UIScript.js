@@ -127,6 +127,7 @@ function createUpdateDataIntoDB() {
     var guID = $("#GuID").val();
     var description = $("#TextBoxDescription").val();
     var tierTypeId = $("#DropDownListTierType :selected").val();
+    var isWalkInCustomer = $("#CheckBoxIsWalkInCustomer").prop("checked");
     var contact = $("#TextBoxContact").val();
     var email = $("#TextBoxEmail").val();
     var cnicNumber = $("#TextBoxCNICNumber").val();
@@ -143,7 +144,8 @@ function createUpdateDataIntoDB() {
         OperationType: operationType,
         GuID: guID ? guID : null,
         Description: description,
-        TierTypeId:tierTypeId,
+        TierTypeId: tierTypeId,
+        IsWalkInCustomer: isWalkInCustomer,
         Contact: contact,
         Email: email,
         CNICNumber: cnicNumber,

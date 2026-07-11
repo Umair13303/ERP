@@ -177,7 +177,7 @@ namespace OrganisationSetup.Services
         public async Task<Dictionary<string, FieldConfig>> fetchProductSetting()
         {
             var clientKEY = _conf.GetValue<int>("ClientKEY");
-            var settingList = await _context.confClientProductSetting.AsNoTracking().Where(x => x.Status == true && x.ClientKEY == clientKEY).FirstOrDefaultAsync();
+            var settingList = await _context.confclientproductsetting.AsNoTracking().Where(x => x.Status == true && x.ClientKEY == clientKEY).FirstOrDefaultAsync();
 
             var result = new Dictionary<string, FieldConfig>
             {

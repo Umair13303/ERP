@@ -16,4 +16,6 @@ public partial class osvProductCombination
     public string? Attribute { get; set; }
 
     public bool? Status { get; set; }
+
+    public string? AttributeKey { get; set; }
 }

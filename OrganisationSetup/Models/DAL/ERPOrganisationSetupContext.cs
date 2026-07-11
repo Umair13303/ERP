@@ -23,6 +23,8 @@ public partial class ERPOrganisationSetupContext : DbContext
 
     public virtual DbSet<AFBillPPI> AFBillPPI { get; set; }
 
+    public virtual DbSet<AFBillReceipt> AFBillReceipt { get; set; }
+
     public virtual DbSet<AFChartOfAccount> AFChartOfAccount { get; set; }
 
     public virtual DbSet<AFCustomerLedger> AFCustomerLedger { get; set; }
@@ -73,9 +75,11 @@ public partial class ERPOrganisationSetupContext : DbContext
 
     public virtual DbSet<UserRight> UserRight { get; set; }
 
-    public virtual DbSet<confClientProductSetting> confClientProductSetting { get; set; }
+    public virtual DbSet<confApplicationRule> confApplicationRule { get; set; }
 
     public virtual DbSet<confClientSetting> confClientSetting { get; set; }
+
+    public virtual DbSet<confclientproductsetting> confclientproductsetting { get; set; }
 
     public virtual DbSet<osvChartOfAccount> osvChartOfAccount { get; set; }
 
@@ -172,6 +176,19 @@ public partial class ERPOrganisationSetupContext : DbContext
             entity.Property(e => e.ChargedAmount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.DiscountAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ExpiryDate).HasColumnType("datetime");
+            entity.Property(e => e.Quantity).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.UnitPurchasePrice).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<AFBillReceipt>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__AFBillRe__3214EC07039DD788");
+
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.ReceiptAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.TransactionDate).HasColumnType("datetime");
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
         });
 
@@ -201,10 +218,13 @@ public partial class ERPOrganisationSetupContext : DbContext
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.Credit).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Debit).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ExpiryDate).HasColumnType("datetime");
             entity.Property(e => e.QuantityIn).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.QuantityOut).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Status).HasDefaultValue(true);
             entity.Property(e => e.TransactionDate).HasColumnType("datetime");
+            entity.Property(e => e.UnitPurchasePrice).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.UnitSalePrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
         });
 
@@ -225,6 +245,7 @@ public partial class ERPOrganisationSetupContext : DbContext
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.DiscountAmount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Quantity).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.UnitSalePrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
         });
 
@@ -358,6 +379,7 @@ public partial class ERPOrganisationSetupContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__IAdjustm__3214EC0733D4010F");
 
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.ExpiryDate).HasColumnType("datetime");
             entity.Property(e => e.QuantityIn).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.QuantityOut).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.UnitPurchasePrice).HasColumnType("decimal(18, 2)");
@@ -456,23 +478,25 @@ public partial class ERPOrganisationSetupContext : DbContext
                 .HasConstraintName("FK__UserRight__UserI__7C3A67EB");
         });
 
-        modelBuilder.Entity<confClientProductSetting>(entity =>
+        modelBuilder.Entity<confApplicationRule>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__confClie__3214EC07BF3A289D");
+            entity.HasKey(e => e.Id).HasName("PK__confAppl__3214EC070C3A2310");
 
-            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
-            entity.Property(e => e.EnableATI).HasDefaultValue(false);
-            entity.Property(e => e.EnableAttribute).HasDefaultValue(false);
-            entity.Property(e => e.EnableFavorite).HasDefaultValue(false);
-            entity.Property(e => e.EnableMachineNumber).HasDefaultValue(false);
-            entity.Property(e => e.EnableSKU).HasDefaultValue(false);
-            entity.Property(e => e.EnableTaxSetting).HasDefaultValue(false);
-            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+            entity.Property(e => e.Id).ValueGeneratedNever();
         });
 
         modelBuilder.Entity<confClientSetting>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__confClie__3214EC07CF3B99B2");
+        });
+
+        modelBuilder.Entity<confclientproductsetting>(entity =>
+        {
+            entity.HasNoKey();
+
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<osvChartOfAccount>(entity =>
@@ -486,6 +510,10 @@ public partial class ERPOrganisationSetupContext : DbContext
         modelBuilder.Entity<osvProductCombination>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__osvProdu__3214EC07D19CECAB");
+
+            entity.HasIndex(e => new { e.ProductId, e.AttributeKey }, "UX_osvProductCombination_ProductAttribute").IsUnique();
+
+            entity.Property(e => e.AttributeKey).HasComputedColumnSql("(CONVERT([nvarchar](450),isnull([Attribute],'##NULL_SENTINEL##')))", true);
         });
 
         modelBuilder.Entity<vAccountCatagory>(entity =>

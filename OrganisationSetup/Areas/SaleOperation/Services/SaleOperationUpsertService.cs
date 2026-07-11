@@ -29,7 +29,9 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
         private readonly ISaleOperationValidation _validationService;
         private readonly ICommon _cService;
         private readonly ERPOrganisationSetupContext _eRPOSContext;
-        public SaleOperationUpsertService(TempUser currentUser,IOSDataLayer repo, ERPOrganisationSetupContext context, IHttpContextAccessor httpContextAccessor ,ISaleOperationValidation validationService, ERPOrganisationSetupContext eRPOSC, ICommon cService)
+        private readonly IConfiguration _conf;
+
+        public SaleOperationUpsertService(TempUser currentUser,IOSDataLayer repo, ERPOrganisationSetupContext context, IHttpContextAccessor httpContextAccessor ,ISaleOperationValidation validationService, ERPOrganisationSetupContext eRPOSC, ICommon cService, IConfiguration conf)
         {
             _currentUser = currentUser;
             _repo = repo;
@@ -38,6 +40,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
             _validationService = validationService;
             _cService = cService;
             _eRPOSContext = eRPOSC;
+            _conf = conf;
         }
 
         public async Task<ServiceResult> updateInsertDataInto_SOCustomer(PostedData postedData)
@@ -46,6 +49,12 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
 
             if (!userInfo.IsAuthenticated)
                 return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
+            if (postedData.IsWalkInCustomer)
+            {
+                int clientKEY = _conf.GetValue<int>("ClientKEY");
+
+                int walkInCustomerInsertLimit  = _eRPOSContext.confApplicationRule.Where(x=> x.ClientKEY == clientKEY)
+            }
 
             #region PORTION FOR :: DOCUMENT SETTING ON BASIS OF OperationType
             Guid? customerGuID = Guid.Empty;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace OrganisationSetup.Models.DAL;
 
-public partial class confClientProductSetting
+public partial class confclientproductsetting
 {
     public int Id { get; set; }
 
