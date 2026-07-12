@@ -52,8 +52,12 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
             if (postedData.IsWalkInCustomer)
             {
                 int clientKEY = _conf.GetValue<int>("ClientKEY");
-
-                int walkInCustomerInsertLimit  = _eRPOSContext.confApplicationRule.Where(x=> x.ClientKEY == clientKEY)
+                int walkInCustomerCount = await _eRPOSContext.SOCustomer.Where(x => x.IsWalkInCustomer == true && x.Status == true).Select(x => x.Id).CountAsync();
+                int walkInCustomerInsertLimit = await _eRPOSContext.confApplicationRule.Where(x => x.ClientKEY == clientKEY).Select(x=> x.WalkInCustomerLimit).FirstOrDefaultAsync() ?? 0;
+                if (walkInCustomerCount >= walkInCustomerInsertLimit)
+                {
+                    return ServiceResult.failure("Limit for generating walk-in customer has been used!", (int)Code.Unauthorized);
+                }
             }
 
             #region PORTION FOR :: DOCUMENT SETTING ON BASIS OF OperationType
@@ -115,6 +119,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                                                     customerGuID,
                                                     postedData.Description?.Trim(),
                                                     postedData.TierTypeId,
+                                                    postedData.IsWalkInCustomer,
                                                     postedData.Contact?.Trim(),
                                                     postedData.Email?.Trim(),
                                                     postedData.CNICNumber?.Trim(),

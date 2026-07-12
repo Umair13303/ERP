@@ -80,6 +80,12 @@
                         </div>
                         <div class="row mb-0">
                             <div class="col-sm-12 col-md-3">
+                                <div class="form-check mt-3">
+                                    @Html.Label("CheckBoxIsWalkInCustomer", "Is WalkIn Customer", new { @class = "form-check-label" })
+                                    @Html.CheckBox("CheckBoxIsWalkInCustomer", true, new { @id = "CheckBoxIsWalkInCustomer", @class = "form-check-input" })
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-3">
                                 <div class="form-group">
                                     @Html.Label("TextBoxContact", "Contact", new { @class = "col-form-label" })
                                     @Html.TextBox("Contact", null, new { @class = "form-control form-control-sm contact", required = "required", placeholder = "Provide Contact!", @id = "TextBoxContact" })
