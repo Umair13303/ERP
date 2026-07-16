@@ -597,7 +597,6 @@ namespace OrganisationSetup.Areas.Inventory.Services
                     foreach (var i in postedData.PostedDataIAdjustmentPPQD)
                     {
 
-                        bool isPreviousPriceExpired = false;
                         var activeProductPriceList = await _eRPOSContext.AFProductPriceLog.Where(x => x.ProductId == i.ProductId && (i.ProductCombinationId == null || x.ProductCombinationId == i.ProductCombinationId) && x.Status == true && x.DocumentStatus == (int)DocumentStatus.active && x.CompanyId == userInfo.CompanyId && x.BranchId == userInfo.BranchId).ToListAsync();
                         foreach (var product in activeProductPriceList)
                         {
