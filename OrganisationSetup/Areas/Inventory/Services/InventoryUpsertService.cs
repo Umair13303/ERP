@@ -595,7 +595,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                     {
 
                         bool isPreviousPriceExpired = false;
-                        var activeProductPriceList = await _eRPOSContext.AFProductPriceLog.Where(x => x.Id == i.ProductId && x.Status == true && x.DocumentStatus == (int)DocumentStatus.active).ToListAsync();
+                        var activeProductPriceList = await _eRPOSContext.AFProductPriceLog.Where(x => x.Id == i.ProductId && (i.ProductCombinationId == null || x.ProductCombinationId == i.ProductCombinationId) && x.Status == true && x.DocumentStatus == (int)DocumentStatus.active && x.CompanyId == userInfo.CompanyId && x.BranchId == userInfo.BranchId).ToListAsync();
                         foreach (var product in activeProductPriceList)
                         {
                             product.DocumentStatus = (int)DocumentStatus.expired;
