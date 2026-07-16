@@ -31,6 +31,8 @@ namespace OrganisationSetup.Services
         Task<List<vCostingMode>> populateCostingModeByParam();
         Task<List<vTierType>> populateTierTypeByParam();
         Task<Dictionary<string, FieldConfig>> fetchProductSetting();
+        Task<int> generate_productCombination(int? refDocumentType, List<osvProductCombination> combinationList);
+        Task<int> get_productCombination(int? productId, string attributeKey);
     }
     public class CommonServices : ICommon
     {
@@ -219,6 +221,38 @@ namespace OrganisationSetup.Services
                 }},
             }; 
             return result;
+        }
+        public async Task<int> generate_productCombination(int? refDocumentType, List<osvProductCombination> combinationList)
+        {
+            if (combinationList == null || !combinationList.Any())
+            {
+                return 400;
+            }
+            foreach (var item in combinationList)
+            {
+                var isExist = await _context.osvProductCombination.Where(x => x.ProductId == item.ProductId && x.Attribute.Trim() == item.Attribute.Trim()).AnyAsync();
+                if(isExist == false)
+                {
+                    var combination = new osvProductCombination
+                    {
+                        GuID = Guid.NewGuid(),
+                        RefDocumentType = refDocumentType,
+                        ProductId = item.ProductId,
+                        Attribute = item.Attribute,
+                        Status = true,
+                        AttributeKey = item.Attribute
+                    };
+                    _context.osvProductCombination.Add(combination);
+                }
+
+            }
+            await _context.SaveChangesAsync();
+            return 200;
+        }
+        public async Task<int> get_productCombination(int? productId,string attributeKey)
+        {
+            int productCombinationId = await _context.osvProductCombination.Where(x => x.ProductId == productId && x.AttributeKey == attributeKey).Select(x => x.Id).FirstOrDefaultAsync();
+            return productCombinationId;
         }
 
     }

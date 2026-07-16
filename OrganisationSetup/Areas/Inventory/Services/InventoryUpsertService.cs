@@ -4,6 +4,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using OrganisationSetup.Models.DAL;
 using OrganisationSetup.Models.DAL.StoredProcedure;
+using OrganisationSetup.Services;
 using SharedUI.Models.Contexts;
 using SharedUI.Models.Enums;
 using SharedUI.Models.Responses;
@@ -15,6 +16,7 @@ using System.Transactions;
 
 namespace OrganisationSetup.Areas.Inventory.Services
 {
+
     public interface IInventoryUpsert
     {
         Task<ServiceResult> updateInsertDataInto_ISection(PostedData postedData);
@@ -39,7 +41,8 @@ namespace OrganisationSetup.Areas.Inventory.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IInventoryValidation _validationService;
         private readonly ERPOrganisationSetupContext _eRPOSContext;
-        public InventoryUpsertService(TempUser currentUser, IOSDataLayer repo, ERPOrganisationSetupContext context, IHttpContextAccessor httpContextAccessor ,IInventoryValidation validationService, ERPOrganisationSetupContext eRPOSC)
+        private readonly ICommon _commonServices;
+        public InventoryUpsertService(TempUser currentUser, IOSDataLayer repo, ERPOrganisationSetupContext context, IHttpContextAccessor httpContextAccessor, IInventoryValidation validationService, ERPOrganisationSetupContext eRPOSC, ICommon commonServices)
         {
             _currentUser = currentUser;
             _repo = repo;
@@ -47,6 +50,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
             _httpContextAccessor = httpContextAccessor;
             _validationService = validationService;
             _eRPOSContext = eRPOSC;
+            _commonServices = commonServices;
         }
         public async Task<ServiceResult> updateInsertDataInto_ISection(PostedData postedData)
         {
@@ -65,7 +69,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
             {
                 sectionGuID = postedData.GuID;
             }
-            bool? isOperationPermitted = await _validationService.isISectionValid(postedData.OperationType, sectionGuID,postedData.DepartmentId, postedData.Description);
+            bool? isOperationPermitted = await _validationService.isISectionValid(postedData.OperationType, sectionGuID, postedData.DepartmentId, postedData.Description);
             #endregion
             if (isOperationPermitted == true)
             {
@@ -201,7 +205,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
             {
                 subCategoryGuID = postedData.GuID;
             }
-            bool? isOperationPermitted = await _validationService.isISubCategoryValid(postedData.OperationType, subCategoryGuID,postedData.CategoryId, postedData.Description);
+            bool? isOperationPermitted = await _validationService.isISubCategoryValid(postedData.OperationType, subCategoryGuID, postedData.CategoryId, postedData.Description);
             #endregion
 
             if (isOperationPermitted == true)
@@ -439,7 +443,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
             {
                 postedData.GuID = Guid.NewGuid();
             }
-            bool? isOperationPermitted = await _validationService.isIProductValid(postedData.OperationType, postedData.GuID, postedData.Description, postedData.MachineNumber,postedData.SKU);
+            bool? isOperationPermitted = await _validationService.isIProductValid(postedData.OperationType, postedData.GuID, postedData.Description, postedData.MachineNumber, postedData.SKU);
 
             if (isOperationPermitted == true)
             {
@@ -499,6 +503,20 @@ namespace OrganisationSetup.Areas.Inventory.Services
             }
             bool? isOperationPermitted = true; //await _validationService.isOSCustomerValid(postedData.OperationType, customerGuID, postedData.Description);
             #endregion
+            #region PORTION FOR :: GENERATE PRODUCT COMBINATION
+            var comboList = postedData.PostedDataIAdjustmentPPQD.Select(i => new osvProductCombination
+            {
+                ProductId = i.ProductId,
+                Attribute = i.Attribute
+            }).ToList();
+            var combinationGeneration = await _commonServices.generate_productCombination((int)DocumentType.inventoryAdjustment, comboList);
+
+            foreach (var i in postedData.PostedDataIAdjustmentPPQD)
+            {
+                i.ProductCombinationId = await _commonServices.get_productCombination(i.ProductId, i.Attribute);
+            }
+            #endregion
+
             using var con = new SqlConnection(_connectionString);
             await con.OpenAsync();
             using var transaction = con.BeginTransaction();
@@ -531,16 +549,16 @@ namespace OrganisationSetup.Areas.Inventory.Services
                 var AFInventoryLedgerInfo = new List<AFInventoryLedger_TVP>();
                 foreach (var ppqd in postedData.PostedDataIAdjustmentPPQD)
                 {
-                    var LedgerPPQD= new AFInventoryLedger_TVP
+                    var LedgerPPQD = new AFInventoryLedger_TVP
                     {
-                        GuID  = Guid.NewGuid(),
+                        GuID = Guid.NewGuid(),
                         LocationId = postedData.LocationId,
-                        TransactionDate = transactionDate, 
+                        TransactionDate = transactionDate,
                         ProductId = ppqd.ProductId,
-                        Attribute = ppqd.Attribute,
+                        ProductCombinationId = _commonServices.get_productCombination(ppqd.ProductId, ppqd.Attribute).Result,
                         RefDocumentType = (int?)DocumentType.inventoryAdjustment,
                         RefDocumentId = (int?)IAdjustment.insertedId,
-                        Description= $"Inventory Adjustment Recorded",
+                        Description = $"Inventory Adjustment Recorded",
                         QuantityIn = ppqd.QuantityIn,
                         QuantityOut = ppqd.QuantityOut,
                         UnitPurchasePrice = ppqd.UnitPurchasePrice,
@@ -550,13 +568,13 @@ namespace OrganisationSetup.Areas.Inventory.Services
                         Batch = ppqd.Batch,
                         ExpiryDate = ppqd.ExpiryDate,
                         ReconcillationStatus = (int)ReconcileStatus.reconciled,
-                        CreatedOn= transactionDate,
-                        CreatedBy= userInfo.UserId,
+                        CreatedOn = transactionDate,
+                        CreatedBy = userInfo.UserId,
                         UpdatedOn = transactionDate,
                         UpdatedBy = userInfo.UserId,
                         DocumentType = (int?)DocumentType.inventoryLedgerRecord,
                         DocumentStatus = (int?)DocumentStatus.active,
-                        Status= true,
+                        Status = true,
                         BranchId = userInfo.BranchId,
                         CompanyId = userInfo.CompanyId
                     };
@@ -570,13 +588,55 @@ namespace OrganisationSetup.Areas.Inventory.Services
                     transaction
                 );
                 #endregion
+                bool? isAutoPriceUpdate = await _eRPOSContext.vInventoryAdjustmentType.Where(x => x.Id == postedData.AdjustmentTypeId).Select(x => x.IsAutoPriceUpdate).FirstOrDefaultAsync();
+                if (isAutoPriceUpdate == true)
+                {
+                    foreach (var i in postedData.PostedDataIAdjustmentPPQD)
+                    {
 
+                        bool isPreviousPriceExpired = false;
+                        var activeProductPriceList = await _eRPOSContext.AFProductPriceLog.Where(x => x.Id == i.ProductId && x.Status == true && x.DocumentStatus == (int)DocumentStatus.active).ToListAsync();
+                        foreach (var product in activeProductPriceList)
+                        {
+                            product.DocumentStatus = (int)DocumentStatus.expired;
+                            product.UpdatedOn = DateTime.Now;
+                            product.UpdatedBy = userInfo.UserId;
+                        }
+                        _eRPOSContext.SaveChanges();
+                        isPreviousPriceExpired = true;
+                        if (isPreviousPriceExpired)
+                        {
+                            var priceLog = new AFProductPriceLog
+                            {
+                                GuID = Guid.NewGuid(),
+                                ProductId = i.ProductId,
+                                ProductCombinationId = i.ProductCombinationId,
+                                TierTypeId = 0,
+                                DefaultSalePrice = i.UnitSalePrice,
+                                MinimumSalePrice = i.UnitPurchasePrice,
+                                CreatedOn = DateTime.Now,
+                                CreatedBy = userInfo.UserId,
+                                DocumentType = (int)DocumentType.productPriceLog,
+                                DocumentStatus = (int)DocumentStatus.active,
+                                Status = true,
+                                BranchId = userInfo.BranchId,
+                                CompanyId = userInfo.CompanyId,
+                            };
+                            _eRPOSContext.AFProductPriceLog.Add(priceLog);
+
+                        }
+                        _eRPOSContext.SaveChanges();
+                    }
+                }
                 #region PORTION FOR :: HANDLE TRANSACTION
                 switch (IAdjustment.response)
                 {
                     case (int)Code.Created:
                     case (int)Code.Accepted:
+
+
                         await transaction.CommitAsync();
+
                         return ServiceResult.success(Message.serverResponse(IAdjustment.response), (int)IAdjustment.response);
                     default:
                         await transaction.RollbackAsync();
@@ -612,7 +672,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                 record.Status = status;
                 record.DocumentStatus = documentStatus;
                 await _eRPOSContext.SaveChangesAsync();
-                return ServiceResult.success("Brand updated successfully.", (int)Code.OK); 
+                return ServiceResult.success("Brand updated successfully.", (int)Code.OK);
             }
             catch (Exception ex)
             {
@@ -639,7 +699,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                 record.Status = status;
                 record.DocumentStatus = documentStatus;
                 await _eRPOSContext.SaveChangesAsync();
-                return ServiceResult.success("Category updated successfully.", (int)Code.OK); 
+                return ServiceResult.success("Category updated successfully.", (int)Code.OK);
             }
             catch (Exception ex)
             {
@@ -666,13 +726,14 @@ namespace OrganisationSetup.Areas.Inventory.Services
                 record.Status = status;
                 record.DocumentStatus = documentStatus;
                 await _eRPOSContext.SaveChangesAsync();
-                return ServiceResult.success("Sub Category updated successfully.", (int)Code.OK); 
+                return ServiceResult.success("Sub Category updated successfully.", (int)Code.OK);
             }
             catch (Exception ex)
             {
                 return ServiceResult.failure($"Internal server error: {ex.Message}", (int)Code.InternalServerError);
             }
         }
-        #endregion  
+        #endregion
+   
     }
 }

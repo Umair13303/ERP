@@ -2,13 +2,14 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using OrganisationSetup.Models.DAL;
 using OrganisationSetup.Models.DAL.StoredProcedure;
+using OrganisationSetup.Services;
 using SharedUI.Models.Contexts;
 using SharedUI.Models.Enums;
-using SharedUI.Models.SQLParameters;
-using System.Diagnostics;
 using SharedUI.Models.Responses;
-using System.Configuration;
+using SharedUI.Models.SQLParameters;
 using SharedUI.Models.TVP;
+using System.Configuration;
+using System.Diagnostics;
 
 
 namespace OrganisationSetup.Areas.AccountNfinance.Services
@@ -28,14 +29,17 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
         private readonly IAccountNfinanceValidation _validationService;
         private readonly TempUser _currentUser;
         private readonly ERPOrganisationSetupContext _eRPOSContext;
+        private readonly ICommon _commonServices;
 
-        public AccountNfinanceUpsertService(TempUser currentUser,IOSDataLayer repo, ERPOrganisationSetupContext eRPOSContext, IHttpContextAccessor httpContextAccessor, IAccountNfinanceValidation validationService, IAccountNfinanceRetriever retrieverService)
+
+        public AccountNfinanceUpsertService(TempUser currentUser,IOSDataLayer repo, ERPOrganisationSetupContext eRPOSContext, IHttpContextAccessor httpContextAccessor, IAccountNfinanceValidation validationService, IAccountNfinanceRetriever retrieverService, ICommon commonServices)
         {
             _currentUser = currentUser;
             _repo = repo;
             _eRPOSContext = eRPOSContext;
             _connectionString = _eRPOSContext.Database.GetDbConnection().ConnectionString;
             _validationService = validationService;
+            _commonServices = commonServices;
         }
         public async Task<ServiceResult> updateInsertDataInto_AFChartOfAccount(PostedData postedData, bool? isCustomerAutoAccount)
         {
@@ -639,7 +643,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                 LocationId = postedData.LocationId,
                                 TransactionDate = postedData.TransactionDate,
                                 ProductId = item.ProductId,
-                                Attribute = item.Attribute,
+                                ProductCombinationId = _commonServices.get_productCombination(item.ProductId, item.Attribute).Result,
                                 RefDocumentType = (int?)DocumentType.bill,
                                 RefDocumentId = AFBill.insertedId,
                                 Description = postedData.Description?.Trim(),

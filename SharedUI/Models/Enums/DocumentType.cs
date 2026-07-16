@@ -44,6 +44,7 @@ namespace SharedUI.Models.Enums
         inventoryAdjustment = 27,
         inventoryAdjustmentProductInformation = 28,
         inventoryLedgerRecord = 29,
+        productPriceLog=30
         
     }
     public enum StockAdjustmentType

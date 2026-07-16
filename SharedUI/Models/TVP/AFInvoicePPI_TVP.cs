@@ -29,6 +29,7 @@ namespace SharedUI.Models.TVP
         public int? BillId { get; set; }
         public int? ProductId { get; set; }
         public string? Attribute { get; set; }
+        public int? ProductCombinationId { get; set; }
         public decimal Quantity { get; set; }
         public decimal UnitPurchasePrice { get; set; }
         public decimal ActualAmount { get; set; }

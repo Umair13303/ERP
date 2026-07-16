@@ -12,7 +12,7 @@ namespace SharedUI.Models.TVP
 
         public int? ProductId { get; set; }
 
-        public string? Attribute { get; set; }
+        public int? ProductCombinationId { get; set; }
 
         public int? RefDocumentType { get; set; }
 

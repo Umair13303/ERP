@@ -709,7 +709,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             table.Columns.Add("GuID", typeof(Guid));
             table.Columns.Add("BillId", typeof(int));
             table.Columns.Add("ProductId", typeof(int));
-            table.Columns.Add("Attribute", typeof(string));
+            table.Columns.Add("ProductCombinationId", typeof(int));
             table.Columns.Add("Quantity", typeof(decimal));
             table.Columns.Add("UnitPurchasePrice", typeof(decimal));
             table.Columns.Add("ActualAmount", typeof(decimal));
@@ -732,7 +732,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                     item.GuID,
                     (object?)item.BillId ?? DBNull.Value,
                     (object?)item.ProductId ?? DBNull.Value,
-                    (object?)item.Attribute ?? DBNull.Value,
+                    (object?)item.ProductCombinationId ?? DBNull.Value,
                     (object)item.Quantity ?? DBNull.Value,
                     (object)item.UnitPurchasePrice ?? DBNull.Value,
                     (object)item.ActualAmount ?? DBNull.Value,
@@ -868,7 +868,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             table.Columns.Add("GuID", typeof(Guid));
             table.Columns.Add("AdjustmentId", typeof(int));
             table.Columns.Add("ProductId", typeof(int));
-            table.Columns.Add("Attribute", typeof(string));
+            table.Columns.Add("ProductCombinationId", typeof(int));
             table.Columns.Add("UnitPurchasePrice", typeof(decimal));
             table.Columns.Add("UnitSalePrice", typeof(decimal));
             table.Columns.Add("QuantityIn", typeof(decimal));
@@ -889,7 +889,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                     d.GuID ?? Guid.NewGuid(),
                     d.AdjustmentId,
                     d.ProductId,
-                    d.Attribute,
+                    d.ProductCombinationId,
                     d.UnitPurchasePrice,
                     d.UnitSalePrice,
                     d.QuantityIn ,
@@ -950,7 +950,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             table.Columns.Add("LocationId", typeof(int));
             table.Columns.Add("TransactionDate", typeof(DateTime));
             table.Columns.Add("ProductId", typeof(int));
-            table.Columns.Add("Attribute", typeof(string));
+            table.Columns.Add("ProductCombinationId", typeof(int));
             table.Columns.Add("RefDocumentType", typeof(int));
             table.Columns.Add("RefDocumentId", typeof(int));
             table.Columns.Add("Description", typeof(string));
@@ -982,7 +982,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                         item.LocationId ?? (object)DBNull.Value,
                         item.TransactionDate ?? (object)DBNull.Value,
                         item.ProductId ?? (object)DBNull.Value,
-                        item.Attribute ?? (object)DBNull.Value,
+                        item.ProductCombinationId ?? (object)DBNull.Value,
                         item.RefDocumentType ?? (object)DBNull.Value,
                         item.RefDocumentId ?? (object)DBNull.Value,
                         item.Description ?? (object)DBNull.Value,
