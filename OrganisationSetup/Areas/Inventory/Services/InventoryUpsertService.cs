@@ -588,6 +588,9 @@ namespace OrganisationSetup.Areas.Inventory.Services
                     transaction
                 );
                 #endregion
+
+           
+
                 bool? isAutoPriceUpdate = await _eRPOSContext.vInventoryAdjustmentType.Where(x => x.Id == postedData.AdjustmentTypeId).Select(x => x.IsAutoPriceUpdate).FirstOrDefaultAsync();
                 if (isAutoPriceUpdate == true)
                 {
@@ -595,38 +598,34 @@ namespace OrganisationSetup.Areas.Inventory.Services
                     {
 
                         bool isPreviousPriceExpired = false;
-                        var activeProductPriceList = await _eRPOSContext.AFProductPriceLog.Where(x => x.Id == i.ProductId && (i.ProductCombinationId == null || x.ProductCombinationId == i.ProductCombinationId) && x.Status == true && x.DocumentStatus == (int)DocumentStatus.active && x.CompanyId == userInfo.CompanyId && x.BranchId == userInfo.BranchId).ToListAsync();
+                        var activeProductPriceList = await _eRPOSContext.AFProductPriceLog.Where(x => x.ProductId == i.ProductId && (i.ProductCombinationId == null || x.ProductCombinationId == i.ProductCombinationId) && x.Status == true && x.DocumentStatus == (int)DocumentStatus.active && x.CompanyId == userInfo.CompanyId && x.BranchId == userInfo.BranchId).ToListAsync();
                         foreach (var product in activeProductPriceList)
                         {
                             product.DocumentStatus = (int)DocumentStatus.expired;
                             product.UpdatedOn = DateTime.Now;
                             product.UpdatedBy = userInfo.UserId;
                         }
-                        _eRPOSContext.SaveChanges();
-                        isPreviousPriceExpired = true;
-                        if (isPreviousPriceExpired)
+                        var priceLog = new AFProductPriceLog
                         {
-                            var priceLog = new AFProductPriceLog
-                            {
-                                GuID = Guid.NewGuid(),
-                                ProductId = i.ProductId,
-                                ProductCombinationId = i.ProductCombinationId,
-                                TierTypeId = 0,
-                                DefaultSalePrice = i.UnitSalePrice,
-                                MinimumSalePrice = i.UnitPurchasePrice,
-                                CreatedOn = DateTime.Now,
-                                CreatedBy = userInfo.UserId,
-                                DocumentType = (int)DocumentType.productPriceLog,
-                                DocumentStatus = (int)DocumentStatus.active,
-                                Status = true,
-                                BranchId = userInfo.BranchId,
-                                CompanyId = userInfo.CompanyId,
-                            };
-                            _eRPOSContext.AFProductPriceLog.Add(priceLog);
+                            GuID = Guid.NewGuid(),
+                            ProductId = i.ProductId,
+                            ProductCombinationId = i.ProductCombinationId,
+                            TierTypeId = 0,
+                            DefaultSalePrice = i.UnitSalePrice,
+                            MinimumSalePrice = i.UnitPurchasePrice,
+                            CreatedOn = DateTime.Now,
+                            CreatedBy = userInfo.UserId,
+                            DocumentType = (int)DocumentType.productPriceLog,
+                            DocumentStatus = (int)DocumentStatus.active,
+                            Status = true,
+                            BranchId = userInfo.BranchId,
+                            CompanyId = userInfo.CompanyId,
+                        };
+                        _eRPOSContext.AFProductPriceLog.Add(priceLog);
 
-                        }
-                        _eRPOSContext.SaveChanges();
                     }
+                    await _eRPOSContext.SaveChangesAsync();
+
                 }
                 #region PORTION FOR :: HANDLE TRANSACTION
                 switch (IAdjustment.response)
