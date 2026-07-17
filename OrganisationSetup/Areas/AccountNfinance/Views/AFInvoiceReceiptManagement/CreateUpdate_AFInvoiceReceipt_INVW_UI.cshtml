@@ -2,6 +2,39 @@
 @{
     Layout = "LayoutOne";
 }
+<style>
+    .btn-icon-only {
+        padding: 8px;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Payment Button Style */
+    .btn-pay {
+        color: #10b981;
+    }
+
+        .btn-pay:hover {
+            background: #ecfdf5;
+            transform: scale(1.1);
+        }
+
+    /* Print Button Style */
+    .btn-print {
+        color: #3b82f6;
+    }
+
+        .btn-print:hover {
+            background: #eff6ff;
+            transform: scale(1.1);
+        }
+</style>
 <div class="container-fluid py-2">
     <div class="d-flex justify-content-between align-items-center border-bottom mb-4 pb-3">
         <div>
