@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OrganisationSetup.Models.DAL;
 using OrganisationSetup.Services;
 using SharedUI.Models.Contexts;
 using SharedUI.Models.Enums;
-using Microsoft.EntityFrameworkCore;
+
 namespace OrganisationSetup.Areas.AccountNfinance.Controllers
 {
     [Authorize]
@@ -41,15 +42,24 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
             var modelLines = new List<LineVm>();
             foreach (var l in lines)
             {
-                string productName = (await _eRPOSContext.IProduct.AsNoTracking().Where(p => p.Id == l.ProductId).Select(p => p.Description).FirstOrDefaultAsync()) ?? "Item";
+                string productName = await _eRPOSContext.IProduct
+                    .AsNoTracking()
+                    .Where(p => p.Id == l.ProductId)
+                    .Select(p => p.Description)
+                    .FirstOrDefaultAsync() ?? "Item";
+
                 string attributeDisplay = null;
                 if (l.ProductCombinationId != null)
                 {
-                    var combo = await _eRPOSContext.osvProductCombination.AsNoTracking().Where(c => c.Id == l.ProductCombinationId).Select(c => c.Attribute).FirstOrDefaultAsync();
-                    attributeDisplay = combo;
+                    attributeDisplay = await _eRPOSContext.osvProductCombination
+                        .AsNoTracking()
+                        .Where(c => c.Id == l.ProductCombinationId)
+                        .Select(c => c.Attribute)
+                        .FirstOrDefaultAsync();
                 }
+
                 decimal unitSale = l.UnitSalePrice;
-                if (unitSale == 0)
+                if (unitSale == 0m)
                 {
                     var pl = await _eRPOSContext.AFProductPriceLog
                         .AsNoTracking()
@@ -62,8 +72,13 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
                         .OrderByDescending(p => p.CreatedOn)
                         .Select(p => p.DefaultSalePrice)
                         .FirstOrDefaultAsync();
-                    if (pl != 0) unitSale = pl;
+
+                    if (pl != 0m) unitSale = pl;
                 }
+
+                // Recalculate charged amount using resolved unitSale and stored discount to avoid stale totals
+                decimal discount = l.DiscountAmount;
+                decimal recalculatedCharged = Math.Max(0m, (unitSale * l.Quantity) - discount);
 
                 modelLines.Add(new LineVm
                 {
@@ -71,7 +86,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
                     Attribute = attributeDisplay,
                     Quantity = l.Quantity,
                     UnitSalePrice = unitSale,
-                    ChargedAmount = l.ChargedAmount
+                    ChargedAmount = recalculatedCharged
                 });
             }
 
