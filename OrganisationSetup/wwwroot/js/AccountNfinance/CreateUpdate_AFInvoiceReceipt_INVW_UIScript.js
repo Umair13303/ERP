@@ -4,8 +4,6 @@ var dropDownListInitOption = "<option value='-1' " + (operationType == "INSERT_I
 var customerList = [];
 var invoiceTable = "";
 /* ------ DOM Elements ------ */
-
-
 function domInvoiceTable() {
     invoiceTable = $('#TableInvoice').DataTable({
         "processing": true,
@@ -61,7 +59,7 @@ function domInvoiceTable() {
                 "title": "Action(s)",
                 "data": null,
                 "render": function (data, type, row) {
-                    return '<input type="button" class="btn btn-sm btn-success"onclick="createUpdateDataIntoDB(this)" id="ButtomSubmitPayment' + data.guID + '" value="Record Payment" />'
+                    return '<input type="button" class="btn btn-sm btn-success"onclick="createUpdateDataIntoDB(this)" id="ButtomSubmitPayment' + data.guID + '" value="Record Payment" />' + '<input type="button" class="btn btn-sm btn-success" onclick="printThermalInvoice(this)" id="PrintInvoiceThermalView' + data.guID + '" value="Record Payment" />' 
                 }
             },
             { "data": "guID", "title": "GuID", visible:false },
@@ -263,3 +261,11 @@ $(function () {
     if (typeof setupGlobalAjax === "function") setupGlobalAjax();
     initialize();
 });
+
+function printThermalInvoice(btnElement) {
+    var tr = $(btnElement).closest('tr');
+    var rowData = invoiceTable.row(tr).data();
+    var guID = rowData.guID;
+    var url = '/AccountNfinance/AFReport/InvoiceRptThermal?guID=' + encodeURIComponent(guID);
+    window.open(url, '_blank', 'width=400,height=700');
+}

@@ -1,0 +1,74 @@
+﻿@model OrganisationSetup.Areas.AccountNfinance.Controllers.AFReportController.InvoicePrintVm
+
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Thermal Invoice</title>
+    <style>
+        /* Thermal 80mm style */
+        @@page { size: 80mm auto; margin: 0; }
+        body { width: 80mm; font-family: Arial, Helvetica, sans-serif; font-size: 11px; margin: 6px; color:#000; }
+        .center { text-align:center; }
+        .small { font-size:10px; }
+        table { width:100%; border-collapse:collapse; }
+        .line { border-bottom: 1px dashed #000; margin:4px 0; padding:4px 0; }
+        .qty { width:12%; text-align:right; }
+        .price { width:24%; text-align:right; }
+        .desc { width:64%; }
+        .totals { margin-top:6px; }
+    </style>
+</head>
+<body onload="window.print(); setTimeout(()=>window.close(), 500);">
+    <div class="center">
+        <strong>@(Model.Invoice.CompanyId != null ? "Company" : "Company")</strong><br />
+        <span class="small">Invoice #: @Model.Invoice.Code</span><br />
+        <span class="small">Date: @Model.Invoice.TransactionDate?.ToString("yyyy-MM-dd HH:mm")</span>
+    </div>
+
+    <hr />
+    <table>
+        <thead>
+            <tr class="small"><th class="desc">ITEM</th><th class="qty">QTY</th><th class="price">PRICE</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var l in Model.Lines)
+            {
+                <tr class="line small">
+                    <td class="desc">
+                        @l.Description
+                        @if(!string.IsNullOrEmpty(l.Attribute))
+                        {
+                            <div class="small">(@l.Attribute)</div>
+                        }
+                    </td>
+                    <td class="qty">@l.Quantity.ToString("0.##")</td>
+                    <td class="price">@l.UnitSalePrice.ToString("0.00")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="totals small">
+        <table>
+            <tr>
+                <td>Subtotal</td>
+                <td style="text-align:right">@Model.Lines.Sum(x => x.ChargedAmount).ToString("0.00")</td>
+            </tr>
+            <tr>
+                <td>Total</td>
+                <td style="text-align:right">
+                    <strong>@Model.Lines.Sum(x => x.ChargedAmount).ToString("0.00")</strong>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="center small">
+        Thank you for your business!
+    </div>
+</body>
+</html>
