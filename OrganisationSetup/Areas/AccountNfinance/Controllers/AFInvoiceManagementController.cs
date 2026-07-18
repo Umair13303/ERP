@@ -86,7 +86,6 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
         #region PORTION FOR :: ADD/EDIT/DELETE DOCUMENT
         [HttpPost]
         public async Task<IActionResult> createUpdateInvoice([FromBody] PostedData postedData)
-        
         {
             var result = await _anfuService.updateInsertDataInto_AFInvoice(postedData);
             return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message });

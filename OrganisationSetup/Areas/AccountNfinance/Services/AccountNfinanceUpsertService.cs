@@ -142,7 +142,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                     decimal receiptAmount = postedData.ReceiptAmount ?? 0m;
                     decimal dueAmount = Math.Max(0, invoiceChargedAmount - receiptAmount);
                     
-                    postedData.Description = "POS Direct Invoice Generated, Amounting +" + invoiceChargedAmount + " + @ " + DateTime.UtcNow;
+                    postedData.Description = "POS Direct Invoice Generated, Amounting " + invoiceChargedAmount + " @ " + DateTime.UtcNow;
                     #region PORTION FOR :: UPSERT INTO dbo.AFInvoice
                     var AFInvoice = await _repo.UpsertInto_AFInvoice(
                                                   postedData.OperationType,
@@ -154,7 +154,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                   postedData.FBRStamp,
                                                   invoiceChargedAmount,
                                                   postedData.InvoiceTypeId,
-                                                  postedData.InvoiceStatus,
+                                                  (int)InvoiceStatus.unPaid,
                                                   DateTime.Now,
                                                   userInfo.UserId,
                                                   DateTime.Now,
