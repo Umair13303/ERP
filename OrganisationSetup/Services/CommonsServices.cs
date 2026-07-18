@@ -5,6 +5,7 @@ using SharedUI.Models.Configurations;
 using SharedUI.Models.Contexts;
 using SharedUI.Models.Enums;
 using SharedUI.Models.ViewModels;
+using static SharedUI.Models.Enums.SetupRoute;
 
 namespace OrganisationSetup.Services
 {
@@ -33,6 +34,7 @@ namespace OrganisationSetup.Services
         Task<Dictionary<string, FieldConfig>> fetchProductSetting();
         Task<int> generate_productCombination(int? refDocumentType, List<osvProductCombination> combinationList);
         Task<int> get_productCombination(int? productId, string attributeKey);
+        Task<AFProductPriceLog> get_productPricingbyParam(int? productId, int? productCombinationId, int? locationId, int? tierTypeId);
     }
     public class CommonServices : ICommon
     {
@@ -80,7 +82,7 @@ namespace OrganisationSetup.Services
         }
         public async Task<List<vCity>> populateCityByParam(int? countryId)
         {
-            var result = await _context.vCity.AsNoTracking().Where(x=> x.CountryId == countryId).ToListAsync();
+            var result = await _context.vCity.AsNoTracking().Where(x => x.CountryId == countryId).ToListAsync();
             return result;
         }
         public async Task<List<vRole>> populateRoleByParam()
@@ -95,7 +97,7 @@ namespace OrganisationSetup.Services
         }
         public async Task<List<vAccountCatagory>> populateAccountCatagoryByParam(int? accountTypeId)
         {
-            var result = await _context.vAccountCatagory.AsNoTracking().Where(x=> x.AccountTypeId == accountTypeId).ToListAsync();
+            var result = await _context.vAccountCatagory.AsNoTracking().Where(x => x.AccountTypeId == accountTypeId).ToListAsync();
             return result;
         }
         public async Task<List<vFinancialStatement>> populateFinancialStatementByParam()
@@ -130,22 +132,22 @@ namespace OrganisationSetup.Services
         }
         public async Task<List<vProductType>> populateProductTypeByParam()
         {
-            var result = await _context.vProductType.AsNoTracking().Where(x=> x.Status == true).ToListAsync();
+            var result = await _context.vProductType.AsNoTracking().Where(x => x.Status == true).ToListAsync();
             return result;
         }
         public async Task<List<vInventoryAdjustmentType>> populateInventoryAdjustmentTypeByParam()
         {
-            var result = await _context.vInventoryAdjustmentType.AsNoTracking().Where(x=> x.Status == true).ToListAsync();
+            var result = await _context.vInventoryAdjustmentType.AsNoTracking().Where(x => x.Status == true).ToListAsync();
             return result;
         }
         public async Task<List<vCostingMode>> populateCostingModeByParam()
         {
-            var result = await _context.vCostingMode.AsNoTracking().Where(x=> x.Status == true).ToListAsync();
+            var result = await _context.vCostingMode.AsNoTracking().Where(x => x.Status == true).ToListAsync();
             return result;
         }
         public async Task<List<vTierType>> populateTierTypeByParam()
         {
-            var result = await _context.vTierType.AsNoTracking().Where(x=> x.Status == true && x.IsDefault == true).ToListAsync();
+            var result = await _context.vTierType.AsNoTracking().Where(x => x.Status == true && x.IsDefault == true).ToListAsync();
             return result;
         }
         public async Task<List<osvChartOfAccount>> populateOSvChartOfAccountByParam(string? operationType, int? filterConditionId, int? accountCatagoryId)
@@ -219,7 +221,7 @@ namespace OrganisationSetup.Services
                     Display = (settingList.EnableDepartment ?? false) ? "block" : "none",
                     DefaultValue = ""
                 }},
-            }; 
+            };
             return result;
         }
         public async Task<int> generate_productCombination(int? refDocumentType, List<osvProductCombination> combinationList)
@@ -231,7 +233,7 @@ namespace OrganisationSetup.Services
             foreach (var item in combinationList)
             {
                 var isExist = await _context.osvProductCombination.Where(x => x.ProductId == item.ProductId && x.Attribute.Trim() == item.Attribute.Trim()).AnyAsync();
-                if(isExist == false)
+                if (isExist == false)
                 {
                     var combination = new osvProductCombination
                     {
@@ -249,11 +251,19 @@ namespace OrganisationSetup.Services
             await _context.SaveChangesAsync();
             return 200;
         }
-        public async Task<int> get_productCombination(int? productId,string attributeKey)
+        public async Task<int> get_productCombination(int? productId, string attributeKey)
         {
             int productCombinationId = await _context.osvProductCombination.Where(x => x.ProductId == productId && x.AttributeKey == attributeKey).Select(x => x.Id).FirstOrDefaultAsync();
             return productCombinationId;
         }
-
+        public async Task<AFProductPriceLog> get_productPricingbyParam(int? productId, int? productCombinationId, int? locationId, int? tierTypeId)
+        {
+            var result = await _context.AFProductPriceLog.Where(pl => pl.ProductId == productId
+                     && (productCombinationId == null || pl.ProductCombinationId == productCombinationId)
+                     && pl.Status == true && pl.DocumentStatus == (int)DocumentStatus.active
+                     && pl.CompanyId == _currentUser.CompanyId && (locationId == 0 || pl.BranchId == locationId) && (tierTypeId == 0 || pl.TierTypeId == tierTypeId)).OrderByDescending(pl => pl.CreatedOn)
+                     .FirstOrDefaultAsync();
+            return result;
+        }
     }
 }

@@ -67,6 +67,12 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
             var result = await _irService.populateProductByParam(operationType, (int?)FilterConditions.IProduct_Operation_ALLActive_ByCompany, searchParam);
             return Json(result);
         }
+        [HttpGet]
+        public async Task<IActionResult> populateProductPricingInfoByParam(int? productId, int? productCombinationId, int? locationId,int? tierTypeId = 0)
+        {
+            var result = await _commonsServices.get_productPricingbyParam(productId, productCombinationId, locationId, tierTypeId);
+            return Json(result);
+        }
 
         [HttpGet]
         public async Task<IActionResult> populateCustomerSummListByParam(string operationType, int?[]? customerIds = null)
