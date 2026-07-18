@@ -69,6 +69,7 @@ function initializeDataTable() {
                 var $rowElement = $(this).closest('tr');
                 if (invoicePPITable) {
                     invoicePPITable.row($rowElement).remove().draw(false);
+                    recalculateSummary();
                 }
             });
             $tableBody.off('click', '.product-text-wrapper');
@@ -176,14 +177,25 @@ function getProductList(productId) {
         }
     });
 }
+function fetchProductPricing(productId, productCombinationId, locationId, tierTypeId = 0) {
+    return $.ajax({
+        url: window.basePath + "AccountNfinance/AFInvoiceManagement/populateProductPricingInfoByParam",
+        type: "GET",
+        dataType: "json",
+        data: {
+            productId: productId,
+            productCombinationId: productCombinationId,
+            locationId: locationId,
+            tierTypeId: tierTypeId
+        }
+    });
+}
 
 /* ------ Grid Actions ------ */
 function getCustomerCurrentBalance(customerId) {
-    //var isCustomerFixed = $("#CheckBoxIsCustomerFixed").val();
-    var isCustomerFixed = false;
-    if (isCustomerFixed === "true") {
-        var zeroBalance = 0;
-        $("#SpanPreviousBalance").text(zeroBalance.toFixed(2));
+    var isCustomerFixed = $("#CheckBoxIsCustomerFixed").is(":checked");
+    if (isCustomerFixed) {
+        $("#SpanPreviousBalance").text((0).toFixed(2));
         return;
     }
     else {
@@ -206,34 +218,37 @@ function getCustomerCurrentBalance(customerId) {
         });
     }
 }
-function addLineItemToStaging() {
-    var productId = $("#DropDownListProduct :selected").val();
-    var priceListId = 0;
+
+function addLineItemToStagingWithPricing(productId, pricing) {
     var productName = $("#DropDownListProduct :selected").text();
-
     var isExpiryApplied = $("#DropDownListProduct :selected").data('isexpiryapplied');
-    var disableBatchField = false;
-    var disableExpiryField = false;
 
-    if (isExpiryApplied == true) {
-        disableBatchField = false;
-        disableExpiryField = false;
+    var disableBatchField = !isExpiryApplied;
+    var disableExpiryField = !isExpiryApplied;
+    var productPriceLogId = 0;
+    var unitSalePrice = 0.00;
+    var minimumSalePrice = 0.00;
+
+    if (pricing) {
+        productPriceLogId = pricing.productPriceLogId || 0;
+        unitSalePrice = parseFloat(pricing.unitSalePrice || 0);
+        minimumSalePrice = parseFloat(pricing.minimumSalePrice || 0);
     }
-    if (isExpiryApplied == false) {
-        disableBatchField = true;
-        disableExpiryField = true;
+    else {
+        toastr.info("No active price log found for this product. Please enter price manually.");
     }
-    var unitPrice = parseFloat($("#DropDownListProduct :selected").data('unitprice')) || 0.00;
-    var unitSalePriceHTML = HTML_DATATABLE_UTIL.HTML_TBL_INPUT("UnitSalePrice", "numbersOnly", unitPrice.toFixed(2), false);
+
+    var unitSalePriceHTML = HTML_DATATABLE_UTIL.HTML_TBL_INPUT("UnitSalePrice", "numbersOnly", unitSalePrice.toFixed(2), true);
     var quantityHTML = HTML_DATATABLE_UTIL.HTML_TBL_INPUT("Quantity", "numbersOnly", 0.00, false);
     var actualAmountHTML = HTML_DATATABLE_UTIL.HTML_TBL_INPUT("ActualAmount", "numbersOnly", 0.00, true);
     var discountAmountHTML = HTML_DATATABLE_UTIL.HTML_TBL_INPUT("DiscountAmount", "numbersOnly", 0.00, false);
     var chargedAmountHTML = HTML_DATATABLE_UTIL.HTML_TBL_INPUT("ChargedAmount", "numbersOnly", 0.00, true);
     var batchHTML = HTML_DATATABLE_UTIL.HTML_TBL_INPUT("Batch", "", "", disableBatchField);
     var expiryHTML = HTML_DATATABLE_UTIL.HTML_TBL_INPUT("ExpiryDate", "simpleDatePicker", "", disableExpiryField);
+
     var lineItem = {
         ProductId: productId,
-        PriceListId : priceListId,
+        ProductPriceLogId: productPriceLogId,
         ProductName: productName,
         UnitSalePrice: unitSalePriceHTML,
         Quantity: quantityHTML,
@@ -241,7 +256,9 @@ function addLineItemToStaging() {
         DiscountAmount: discountAmountHTML,
         ChargedAmount: chargedAmountHTML,
         Batch: batchHTML,
-        Expiry: expiryHTML
+        Expiry: expiryHTML,
+        UnitSaleNumeric: unitSalePrice,
+        MinimumSalePrice: minimumSalePrice
     };
 
     invoicePPITable.row.add(lineItem).draw(false);
@@ -288,22 +305,54 @@ function changeEventHandler() {
         getCustomerCurrentBalance(customerId);
     });
     $("#DropDownListProduct").on("change", function () {
-        var val = $(this).val();
-        if (val && val !== '-1' && val !== '') {
-            addLineItemToStaging();
+        var productId = $("#DropDownListProduct :selected").val();
+        var existingRow = invoicePPITable.rows().nodes().to$().filter(function () {
+            return invoicePPITable.row(this).data().ProductId == productId;
+        });
+        if (existingRow.length) {
+            toastr.warning("Product already added — update quantity in the existing row.");
+            clearLineItemInputs();
+            return;
         }
+        if (!productId || productId === '-1' || productId === '') return;
+
+        var productCombinationId = null;
+        var locationId = $("#DropDownListLocation :selected").val();
+
+
+        fetchProductPricing(productId, productCombinationId, locationId)
+            .done(function (pricing) {
+                addLineItemToStagingWithPricing(productId, pricing);
+            })
+            .fail(function () {
+                toastr.error("Unable to fetch pricing. Adding product with default values.");
+                addLineItemToStagingWithPricing(productId, null);
+            })
+            .always(function () {
+            });
     });
     $('#InvoiceDetailTable').on('input change', '.UnitSalePrice, .Quantity, .DiscountAmount', function () {
         var $row = $(this).closest('tr');
-
         var unitSalePrice = parseFloat($row.find('.UnitSalePrice').val()) || 0;
         var quantity = parseFloat($row.find('.Quantity').val()) || 0;
         var discountAmount = parseFloat($row.find('.DiscountAmount').val()) || 0;
 
+        var rowData = invoicePPITable.row($row).data();
+        var minimumSalePrice = parseFloat(rowData.MinimumSalePrice) || 0;
+
+        if (minimumSalePrice > 0 && quantity > 0) {
+            var maxDiscount = (unitSalePrice - minimumSalePrice) * quantity;
+            if (maxDiscount < 0) maxDiscount = 0;
+            if (discountAmount > maxDiscount) {
+                discountAmount = maxDiscount;
+                $row.find('.DiscountAmount').val(discountAmount.toFixed(2));
+                toastr.warning("Discount reduced to respect minimum sale price.");
+            }
+        }
+
         var actualAmount = unitSalePrice * quantity;
         var chargedAmount = actualAmount - discountAmount;
         if (chargedAmount < 0) chargedAmount = 0;
-
         $row.find('.ActualAmount').val(actualAmount.toFixed(2));
         $row.find('.ChargedAmount').val(chargedAmount.toFixed(2));
         recalculateSummary();
@@ -366,6 +415,9 @@ function createUpdateDataIntoDB() {
             var discountAmount = parseFloat($(node).find('.DiscountAmount').val()) || 0;
             var actualAmount = unitSalePrice * quantity;
             var chargedAmount = Math.max(0, actualAmount - discountAmount);
+            var batchValue = $(node).find('.Batch').val();
+            var expiryValue = $(node).find('.ExpiryDate').val();
+
 
             return {
                 ProductId: row.ProductId,
@@ -374,6 +426,9 @@ function createUpdateDataIntoDB() {
                 ActualAmount: actualAmount,
                 DiscountAmount: discountAmount,
                 ChargedAmount: chargedAmount,
+                Batch: batchValue || null,
+                ExpiryDate: expiryValue || null,
+                ProductPriceLogId: row.ProductPriceLogId || 0,
                 Attribute: rowAttributes.length > 0 ? JSON.stringify(rowAttributes) : null
             };
         }).get();
@@ -447,4 +502,4 @@ function initialize() {
 $(function () {
     if (typeof setupGlobalAjax === "function") setupGlobalAjax();
     initialize();
-});0
+});
