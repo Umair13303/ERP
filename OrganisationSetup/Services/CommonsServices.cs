@@ -34,7 +34,7 @@ namespace OrganisationSetup.Services
         Task<Dictionary<string, FieldConfig>> fetchProductSetting();
         Task<int> generate_productCombination(int? refDocumentType, List<osvProductCombination> combinationList);
         Task<int> get_productCombination(int? productId, string attributeKey);
-        Task<AFProductPriceLog> get_productPricingbyParam(int? productId, int? productCombinationId, int? locationId, int? tierTypeId);
+        Task<object> get_productPricingbyParam(int? productId, int? productCombinationId, int? locationId, int? tierTypeId);
     }
     public class CommonServices : ICommon
     {
@@ -256,13 +256,25 @@ namespace OrganisationSetup.Services
             int productCombinationId = await _context.osvProductCombination.Where(x => x.ProductId == productId && x.AttributeKey == attributeKey).Select(x => x.Id).FirstOrDefaultAsync();
             return productCombinationId;
         }
-        public async Task<AFProductPriceLog> get_productPricingbyParam(int? productId, int? productCombinationId, int? locationId, int? tierTypeId)
+        public async Task<object> get_productPricingbyParam(int? productId, int? productCombinationId, int? locationId, int? tierTypeId)
         {
-            var result = await _context.AFProductPriceLog.Where(pl => pl.ProductId == productId
-                     && (productCombinationId == null || pl.ProductCombinationId == productCombinationId)
-                     && pl.Status == true && pl.DocumentStatus == (int)DocumentStatus.active
-                     && pl.CompanyId == _currentUser.CompanyId && (locationId == 0 || pl.BranchId == locationId) && (tierTypeId == 0 || pl.TierTypeId == tierTypeId)).OrderByDescending(pl => pl.CreatedOn)
-                     .FirstOrDefaultAsync();
+            var result = await _context.AFProductPriceLog
+                .Where(pl => pl.ProductId == productId
+                    && (productCombinationId == null || pl.ProductCombinationId == productCombinationId)
+                    && pl.Status == true
+                    && pl.DocumentStatus == (int)DocumentStatus.active
+                    && pl.CompanyId == _currentUser.CompanyId
+                    && (locationId == 0 || pl.BranchId == locationId)
+                    && (tierTypeId == 0 || pl.TierTypeId == tierTypeId))
+                .OrderByDescending(pl => pl.CreatedOn)
+                .Select(x => new
+                {
+                    ProductPriceLogId = x.Id,
+                    UnitSalePrice = x.DefaultSalePrice, 
+                    x.MinimumSalePrice
+                })
+                .FirstOrDefaultAsync();
+
             return result;
         }
     }
