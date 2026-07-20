@@ -555,7 +555,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                         LocationId = postedData.LocationId,
                         TransactionDate = transactionDate,
                         ProductId = ppqd.ProductId,
-                        ProductCombinationId = _commonServices.get_productCombination(ppqd.ProductId, ppqd.Attribute).Result,
+                        ProductCombinationId = await _commonServices.get_productCombination(ppqd.ProductId, ppqd.Attribute),
                         RefDocumentType = (int?)DocumentType.inventoryAdjustment,
                         RefDocumentId = (int?)IAdjustment.insertedId,
                         Description = $"Inventory Adjustment Recorded",
