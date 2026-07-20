@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using OrganisationSetup.Models.DAL;
 using OrganisationSetup.Models.DAL.StoredProcedure;
 using OrganisationSetup.Services;
@@ -516,10 +517,10 @@ namespace OrganisationSetup.Areas.Inventory.Services
                 i.ProductCombinationId = await _commonServices.get_productCombination(i.ProductId, i.Attribute);
             }
             #endregion
+            await using var transaction = await _eRPOSContext.Database.BeginTransactionAsync();
+            var con = (SqlConnection)_eRPOSContext.Database.GetDbConnection();
+            var sqlTransaction = (SqlTransaction)transaction.GetDbTransaction();
 
-            using var con = new SqlConnection(_connectionString);
-            await con.OpenAsync();
-            using var transaction = con.BeginTransaction();
             try
             {
                 DateTime? transactionDate = DateTime.Now;
@@ -542,7 +543,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                     userInfo.BranchId,
                     userInfo.CompanyId,
                     postedData.PostedDataIAdjustmentPPQD,
-                    con, transaction
+                    con, sqlTransaction
                 );
                 #endregion
                 #region PORTION FOR :: UPSERT INTO dbo.AFInventoryLedger
@@ -585,18 +586,15 @@ namespace OrganisationSetup.Areas.Inventory.Services
                     AFInventoryLedgerInfo.FirstOrDefault()?.RefDocumentType,
                     AFInventoryLedgerInfo,
                     con,
-                    transaction
+                    sqlTransaction
                 );
                 #endregion
-
-           
-
+                #region PORTION FOR :: UPDATE PRICES INCASE OF AUTO PRICE UPDATE IS ENABLED FOR THE ADJUSTMENT TYPE
                 bool? isAutoPriceUpdate = await _eRPOSContext.vInventoryAdjustmentType.Where(x => x.Id == postedData.AdjustmentTypeId).Select(x => x.IsAutoPriceUpdate).FirstOrDefaultAsync();
                 if (isAutoPriceUpdate == true)
                 {
                     foreach (var i in postedData.PostedDataIAdjustmentPPQD)
                     {
-
                         var activeProductPriceList = await _eRPOSContext.AFProductPriceLog.Where(x => x.ProductId == i.ProductId && (i.ProductCombinationId == null || x.ProductCombinationId == i.ProductCombinationId) && x.Status == true && x.DocumentStatus == (int)DocumentStatus.active && x.CompanyId == userInfo.CompanyId && x.BranchId == userInfo.BranchId).ToListAsync();
                         foreach (var product in activeProductPriceList)
                         {
@@ -621,11 +619,10 @@ namespace OrganisationSetup.Areas.Inventory.Services
                             CompanyId = userInfo.CompanyId,
                         };
                         _eRPOSContext.AFProductPriceLog.Add(priceLog);
-
                     }
                     await _eRPOSContext.SaveChangesAsync();
-
                 }
+                #endregion
                 #region PORTION FOR :: HANDLE TRANSACTION
                 switch (IAdjustment.response)
                 {
