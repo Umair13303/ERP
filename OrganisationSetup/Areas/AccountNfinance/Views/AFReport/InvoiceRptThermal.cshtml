@@ -1,5 +1,4 @@
 ﻿@model OrganisationSetup.Areas.AccountNfinance.Controllers.AFReportController.InvoicePrintVm
-
 @{
     Layout = null;
 }
@@ -7,68 +6,168 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>Thermal Invoice</title>
+    <title>Invoice</title>
     <style>
-        /* Thermal 80mm style */
-        @@page { size: 80mm auto; margin: 0; }
-        body { width: 80mm; font-family: Arial, Helvetica, sans-serif; font-size: 11px; margin: 6px; color:#000; }
-        .center { text-align:center; }
-        .small { font-size:10px; }
-        table { width:100%; border-collapse:collapse; }
-        .line { border-bottom: 1px dashed #000; margin:4px 0; padding:4px 0; }
-        .qty { width:12%; text-align:right; }
-        .price { width:24%; text-align:right; }
-        .desc { width:64%; }
-        .totals { margin-top:6px; }
+        @@page {
+            size: A4;
+            margin: 15mm;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13px;
+            color: #222;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .company-name {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .invoice-meta {
+            text-align: right;
+        }
+
+            .invoice-meta div {
+                margin-bottom: 3px;
+            }
+
+        .parties {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        table.items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+            table.items th {
+                background: #f2f2f2;
+                text-align: left;
+                padding: 8px;
+                border-bottom: 2px solid #ccc;
+                font-size: 12px;
+            }
+
+            table.items td {
+                padding: 8px;
+                border-bottom: 1px solid #e0e0e0;
+                vertical-align: top;
+            }
+
+        .num {
+            text-align: right;
+        }
+
+        .totals-box {
+            width: 300px;
+            margin-left: auto;
+        }
+
+            .totals-box table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            .totals-box td {
+                padding: 4px 8px;
+            }
+
+            .totals-box tr.net td {
+                font-weight: bold;
+                font-size: 15px;
+                border-top: 2px solid #333;
+            }
+
+        .footer-note {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+        }
     </style>
 </head>
 <body onload="window.print(); setTimeout(()=>window.close(), 500);">
-    <div class="center">
-        <strong>@(Model.Invoice.CompanyId != null ? "Company" : "Company")</strong><br />
-        <span class="small">Invoice #: @Model.Invoice.Code</span><br />
-        <span class="small">Date: @Model.Invoice.TransactionDate?.ToString("yyyy-MM-dd HH:mm")</span>
+
+    <div class="header">
+        <div>
+            <div class="company-name">Your Company Name</div>
+            <div class="small">Address line, City, Country</div>
+        </div>
+        <div class="invoice-meta">
+            <div><strong>Invoice #:</strong> @Model.Invoice.Code</div>
+            <div><strong>Date:</strong> @Model.Invoice.TransactionDate?.ToString("yyyy-MM-dd")</div>
+            @if (!string.IsNullOrEmpty(Model.Invoice.FBRStamp))
+            {
+                <div><strong>FBR Stamp:</strong> @Model.Invoice.FBRStamp</div>
+            }
+        </div>
     </div>
 
-    <hr />
-    <table>
+    <div class="parties">
+        <div>
+            <strong>Bill To:</strong><br />
+            @Model.Invoice.Description
+        </div>
+        <div>
+            <strong>Status:</strong> @Model.Invoice.InvoiceStatus
+        </div>
+    </div>
+
+    <table class="items">
         <thead>
-            <tr class="small"><th class="desc">ITEM</th><th class="qty">QTY</th><th class="price">PRICE</th></tr>
+            <tr>
+                <th>Item</th>
+                <th class="num">Qty</th>
+                <th class="num">Unit Price</th>
+                <th class="num">Amount</th>
+            </tr>
         </thead>
         <tbody>
             @foreach (var l in Model.Lines)
             {
-                <tr class="line small">
-                    <td class="desc">
+                <tr>
+                    <td>
                         @l.Description
-                        @if(!string.IsNullOrEmpty(l.Attribute))
+                        @if (!string.IsNullOrEmpty(l.Attribute))
                         {
-                            <div class="small">(@l.Attribute)</div>
+                            <div class="small" style="color:#777;">(@l.Attribute)</div>
                         }
                     </td>
-                    <td class="qty">@l.Quantity.ToString("0.##")</td>
-                    <td class="price">@l.UnitSalePrice.ToString("0.00")</td>
+                    <td class="num">@l.Quantity.ToString("0.##")</td>
+                    <td class="num">@l.UnitSalePrice.ToString("0.00")</td>
+                    <td class="num">@l.ChargedAmount.ToString("0.00")</td>
                 </tr>
             }
         </tbody>
     </table>
 
-    <div class="totals small">
+    <div class="totals-box">
         <table>
-            <tr>
-                <td>Subtotal</td>
-                <td style="text-align:right">@Model.Lines.Sum(x => x.ChargedAmount).ToString("0.00")</td>
-            </tr>
-            <tr>
-                <td>Total</td>
-                <td style="text-align:right">
-                    <strong>@Model.Lines.Sum(x => x.ChargedAmount).ToString("0.00")</strong>
-                </td>
-            </tr>
+            <tr><td>Gross Amount</td><td class="num">@Model.Totals.DocGrossAmount.ToString("0.00")</td></tr>
+            <tr><td>Discount</td><td class="num">-@Model.Totals.DocDiscountAmount.ToString("0.00")</td></tr>
+            <tr><td>Taxable Amount</td><td class="num">@Model.Totals.DocTaxableAmount.ToString("0.00")</td></tr>
+            <tr><td>Sales Tax</td><td class="num">@Model.Totals.DocSaleTaxAmount.ToString("0.00")</td></tr>
+            <tr><td>Additional Tax</td><td class="num">@Model.Totals.DocAdditionalTaxAmount.ToString("0.00")</td></tr>
+            <tr class="net"><td>Net Amount</td><td class="num">@Model.Totals.DocNetAmount.ToString("0.00")</td></tr>
+            <tr><td>Due Amount</td><td class="num">@Model.Invoice.DueAmount.ToString("0.00")</td></tr>
         </table>
     </div>
 
-    <div class="center small">
-        Thank you for your business!
+    <div class="footer-note">
+        This is a computer generated invoice.
     </div>
 </body>
 </html>

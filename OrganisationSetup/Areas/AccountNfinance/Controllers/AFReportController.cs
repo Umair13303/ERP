@@ -5,6 +5,7 @@ using OrganisationSetup.Models.DAL;
 using OrganisationSetup.Services;
 using SharedUI.Models.Contexts;
 using SharedUI.Models.Enums;
+using System.Data;
 
 namespace OrganisationSetup.Areas.AccountNfinance.Controllers
 {
@@ -15,6 +16,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
         private readonly ERPOrganisationSetupContext _eRPOSContext;
         private readonly TempUser _currentUser;
         private readonly ICommon _commonServices;
+
         public AFReportController(ERPOrganisationSetupContext eRPOSContext, TempUser currentUser, ICommon commonServices)
         {
             _eRPOSContext = eRPOSContext;
@@ -22,7 +24,13 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
             _commonServices = commonServices;
         }
 
-        public async Task<IActionResult> InvoiceRptThermal(Guid guID)
+        public enum InvoiceRptType
+        {
+            ThermalPrint = 1,
+            PaperSize = 2
+        }
+
+        public async Task<IActionResult> InvoiceRptThermal(Guid guID, int invoiceRptType = (int)InvoiceRptType.ThermalPrint)
         {
             if (!_currentUser.IsAuthenticated) return Unauthorized();
 
@@ -76,7 +84,6 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
                     if (pl != 0m) unitSale = pl;
                 }
 
-                // Recalculate charged amount using resolved unitSale and stored discount to avoid stale totals
                 decimal discount = l.DiscountAmount;
                 decimal recalculatedCharged = Math.Max(0m, (unitSale * l.Quantity) - discount);
 
@@ -96,14 +103,69 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
                 Lines = modelLines
             };
 
-            return View(vm);
+            // Branch on report type
+            if (invoiceRptType == (int)InvoiceRptType.PaperSize)
+            {
+                vm.Totals = await GetHeaderTotalsAsync(invoice.Id);
+                return View("InvoiceRptThermal", vm);
+            }
+
+            return View("InvoiceRptThermal", vm);
+        }
+
+        private async Task<HeaderTotalsVm> GetHeaderTotalsAsync(int invoiceId)
+        {
+            var totals = new HeaderTotalsVm();
+            var conn = _eRPOSContext.Database.GetDbConnection();
+            bool wasClosed = conn.State != ConnectionState.Open;
+            if (wasClosed) await conn.OpenAsync();
+
+            try
+            {
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = @"
+                    SELECT 
+                        SUM(CALC.GrossAmount)         AS DocGrossAmount,
+                        SUM(CALC.DiscountAmount)      AS DocDiscountAmount,
+                        SUM(CALC.TaxableAmount)       AS DocTaxableAmount,
+                        SUM(CALC.SaleTaxAmount)       AS DocSaleTaxAmount,
+                        SUM(CALC.AdditionalTaxAmount) AS DocAdditionalTaxAmount,
+                        SUM(CALC.NetAmount)           AS DocNetAmount
+                    FROM AFInvoice AS I
+                    CROSS APPLY dbo.fn_GetInvoiceCalculations(I.Id, 1) AS CALC
+                    WHERE I.Id = @InvoiceId";
+
+                var p = cmd.CreateParameter();
+                p.ParameterName = "@InvoiceId";
+                p.Value = invoiceId;
+                cmd.Parameters.Add(p);
+
+                using var reader = await cmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    totals.DocGrossAmount = reader["DocGrossAmount"] as decimal? ?? 0m;
+                    totals.DocDiscountAmount = reader["DocDiscountAmount"] as decimal? ?? 0m;
+                    totals.DocTaxableAmount = reader["DocTaxableAmount"] as decimal? ?? 0m;
+                    totals.DocSaleTaxAmount = reader["DocSaleTaxAmount"] as decimal? ?? 0m;
+                    totals.DocAdditionalTaxAmount = reader["DocAdditionalTaxAmount"] as decimal? ?? 0m;
+                    totals.DocNetAmount = reader["DocNetAmount"] as decimal? ?? 0m;
+                }
+            }
+            finally
+            {
+                if (wasClosed) await conn.CloseAsync();
+            }
+
+            return totals;
         }
 
         public class InvoicePrintVm
         {
             public AFInvoice Invoice { get; set; }
             public List<LineVm> Lines { get; set; } = new();
+            public HeaderTotalsVm Totals { get; set; } = new();
         }
+
         public class LineVm
         {
             public string Description { get; set; }
@@ -112,6 +174,15 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
             public decimal UnitSalePrice { get; set; }
             public decimal ChargedAmount { get; set; }
         }
-    }
 
+        public class HeaderTotalsVm
+        {
+            public decimal DocGrossAmount { get; set; }
+            public decimal DocDiscountAmount { get; set; }
+            public decimal DocTaxableAmount { get; set; }
+            public decimal DocSaleTaxAmount { get; set; }
+            public decimal DocAdditionalTaxAmount { get; set; }
+            public decimal DocNetAmount { get; set; }
+        }
+    }
 }
