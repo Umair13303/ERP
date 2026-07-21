@@ -14,6 +14,8 @@ namespace SharedUI.Models.Responses
         public int StatusCode { get; set; }
 
         public static ServiceResult internalSuccess(string response, int requestStatus, int? documentNumber) =>
+
+
             new ServiceResult { IsSuccess = true, Message = response, StatusCode = requestStatus,DocumentNumber =documentNumber };
         public static ServiceResult success(string response, int requestStatus) =>
             new ServiceResult { IsSuccess = true, Message = response, StatusCode = requestStatus };

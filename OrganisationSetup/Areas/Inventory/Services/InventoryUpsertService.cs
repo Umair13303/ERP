@@ -595,7 +595,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                 {
                     foreach (var i in postedData.PostedDataIAdjustmentPPQD)
                     {
-                        var activeProductPriceList = await _eRPOSContext.AFProductPriceLog.Where(x => x.ProductId == i.ProductId && (i.ProductCombinationId == null || x.ProductCombinationId == i.ProductCombinationId) && x.Status == true && x.DocumentStatus == (int)DocumentStatus.active && x.CompanyId == userInfo.CompanyId && x.BranchId == userInfo.BranchId).ToListAsync();
+                        var activeProductPriceList = await _eRPOSContext.AFProductPriceLog.Where(x => x.ProductId == i.ProductId && (i.ProductCombinationId == null || x.ProductCombinationId == i.ProductCombinationId) && x.Status == true && x.DocumentStatus == (int)DocumentStatus.active && x.CompanyId == userInfo.CompanyId && x.BranchId == userInfo.BranchId && x.TierTypeId == (int)Default.tierTypeId).ToListAsync();
                         foreach (var product in activeProductPriceList)
                         {
                             product.DocumentStatus = (int)DocumentStatus.expired;
@@ -607,7 +607,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                             GuID = Guid.NewGuid(),
                             ProductId = i.ProductId,
                             ProductCombinationId = i.ProductCombinationId,
-                            TierTypeId = 0,
+                            TierTypeId = (int)Default.tierTypeId,
                             DefaultSalePrice = i.UnitSalePrice,
                             MinimumSalePrice = i.UnitPurchasePrice,
                             CreatedOn = DateTime.Now,

@@ -77,6 +77,12 @@ namespace SharedUI.Models.Enums
         Variance = 4,
         Equipment = 5
     }
-
+    public enum Default
+    {
+        productId = 0,
+        productCombinationId=0,
+        tierTypeId = 0,
+        productPriceLogId=0,
+    }
 
 }
