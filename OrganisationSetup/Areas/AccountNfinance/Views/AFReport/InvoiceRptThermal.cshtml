@@ -1,70 +1,75 @@
 ﻿@model OrganisationSetup.Areas.AccountNfinance.Controllers.AFReportController.InvoicePrintVm
 @{
     Layout = null;
+    var isThermal = Model.ReportType == OrganisationSetup.Areas.AccountNfinance.Controllers.AFReportController.InvoiceRptType.ThermalPrint;
+    var qrCodeUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={Uri.EscapeDataString(Model.Header.Code ?? Model.Header.GuID.ToString())}";
 }
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>Invoice</title>
+    <title>Invoice - @Model.Header.Code</title>
     <style>
         @@page {
-            size: A4;
-            margin: 15mm;
+            size: @(isThermal ? "80mm auto" : "A4");
+            margin: @(isThermal ? "1mm" : "15mm");
         }
 
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 13px;
-            color: #222;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: @(isThermal ? "12px" : "13px");
+            color: #000;
+            line-height: 1.2;
+            margin: 0;
+            padding: @(isThermal ? "2px" : "0");
+            width: @(isThermal ? "76mm" : "auto");
         }
 
         .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            border-bottom: 2px solid #333;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 6px;
+            margin-bottom: 6px;
         }
 
         .company-name {
-            font-size: 20px;
+            font-size: @(isThermal ? "16px" : "20px");
             font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .small {
+            font-size: @(isThermal ? "10px" : "11px");
         }
 
         .invoice-meta {
-            text-align: right;
-        }
-
-            .invoice-meta div {
-                margin-bottom: 3px;
-            }
-
-        .parties {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
+            margin-bottom: 6px;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 6px;
+            font-size: @(isThermal ? "11px" : "13px");
         }
 
         table.items {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
+            margin-bottom: 6px;
         }
 
             table.items th {
-                background: #f2f2f2;
                 text-align: left;
-                padding: 8px;
-                border-bottom: 2px solid #ccc;
-                font-size: 12px;
+                padding: 2px 0;
+                border-bottom: 1px solid #000;
+                font-size: @(isThermal ? "11px" : "12px");
+                text-transform: uppercase;
             }
 
             table.items td {
-                padding: 8px;
-                border-bottom: 1px solid #e0e0e0;
+                padding: 3px 0;
+                border-bottom: 1px dotted #ccc;
                 vertical-align: top;
+                font-size: @(isThermal ? "11px" : "13px");
             }
 
         .num {
@@ -72,57 +77,63 @@
         }
 
         .totals-box {
-            width: 300px;
-            margin-left: auto;
+            width: 100%;
+            border-top: 1px dashed #000;
+            padding-top: 4px;
+            margin-bottom: 8px;
         }
 
-            .totals-box table {
-                width: 100%;
-                border-collapse: collapse;
-            }
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 1px 0;
+            font-size: @(isThermal ? "11px" : "13px");
+        }
 
-            .totals-box td {
-                padding: 4px 8px;
-            }
-
-            .totals-box tr.net td {
+            .totals-row.net {
                 font-weight: bold;
-                font-size: 15px;
-                border-top: 2px solid #333;
+                font-size: @(isThermal ? "14px" : "16px");
+                border-top: 1px solid #000;
+                border-bottom: 1px solid #000;
+                padding: 4px 0;
+                margin-top: 2px;
+            }
+
+        .qr-container {
+            text-align: center;
+            margin: 8px 0;
+        }
+
+            .qr-container img {
+                width: @(isThermal ? "80px" : "110px");
+                height: @(isThermal ? "80px" : "110px");
             }
 
         .footer-note {
-            margin-top: 30px;
             text-align: center;
-            font-size: 11px;
-            color: #666;
+            font-size: @(isThermal ? "9px" : "11px");
+            border-top: 1px dashed #000;
+            padding-top: 4px;
+            margin-top: 4px;
         }
     </style>
 </head>
 <body onload="window.print(); setTimeout(()=>window.close(), 500);">
 
     <div class="header">
-        <div>
-            <div class="company-name">Your Company Name</div>
-            <div class="small">Address line, City, Country</div>
-        </div>
-        <div class="invoice-meta">
-            <div><strong>Invoice #:</strong> @Model.Invoice.Code</div>
-            <div><strong>Date:</strong> @Model.Invoice.TransactionDate?.ToString("yyyy-MM-dd")</div>
-            @if (!string.IsNullOrEmpty(Model.Invoice.FBRStamp))
-            {
-                <div><strong>FBR Stamp:</strong> @Model.Invoice.FBRStamp</div>
-            }
-        </div>
+        <div class="company-name">Organisation Name</div>
+        <div class="small">@Model.Header.Location</div>
+        <div class="small">User: @Model.Header.UserName</div>
     </div>
 
-    <div class="parties">
+    <div class="invoice-meta">
         <div>
-            <strong>Bill To:</strong><br />
-            @Model.Invoice.Description
+            <div><strong>Inv:</strong> @Model.Header.Code</div>
+            <div class="small">Cust: @Model.Header.Customer</div>
         </div>
-        <div>
-            <strong>Status:</strong> @Model.Invoice.InvoiceStatus
+        <div style="text-align: right;">
+            <div><strong>Date:</strong></div>
+            <div class="small">@Model.Header.TransactionDate?.ToString("yy-MM-dd HH:mm")</div>
         </div>
     </div>
 
@@ -131,8 +142,11 @@
             <tr>
                 <th>Item</th>
                 <th class="num">Qty</th>
-                <th class="num">Unit Price</th>
-                <th class="num">Amount</th>
+                @if (!isThermal)
+                {
+                    <th class="num">Price</th>
+                }
+                <th class="num">Total</th>
             </tr>
         </thead>
         <tbody>
@@ -143,11 +157,14 @@
                         @l.Description
                         @if (!string.IsNullOrEmpty(l.Attribute))
                         {
-                            <div class="small" style="color:#777;">(@l.Attribute)</div>
+                            <div class="small">[@l.Attribute]</div>
                         }
                     </td>
                     <td class="num">@l.Quantity.ToString("0.##")</td>
-                    <td class="num">@l.UnitSalePrice.ToString("0.00")</td>
+                    @if (!isThermal)
+                    {
+                        <td class="num">@l.UnitSalePrice.ToString("0.00")</td>
+                    }
                     <td class="num">@l.ChargedAmount.ToString("0.00")</td>
                 </tr>
             }
@@ -155,19 +172,60 @@
     </table>
 
     <div class="totals-box">
-        <table>
-            <tr><td>Gross Amount</td><td class="num">@Model.Totals.DocGrossAmount.ToString("0.00")</td></tr>
-            <tr><td>Discount</td><td class="num">-@Model.Totals.DocDiscountAmount.ToString("0.00")</td></tr>
-            <tr><td>Taxable Amount</td><td class="num">@Model.Totals.DocTaxableAmount.ToString("0.00")</td></tr>
-            <tr><td>Sales Tax</td><td class="num">@Model.Totals.DocSaleTaxAmount.ToString("0.00")</td></tr>
-            <tr><td>Additional Tax</td><td class="num">@Model.Totals.DocAdditionalTaxAmount.ToString("0.00")</td></tr>
-            <tr class="net"><td>Net Amount</td><td class="num">@Model.Totals.DocNetAmount.ToString("0.00")</td></tr>
-            <tr><td>Due Amount</td><td class="num">@Model.Invoice.DueAmount.ToString("0.00")</td></tr>
-        </table>
+        <div class="totals-row">
+            <span>Gross Amount</span>
+            <span>@Model.Header.DocGrossAmount.ToString("0.00")</span>
+        </div>
+        @if (Model.Header.DocDiscountAmount > 0)
+        {
+            <div class="totals-row">
+                <span>Discount</span>
+                <span>-@Model.Header.DocDiscountAmount.ToString("0.00")</span>
+            </div>
+        }
+        @if (Model.Header.DocTaxableAmount > 0)
+        {
+            <div class="totals-row">
+                <span>Taxable Amount</span>
+                <span>@Model.Header.DocTaxableAmount.ToString("0.00")</span>
+            </div>
+        }
+        @if (Model.Header.DocSaleTaxAmount > 0)
+        {
+            <div class="totals-row">
+                <span>Sales Tax</span>
+                <span>@Model.Header.DocSaleTaxAmount.ToString("0.00")</span>
+            </div>
+        }
+        @if (Model.Header.DocAdditionalTaxAmount > 0)
+        {
+            <div class="totals-row">
+                <span>Additional Tax</span>
+                <span>@Model.Header.DocAdditionalTaxAmount.ToString("0.00")</span>
+            </div>
+        }
+        <div class="totals-row net">
+            <span>NET AMOUNT</span>
+            <span>@Model.Header.DocNetAmount.ToString("0.00")</span>
+        </div>
+        <div class="totals-row" style="margin-top: 4px;">
+            <span>Due Amount</span>
+            <span>@Model.Header.DueAmount.ToString("0.00")</span>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Header.FBRStamp))
+    {
+        <div class="small" style="text-align: center; margin-bottom: 4px;"><strong>FBR:</strong> @Model.Header.FBRStamp</div>
+    }
+
+    <div class="qr-container">
+        <img src="@qrCodeUrl" alt="QR Code" />
+        <div class="small">@Model.Header.Code</div>
     </div>
 
     <div class="footer-note">
-        This is a computer generated invoice.
+        Thank You! Computer Generated Invoice
     </div>
 </body>
 </html>

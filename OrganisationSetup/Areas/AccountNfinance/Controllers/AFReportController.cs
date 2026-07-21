@@ -6,6 +6,7 @@ using OrganisationSetup.Services;
 using SharedUI.Models.Contexts;
 using SharedUI.Models.Enums;
 using System.Data;
+using Microsoft.Data.SqlClient;
 
 namespace OrganisationSetup.Areas.AccountNfinance.Controllers
 {
@@ -27,95 +28,33 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
         public enum InvoiceRptType
         {
             ThermalPrint = 1,
-            PaperSize = 2
+            A4Print = 2
         }
 
         public async Task<IActionResult> InvoiceRptThermal(Guid guID, int invoiceRptType = (int)InvoiceRptType.ThermalPrint)
         {
             if (!_currentUser.IsAuthenticated) return Unauthorized();
 
-            var invoice = await _eRPOSContext.AFInvoice
-                .AsNoTracking()
-                .Where(i => i.GuID == guID && i.CompanyId == _currentUser.CompanyId && i.BranchId == _currentUser.BranchId)
-                .FirstOrDefaultAsync();
+            string activeStatus = ((int)DocumentStatus.active).ToString();
 
-            if (invoice == null) return NotFound();
+            var header = await GetInvoiceHeaderAsync(_currentUser.BranchId, guID);
+            if (header == null) return NotFound();
 
-            var lines = await _eRPOSContext.AFInvoicePPI
-                .AsNoTracking()
-                .Where(p => p.InvoiceId == invoice.Id && p.Status == true && p.DocumentStatus == (int)SharedUI.Models.Enums.DocumentStatus.active)
-                .OrderBy(p => p.Id)
-                .ToListAsync();
-
-            var modelLines = new List<LineVm>();
-            foreach (var l in lines)
-            {
-                string productName = await _eRPOSContext.IProduct
-                    .AsNoTracking()
-                    .Where(p => p.Id == l.ProductId)
-                    .Select(p => p.Description)
-                    .FirstOrDefaultAsync() ?? "Item";
-
-                string attributeDisplay = null;
-                if (l.ProductCombinationId != null)
-                {
-                    attributeDisplay = await _eRPOSContext.osvProductCombination
-                        .AsNoTracking()
-                        .Where(c => c.Id == l.ProductCombinationId)
-                        .Select(c => c.Attribute)
-                        .FirstOrDefaultAsync();
-                }
-
-                decimal unitSale = l.UnitSalePrice;
-                if (unitSale == 0m)
-                {
-                    var pl = await _eRPOSContext.AFProductPriceLog
-                        .AsNoTracking()
-                        .Where(p => p.ProductId == l.ProductId
-                                    && (l.ProductCombinationId == null || p.ProductCombinationId == l.ProductCombinationId)
-                                    && p.Status == true
-                                    && p.DocumentStatus == (int)SharedUI.Models.Enums.DocumentStatus.active
-                                    && p.CompanyId == _currentUser.CompanyId
-                                    && p.BranchId == _currentUser.BranchId)
-                        .OrderByDescending(p => p.CreatedOn)
-                        .Select(p => p.DefaultSalePrice)
-                        .FirstOrDefaultAsync();
-
-                    if (pl != 0m) unitSale = pl;
-                }
-
-                decimal discount = l.DiscountAmount;
-                decimal recalculatedCharged = Math.Max(0m, (unitSale * l.Quantity) - discount);
-
-                modelLines.Add(new LineVm
-                {
-                    Description = productName,
-                    Attribute = attributeDisplay,
-                    Quantity = l.Quantity,
-                    UnitSalePrice = unitSale,
-                    ChargedAmount = recalculatedCharged
-                });
-            }
+            var lines = await GetInvoiceLinesAsync(guID, activeStatus);
 
             var vm = new InvoicePrintVm
             {
-                Invoice = invoice,
-                Lines = modelLines
+                Header = header,
+                Lines = lines,
+                ReportType = (InvoiceRptType)invoiceRptType
             };
-
-            // Branch on report type
-            if (invoiceRptType == (int)InvoiceRptType.PaperSize)
-            {
-                vm.Totals = await GetHeaderTotalsAsync(invoice.Id);
-                return View("InvoiceRptThermal", vm);
-            }
 
             return View("InvoiceRptThermal", vm);
         }
 
-        private async Task<HeaderTotalsVm> GetHeaderTotalsAsync(int invoiceId)
+        private async Task<List<LineVm>> GetInvoiceLinesAsync(Guid guID, string documentStatus)
         {
-            var totals = new HeaderTotalsVm();
+            var result = new List<LineVm>();
             var conn = _eRPOSContext.Database.GetDbConnection();
             bool wasClosed = conn.State != ConnectionState.Open;
             if (wasClosed) await conn.OpenAsync();
@@ -123,32 +62,24 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
             try
             {
                 using var cmd = conn.CreateCommand();
-                cmd.CommandText = @"
-                    SELECT 
-                        SUM(CALC.GrossAmount)         AS DocGrossAmount,
-                        SUM(CALC.DiscountAmount)      AS DocDiscountAmount,
-                        SUM(CALC.TaxableAmount)       AS DocTaxableAmount,
-                        SUM(CALC.SaleTaxAmount)       AS DocSaleTaxAmount,
-                        SUM(CALC.AdditionalTaxAmount) AS DocAdditionalTaxAmount,
-                        SUM(CALC.NetAmount)           AS DocNetAmount
-                    FROM AFInvoice AS I
-                    CROSS APPLY dbo.fn_GetInvoiceCalculations(I.Id, 1) AS CALC
-                    WHERE I.Id = @InvoiceId";
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "AFInvoice_RptDetail_GBLParam";
 
-                var p = cmd.CreateParameter();
-                p.ParameterName = "@InvoiceId";
-                p.Value = invoiceId;
-                cmd.Parameters.Add(p);
+                cmd.Parameters.Add(new SqlParameter("@GuID", guID));
+                cmd.Parameters.Add(new SqlParameter("@DocumentStatus", documentStatus));
 
                 using var reader = await cmd.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
+                while (await reader.ReadAsync())
                 {
-                    totals.DocGrossAmount = reader["DocGrossAmount"] as decimal? ?? 0m;
-                    totals.DocDiscountAmount = reader["DocDiscountAmount"] as decimal? ?? 0m;
-                    totals.DocTaxableAmount = reader["DocTaxableAmount"] as decimal? ?? 0m;
-                    totals.DocSaleTaxAmount = reader["DocSaleTaxAmount"] as decimal? ?? 0m;
-                    totals.DocAdditionalTaxAmount = reader["DocAdditionalTaxAmount"] as decimal? ?? 0m;
-                    totals.DocNetAmount = reader["DocNetAmount"] as decimal? ?? 0m;
+                    result.Add(new LineVm
+                    {
+                        Description = reader["ProductName"] as string ?? "Item",
+                        Quantity = reader["Quantity"] as decimal? ?? 0m,
+                        UnitSalePrice = reader["DefaultUnitPrice"] as decimal? ?? 0m,
+                        ActualAmount = reader["ActualAmount"] as decimal? ?? 0m,
+                        DiscountAmount = reader["DiscountAmount"] as decimal? ?? 0m,
+                        ChargedAmount = reader["ChargedAmount"] as decimal? ?? 0m
+                    });
                 }
             }
             finally
@@ -156,27 +87,93 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
                 if (wasClosed) await conn.CloseAsync();
             }
 
-            return totals;
+            return result;
+        }
+
+        private async Task<HeaderVm> GetInvoiceHeaderAsync(int? locationId, Guid guID)
+        {
+            HeaderVm header = null;
+            var conn = _eRPOSContext.Database.GetDbConnection();
+            bool wasClosed = conn.State != ConnectionState.Open;
+            if (wasClosed) await conn.OpenAsync();
+
+            try
+            {
+                using var cmd = conn.CreateCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "AFInvoice_RptHeader_GBLParam";
+
+                cmd.Parameters.Add(new SqlParameter("@LocationId", locationId ?? (object)DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@InvoiceGUID", guID));
+
+                using var reader = await cmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    header = new HeaderVm
+                    {
+                        InvoiceId = reader["InvoiceId"] as int? ?? 0,
+                        GuID = reader["GuID"] as Guid? ?? Guid.Empty,
+                        Code = reader["Code"] as string,
+                        Location = reader["Location"] as string,
+                        TransactionDate = reader["TransactionDate"] as DateTime?,
+                        Customer = reader["Customer"] as string,
+                        Description = reader["Description"] as string,
+                        FBRStamp = reader["FBRStamp"] as string,
+                        DueAmount = reader["DueAmount"] as decimal? ?? 0m,
+                        InvoiceStatus = reader["InvoiceStatus"] as int?,
+                        CreatedOn = reader["CreatedOn"] as DateTime?,
+                        DocumentStatus = reader["DocumentStatus"] as int?,
+                        UserName = reader["UserName"] as string,
+                        DocGrossAmount = reader["DocGrossAmount"] as decimal? ?? 0m,
+                        DocDiscountAmount = reader["DocDiscountAmount"] as decimal? ?? 0m,
+                        DocTaxableAmount = reader["DocTaxableAmount"] as decimal? ?? 0m,
+                        DocSaleTaxAmount = reader["DocSaleTaxAmount"] as decimal? ?? 0m,
+                        DocAdditionalTaxAmount = reader["DocAdditionalTaxAmount"] as decimal? ?? 0m,
+                        DocNetAmount = reader["DocNetAmount"] as decimal? ?? 0m
+                    };
+                }
+            }
+            finally
+            {
+                if (wasClosed) await conn.CloseAsync();
+            }
+
+            return header;
         }
 
         public class InvoicePrintVm
         {
-            public AFInvoice Invoice { get; set; }
+            public HeaderVm Header { get; set; }
             public List<LineVm> Lines { get; set; } = new();
-            public HeaderTotalsVm Totals { get; set; } = new();
+            public InvoiceRptType ReportType { get; set; }
         }
 
         public class LineVm
         {
             public string Description { get; set; }
-            public string? Attribute { get; set; }
+            public string Attribute { get; set; }
             public decimal Quantity { get; set; }
             public decimal UnitSalePrice { get; set; }
+            public decimal ActualAmount { get; set; }
+            public decimal DiscountAmount { get; set; }
             public decimal ChargedAmount { get; set; }
         }
 
-        public class HeaderTotalsVm
+        public class HeaderVm
         {
+            public int InvoiceId { get; set; }
+            public Guid GuID { get; set; }
+            public string Code { get; set; }
+            public string Location { get; set; }
+            public DateTime? TransactionDate { get; set; }
+            public string Customer { get; set; }
+            public string Description { get; set; }
+            public string FBRStamp { get; set; }
+            public decimal DueAmount { get; set; }
+            public int? InvoiceStatus { get; set; }
+            public DateTime? CreatedOn { get; set; }
+            public int? DocumentStatus { get; set; }
+            public string UserName { get; set; }
             public decimal DocGrossAmount { get; set; }
             public decimal DocDiscountAmount { get; set; }
             public decimal DocTaxableAmount { get; set; }
