@@ -7,6 +7,7 @@ using SharedUI.Models.Contexts;
 using SharedUI.Models.Enums;
 using System.Data;
 using Microsoft.Data.SqlClient;
+using OrganisationSetup.Areas.AccountNfinance.Models;
 
 namespace OrganisationSetup.Areas.AccountNfinance.Controllers
 {
@@ -25,11 +26,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
             _commonServices = commonServices;
         }
 
-        public enum InvoiceRptType
-        {
-            ThermalPrint = 1,
-            A4Print = 2
-        }
+
 
         public async Task<IActionResult> InvoiceRptThermal(Guid guID, int invoiceRptType = (int)InvoiceRptType.ThermalPrint)
         {
@@ -49,7 +46,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
                 ReportType = (InvoiceRptType)invoiceRptType
             };
 
-            return View("InvoiceRptThermal", vm);
+            return View(vm);
         }
 
         private async Task<List<LineVm>> GetInvoiceLinesAsync(Guid guID, string documentStatus)
@@ -140,46 +137,56 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
 
             return header;
         }
+   
+    }
+}
 
-        public class InvoicePrintVm
-        {
-            public HeaderVm Header { get; set; }
-            public List<LineVm> Lines { get; set; } = new();
-            public InvoiceRptType ReportType { get; set; }
-        }
+namespace OrganisationSetup.Areas.AccountNfinance.Models
+{
+    public enum InvoiceRptType
+    {
+        ThermalPrint = 1,
+        A4Print = 2
+    }
 
-        public class LineVm
-        {
-            public string Description { get; set; }
-            public string Attribute { get; set; }
-            public decimal Quantity { get; set; }
-            public decimal UnitSalePrice { get; set; }
-            public decimal ActualAmount { get; set; }
-            public decimal DiscountAmount { get; set; }
-            public decimal ChargedAmount { get; set; }
-        }
+    public class InvoicePrintVm
+    {
+        public HeaderVm Header { get; set; }
+        public List<LineVm> Lines { get; set; } = new();
+        public InvoiceRptType ReportType { get; set; }
+    }
 
-        public class HeaderVm
-        {
-            public int InvoiceId { get; set; }
-            public Guid GuID { get; set; }
-            public string Code { get; set; }
-            public string Location { get; set; }
-            public DateTime? TransactionDate { get; set; }
-            public string Customer { get; set; }
-            public string Description { get; set; }
-            public string FBRStamp { get; set; }
-            public decimal DueAmount { get; set; }
-            public int? InvoiceStatus { get; set; }
-            public DateTime? CreatedOn { get; set; }
-            public int? DocumentStatus { get; set; }
-            public string UserName { get; set; }
-            public decimal DocGrossAmount { get; set; }
-            public decimal DocDiscountAmount { get; set; }
-            public decimal DocTaxableAmount { get; set; }
-            public decimal DocSaleTaxAmount { get; set; }
-            public decimal DocAdditionalTaxAmount { get; set; }
-            public decimal DocNetAmount { get; set; }
-        }
+    public class LineVm
+    {
+        public string Description { get; set; }
+        public string Attribute { get; set; }
+        public decimal Quantity { get; set; }
+        public decimal UnitSalePrice { get; set; }
+        public decimal ActualAmount { get; set; }
+        public decimal DiscountAmount { get; set; }
+        public decimal ChargedAmount { get; set; }
+    }
+
+    public class HeaderVm
+    {
+        public int InvoiceId { get; set; }
+        public Guid GuID { get; set; }
+        public string Code { get; set; }
+        public string Location { get; set; }
+        public DateTime? TransactionDate { get; set; }
+        public string Customer { get; set; }
+        public string Description { get; set; }
+        public string FBRStamp { get; set; }
+        public decimal DueAmount { get; set; }
+        public int? InvoiceStatus { get; set; }
+        public DateTime? CreatedOn { get; set; }
+        public int? DocumentStatus { get; set; }
+        public string UserName { get; set; }
+        public decimal DocGrossAmount { get; set; }
+        public decimal DocDiscountAmount { get; set; }
+        public decimal DocTaxableAmount { get; set; }
+        public decimal DocSaleTaxAmount { get; set; }
+        public decimal DocAdditionalTaxAmount { get; set; }
+        public decimal DocNetAmount { get; set; }
     }
 }

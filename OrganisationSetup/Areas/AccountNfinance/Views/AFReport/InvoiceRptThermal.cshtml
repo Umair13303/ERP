@@ -1,7 +1,7 @@
-﻿@model OrganisationSetup.Areas.AccountNfinance.Controllers.AFReportController.InvoicePrintVm
+﻿@model OrganisationSetup.Areas.AccountNfinance.Models.InvoicePrintVm
 @{
     Layout = null;
-    var isThermal = Model.ReportType == OrganisationSetup.Areas.AccountNfinance.Controllers.AFReportController.InvoiceRptType.ThermalPrint;
+    var isThermal = Model.ReportType == OrganisationSetup.Areas.AccountNfinance.Models.InvoiceRptType.ThermalPrint;
     var qrCodeUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={Uri.EscapeDataString(Model.Header.Code ?? Model.Header.GuID.ToString())}";
 }
 <!DOCTYPE html>
