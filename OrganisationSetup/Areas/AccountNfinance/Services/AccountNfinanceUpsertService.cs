@@ -477,7 +477,9 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                             #endregion
                             break;
                         case (int)PaymentType.CustomerAccount:
-                                break;
+                            // Intentionally left blank: Payment on account reduces overall ledger 
+                            // balance via the global credit entry above, without targeting specific invoices.
+                            break;
                     }
 
                     #region PORTION FOR :: HANDLE TRANSACTION
