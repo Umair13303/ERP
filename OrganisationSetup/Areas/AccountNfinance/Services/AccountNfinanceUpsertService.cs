@@ -112,6 +112,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
         }
         public async Task<ServiceResult> updateInsertDataInto_AFInvoice(PostedData postedData)
         {
+            bool? isWhatsAppMessagingAllowed = await _eRPOSContext.confApplicationRule.Where(x=> x.ClientKEY == 1).Select(x => x.IsWhatsAppInvoicing).FirstOrDefaultAsync();
             var userInfo = _currentUser;
 
             if (!userInfo.IsAuthenticated)
@@ -282,7 +283,6 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                 LocationId = postedData.LocationId,
                                 TransactionDate = postedData.TransactionDate,
                                 ProductId = item.ProductId,
-                                //Attribute = item.Attribute,
                                 RefDocumentType = (int?)DocumentType.invoice,
                                 RefDocumentId = AFInvoice.insertedId,
                                 Description = postedData.Description?.Trim(),
@@ -316,6 +316,12 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                     InventoryLedger,
                                                     con, transaction);
                     #endregion
+                    if(isWhatsAppMessagingAllowed == true)
+                    {
+                        #region PLACE HOLDER :: LATER SAVE DATA IN TABLE -- WILL NEED TO MAKE ANOTHER OPEN API ON BASIS OF KEY GUID TO FETC PENDING INVOICE 
+                        /* -- WORK TO DO ON LATER STAGE COMPLITION -- */
+                        #endregion
+                    }
 
                     #region PORTION FOR :: HANLDE TRANSACTION
                     switch (AFInvoice.response)
