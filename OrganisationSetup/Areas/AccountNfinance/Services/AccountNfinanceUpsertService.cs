@@ -184,7 +184,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                 Description= postedData.Description,
                                 Debit= (decimal)AFInvoice.totalInvoiceAmount,
                                 Credit =0,
-                                ReconcillationStatus= (int?)Default.reconcillationStatus,
+                                ReconcillationStatus= (int?)Default.reconcileStatus,
                                 CreatedOn = DateTime.Now,
                                 CreatedBy = userInfo.UserId,
                                 UpdatedOn = DateTime.Now,
