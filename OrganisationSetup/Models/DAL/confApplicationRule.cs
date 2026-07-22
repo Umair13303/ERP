@@ -10,4 +10,6 @@ public partial class confApplicationRule
     public int? ClientKEY { get; set; }
 
     public int? WalkInCustomerLimit { get; set; }
+    public bool? IsWhatsAppInvoicing { get; set; }
+
 }

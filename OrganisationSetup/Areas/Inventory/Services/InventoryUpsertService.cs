@@ -532,7 +532,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                     postedData.TransactionDate,
                     postedData.Description,
                     postedData.AdjustmentTypeId,
-                    (int)AdjustmentStatus.approved,
+                    (int)Default.adjustmentStatus,
                     transactionDate,
                     userInfo.UserId,
                     transactionDate,

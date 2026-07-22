@@ -44,5 +44,30 @@ namespace SharedUI.Models.Enums
         rejected = 4,
         voided = 5   
     }
+    public enum PaymentStatus
+    {
+        underProcess = 1,
+        verified = 2,
+        declined = 3,
+    }
+    public enum PaymentType
+    {
+        InvoiceWise = 1,
+        BillWise = 2,
+        CustomerAccount = 3,
+        SupplierAccount = 4
+    }
+    public enum Default
+    {
+        productId = 0,
+        productCombinationId = 0,
+        tierTypeId = 0,
+        productPriceLogId = 0,
+        adjustmentStatus = (int)AdjustmentStatus.approved,
+        invoiceStatus = (int)InvoiceStatus.unPaid,
+        reconcileStatus = (int)ReconcileStatus.reconciled,
+        paymentStatus = (int)PaymentStatus.verified,
+        billStatus = (int)BillStatus.unPaid,
+    }
 
 }
