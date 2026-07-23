@@ -1,0 +1,119 @@
+PROJECT NAME : INVENTORY SYSTEM 
+BUSINESS LINE TO COVER:
+1. GENERAL STORE
+2. PHARMACY
+3. CLOTH STORE
+4. FAST FOOD
+
+IDEA INSPIRATION:
+My idea was inspired by an event occured to me the details are:
+
+On 01-Jan-20226, I visited alkaram studio to buy a shirt, after a brief window shopping i choosed a shirt from the outlet shelf,but it was not of my size
+so i took the shirt to the counter and ask if they have this shirt in my size.
+the counter person looked into software and said "ITS SHOWING STOCK IN OUR SYSTEM BUT WE ARE UNABLE TO SEE IF THE SAME SIZE AND COLOR YOU ARE ASKING" and for that
+he had to leave counter & check the shelf & internal store him self.I found i pathetic.
+
+MY TAKE:
+After 10-15 days of basic understanding of inventory systems i did not found any software dealing in product varients like color size etc etc
+so i started making my own inventory system and  My proposed name is dynaIMS (dynamic inventory managment system)
+
+I have build basic forms of configuration like:
+APPLICATION CONFIGURATION:
+1. ADD COMPANY
+2. ADD BRANCH
+3. ADD USER
+
+COMPANY SETUP:
+1. ADD DEPARTMENT
+
+INVENTORY:
+1. ADD SECTION
+2. ADD CATEGORY
+3. ADD SUBCATEGORY
+4. ADD BRAND
+5. ADD PRODUCT -- (CORE FORM # 1)
+6. ADD ADJUSTMENT -- (CORE FORM # 2)
+7. PRODUCT LIST 
+
+SALE OPERATION
+1. ADD CUSTOMER + OPENING BALANCE
+2. VIEW CUSTOMER LIST (IN TABLE CUSTOMER BASIC INFO & TOTAL PURCHASE , TOTAL PAYMENTS, TOTAL DUE )
+
+PROCURMENT:
+1. ADD SUPPLIER + OPENING BALANCE
+2. VIEW SUPPLIER LIST (IN TABLE SUPPLIER BASIC INFO & TOTAL PURCHASE , TOTAL PAYMENTS, TOTAL DUE )
+
+ACCOUNTS & FINANACE:
+6. DIRECT BILL -- (CORE FORM # 8) TO RECORD ALL PURCHASES ** NOTE : I HAVE SUBSTITUTED AND ENTIRE PROCURMENT MODULE WITH THIS SINGLE FORM
+7. BILL LIST
+
+1. INVOICE RECEIPT  - (CORE FORM # 3) TO RECORD PAYMENT RECEIVED FROM CUSTOMER WITH LINK OF INVOICE SPECIFIED
+2. ADD RECEIPT - (CORE FORM # 4) TO RECORD PAYMENT  RECEIVED FROM CUSTOMER WITHOUT LINK OF INVOICE SPECIFIED
+3. BILL RECEIPT -- (CORE FORM # 5) TO RECORD PAYMENT MADE TO SUPPLIER WITH LINK OF BILL SPECIFIED
+4. BILL RECEIPT -- (CORE FORM # 6) TO RECORD PAYMENT MADE TO SUPPLIER WITHOUT LINK OF BILL SPECIFIED
+5. DIRECT INVOICE  -- (CORE FORM # 7) TO RECORD CUSTOMER SALE -- ** NOTE THIS FORM MUST BE ACCURATE WITH NO GAPS ITS ONE OF THE MAIN FORMS
+
+
+
+EXPLANATION OF CORE CONCEPT:
+In PAKISTAN and other south Asian countries the staff of a retail store is not as much qualified as a professional accountant & manager of large scale companies
+if i force users to learn and enter i am gonna loose my sale worth no matter how strong i make it 
+and the owners might want every kind of report plus you never trust your client on requirment they can ask for any thing so i did some backend & database driven things
+1.we can not show complicated things like is chart of accounts in a production configuration form:
+solution: in a database table i setted up default its which will help in controlling the form in much better way
+2. some product specially in clothing sector has varients like color & size:
+solution: i added a "," attributeIds in product form so either the user can choose what will be the attributes or the company for once can tell me their global attributes and i will set them in default setting table
+and save with every product by hiding & not clearing it
+3. i figured out if my product has attributed and as opening balance i also have to set prices so making a opening balance form was not suitable:
+solution: made inventory adjsutment form , added a adjustment type: OPENING BALANCE in database and set its IsAutoPriceUpdate = true so in this case it will 
+auto update the prices on setup in AFProductPriceLog
+
+
+.. CORE FORM NO. 1:
+in here user can configure what kind of attributes are being attached to an item. and define other things if visible to him
+I added costing modeid in here to control things at mircoest level 
+need to handle sales of batch & expiry (u know for medicine although i intend to make a seprate form for the AFProductPriceLog)
+- IMPROVMENT: IN CASE SKU & BARCODES ARE NOT PROVIDED OR ARE NOT SUPPOSED TO BE PROVIDED WE GENERATE IT ON BACKEND
+
+.. CORE FORM NO. 2:
+this is one of the main & crucial form. the purpose of this form is the use can add adjustment as regular but also he can add opening balance
+on change o adjustment type am getting enabling disabling from database 
+IMPROVMENT: NEED TO MAKE IT OPERATIONAL IN CASE OF BOTH ADJUSTMENTS & OPENING BALANCES, also solve ui bugs and issues, and handle product combination and scenario what if a product has no attriuted link
+.. CORE FORM NO. 8:
+we need to make sure the direct purchase form works fine with combination and wihtout combinationalso solve ui bugs and issues, and handle product combination and scenario what if a product has no attriuted link
+.. CORE FORM NO. 7:
+in invoice forms there are sewere gaps in linkage in this form adopt no tolerance policy for failiure & bugs
+IMPROVMENT : IN CASE IS WALK IN CUSTOMER CUSTOMER CHECKED FETCH CUSTOMERS WHOSE IS WALKIN = TRUE
+ADD REPORTS BEHIND BUTTON OF INVOICE PRINT & CUSTOMER LEDGER
+DEAL THE ATTRIBUTE WISE SALE HERE
+
+FEW DETAILS:
+I HAVE LEFT DB & OTHER SECRETES OPEN AS FOR NOW I WANT TO COMPLETE MY PROJECT AND NOT GET IN SECURITY
+NO STORE WAS MADE AS I HAVE TREATED BRANCHES AS STORE
+NO PROCURMENT FLOW AS I HAVE DEVELOPED DIRECT BILL
+
+
+NEED TO DO FOLLOWING REPORTING IN CURRENT PHASE(MUST RENDER AS BLOB)
+1. PDF OUTPUT OF INVOICE IN A4
+1. PDF OUTPUT OF INVOICE IN 80 * 280 THERMAL PRINT
+1. CUSTOMER LEDGER CUSTOMER WISE & OVER ALL
+1. CUSTOMER PAYMENT RECEIPT(IF AN INVOICE IS SELECTED ALL RECEIPTS FOR THE INVOICE & IF NO INVOICE IS SELECTED ALL RECEIPTS DASHED / BORDERED STYLE AS CONFIRMATION FO OF PAYMENT)
+1. SUPPLIER BILL REPORT
+1. SUPPLIER LEDGER REPORT
+1. INVENTORY LEDGER REPORT - WITH ATTRIBUTES
+
+
+NEXT THINGS I PLAN TO MAKE ONCE THE CURRENT SETUP IS VERIFIED:
+1. ITEM STOCK TRANSFER
+2. INVOICE PARTIAL & COMPLETE RETURN -- CRUCIAL
+3. PETTY CASH MODULE
+	A. DAILY CASH RECEIVING
+	B. DAILY EXPENSE
+	C. PETTY CASH LEDGER
+	D. MONTHLY EXPENSE SUMMARY
+4. HRM:
+	A. CONFIGURATION:
+		ADD EMPLOYEE
+	B. LAON
+	C. LEAVE
+	D. PAYROLL

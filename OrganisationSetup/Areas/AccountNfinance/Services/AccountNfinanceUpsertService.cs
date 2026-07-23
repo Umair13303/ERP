@@ -142,7 +142,9 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                     decimal invoiceChargedAmount = postedData.PostedDataAFInvoicePPI.Sum(x => x.ChargedAmount);
                     decimal receiptAmount = postedData.ReceiptAmount ?? 0m;
                     decimal dueAmount = Math.Max(0, invoiceChargedAmount - receiptAmount);
-                    
+
+                    int computedInvoiceStatus = dueAmount <= 0 ? (int)InvoiceStatus.paid    : dueAmount < invoiceChargedAmount ? (int)InvoiceStatus.partialPaid : (int)InvoiceStatus.unPaid;
+                    string invoiceStatus = Enum.GetName(typeof(InvoiceStatus), computedInvoiceStatus) ?? "UNKNOWN";
                     postedData.Description = "POS Direct Invoice Generated, Amounting " + invoiceChargedAmount + " @ " + DateTime.UtcNow;
                     #region PORTION FOR :: UPSERT INTO dbo.AFInvoice
                     var AFInvoice = await _repo.UpsertInto_AFInvoice(
@@ -155,7 +157,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                   postedData.FBRStamp,
                                                   invoiceChargedAmount,
                                                   postedData.InvoiceTypeId,
-                                                  (int)Default.invoiceStatus,
+                                                  (int?)dueAmount,
                                                   DateTime.Now,
                                                   userInfo.UserId,
                                                   DateTime.Now,
