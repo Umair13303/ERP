@@ -368,10 +368,33 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
             else
             {
                 invoiceReceiptGuID = postedData.GuID;
+                customerLedgerGuID = postedData.GuID;
+
             }
             bool? isOperationPermitted = true;
-            //bool? isOperationPermitted = await _validationService.isAFPaymentReceiptValid(postedData.OperationType, paymentReceiptGuID);
+
+
             #endregion
+
+            #region PORTION FOR :: VALIDATE INVOICE EXISTS BEFORE SAVING RECEIPT
+            AFInvoice? AFInvoice = null;
+            if (postedData.PaymentTypeId == (int)PaymentType.InvoiceWise)
+            {
+                AFInvoice = await _eRPOSContext.AFInvoice
+                    .Where(x => x.Id == postedData.InvoiceId && x.Status == true)
+                    .FirstOrDefaultAsync();
+
+                if (AFInvoice == null)
+                {
+                    return ServiceResult.failure(Message.serverResponse((int?)Code.CEM_InvalidInvoice), (int)Code.CEM_InvalidInvoice);
+                }
+                if ((decimal)postedData.ReceiptAmount > AFInvoice.DueAmount)
+                {
+                    return ServiceResult.failure(Message.serverResponse((int?)Code.CEM_WrongInvoiceAmount), (int)Code.CEM_WrongInvoiceAmount);
+                }
+            }
+            #endregion
+
 
             if (isOperationPermitted == true)
             {
@@ -451,16 +474,12 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                     switch (postedData.PaymentTypeId)
                     {
                         case (int)PaymentType.InvoiceWise:
-                            #region PORTION FOR :: UPDATE OUTSTANDING DUE AMOUNT ON dbo.AFInvoice
-
-                            var AFInvoice = await _eRPOSContext.AFInvoice
-                                                               .Where(x => x.Id == postedData.InvoiceId && x.Status == true)
-                                                               .FirstOrDefaultAsync();
                             if (AFInvoice != null)
                             {
                                 decimal oldDueAmount = AFInvoice.DueAmount;
                                 decimal newDueAmount = Math.Max(0m, oldDueAmount - (decimal)postedData.ReceiptAmount);
                                 AFInvoice.DueAmount = newDueAmount;
+
                                 if (newDueAmount == 0)
                                 {
                                     AFInvoice.InvoiceStatus = (int?)InvoiceStatus.paid;
@@ -469,21 +488,17 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                 {
                                     AFInvoice.InvoiceStatus = (int?)InvoiceStatus.partialPaid;
                                 }
+
                                 _eRPOSContext.Entry(AFInvoice).Property(x => x.DueAmount).IsModified = true;
+                                _eRPOSContext.Entry(AFInvoice).Property(x => x.InvoiceStatus).IsModified = true;
                                 await _eRPOSContext.SaveChangesAsync();
                             }
-                            else
-                            {
-                                AFInvoiceReceipt.response = (int)Code.NotFound;
-                            }
-                            #endregion
                             break;
+
                         case (int)PaymentType.CustomerAccount:
-                            // Intentionally left blank: Payment on account reduces overall ledger 
-                            // balance via the global credit entry above, without targeting specific invoices.
+                            // INTENTIONALLY LEFT BLANK
                             break;
                     }
-
                     #region PORTION FOR :: HANDLE TRANSACTION
                     switch (AFInvoiceReceipt.response)
                     {
@@ -730,10 +745,31 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
             else
             {
                 billReceiptGuID = postedData.GuID;
+                supplierLedgerGuID = postedData.GuID;
             }
             bool? isOperationPermitted = true;
             //bool? isOperationPermitted = await _validationService.isAFPaymentReceiptValid(postedData.OperationType, paymentReceiptGuID);
             #endregion
+
+            #region PORTION FOR :: VALIDATE BILL EXISTS BEFORE SAVING PAYMENT
+            AFBill? AFBill = null;
+            if (postedData.PaymentTypeId == (int)PaymentType.BillWise)
+            {
+                AFBill = await _eRPOSContext.AFBill
+                    .Where(x => x.Id == postedData.BillId && x.Status == true)
+                    .FirstOrDefaultAsync();
+
+                if (AFBill == null)
+                {
+                    return ServiceResult.failure(Message.serverResponse((int?)Code.CEM_InvalidBill), (int)Code.CEM_InvalidBill);
+                }
+                if ((decimal)postedData.ReceiptAmount > AFBill.DueAmount)
+                {
+                    return ServiceResult.failure(Message.serverResponse((int?)Code.CEM_WrongBillAmount), (int)Code.CEM_WrongBillAmount);
+                }
+            }
+            #endregion
+
 
             if (isOperationPermitted == true)
             {
@@ -769,7 +805,6 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                       userInfo.CompanyId,
                                                       con, transaction);
                     #endregion
-
 
                     #region PORTION FOR :: FILL & UPSERT SupplierLedger
                     string supplierLedgerDescription = postedData!.Description;
@@ -815,34 +850,32 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                     switch (postedData.PaymentTypeId)
                     {
                         case (int)PaymentType.BillWise:
-                            #region PORTION FOR :: UPDATE OUTSTANDING DUE AMOUNT ON dbo.AFBill
-
-                            var AFBill = await _eRPOSContext.AFBill
-                                                               .Where(x => x.Id == postedData.BillId && x.Status == true)
-                                                               .FirstOrDefaultAsync();
                             if (AFBill != null)
                             {
                                 decimal oldDueAmount = AFBill.DueAmount ?? 0m;
                                 decimal newDueAmount = Math.Max(0m, oldDueAmount - (decimal)postedData.ReceiptAmount);
                                 AFBill.DueAmount = newDueAmount;
+
                                 if (newDueAmount == 0)
                                     AFBill.BillStatus = (int?)InvoiceStatus.paid;
                                 else if (newDueAmount < oldDueAmount)
                                     AFBill.BillStatus = (int?)InvoiceStatus.partialPaid;
+
                                 AFBill.UpdatedBy = userInfo.UserId;
                                 AFBill.UpdatedOn = DateTime.Now;
+
+                                _eRPOSContext.Entry(AFBill).Property(x => x.DueAmount).IsModified = true;
+                                _eRPOSContext.Entry(AFBill).Property(x => x.BillStatus).IsModified = true;
+                                _eRPOSContext.Entry(AFBill).Property(x => x.UpdatedBy).IsModified = true;
+                                _eRPOSContext.Entry(AFBill).Property(x => x.UpdatedOn).IsModified = true;
+
                                 await _eRPOSContext.SaveChangesAsync();
                             }
-                            else
-                            {
-                                AFBillReceipt.response = (int)Code.NotFound;
-                            }
-                            #endregion
                             break;
-                        case (int)PaymentType.SupplierAccount:
-                                break;
-                    }
 
+                        case (int)PaymentType.SupplierAccount:
+                            break;
+                    }
                     #region PORTION FOR :: HANDLE TRANSACTION
                     switch (AFBillReceipt.response)
                     {

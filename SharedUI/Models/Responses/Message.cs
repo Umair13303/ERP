@@ -58,6 +58,11 @@ namespace SharedUI.Models.Responses
                 503 => "Service Unavailable - Server is temporarily overloaded or down",
                 504 => "Gateway Timeout",
                 505 => "HTTP Version Not Supported",
+                // --- Aligned Custom Error Messages ---
+                1000 => "INVALID INVOICE PROVIDED",
+                1001 => "RECEIPT CANNOT BE GREATER THAN DUE INVOICE",
+                2000 => "INVALID BILL PROVIDED",
+                2001 => "RECEIPT CANNOT BE GREATER THAN DUE BILL",
 
                 _ => "Unknown HTTP Response Code"
             };

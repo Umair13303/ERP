@@ -72,6 +72,12 @@ namespace SharedUI.Models.Responses
         InsufficientStorage = 507,
         LoopDetected = 508,
         NotExtended = 510,
-        NetworkAuthenticationRequired = 511
+        NetworkAuthenticationRequired = 511,
+
+        // --- Custom Error Codes ---
+        CEM_InvalidInvoice = 1000,
+        CEM_WrongInvoiceAmount = 1001,
+        CEM_InvalidBill = 2000,
+        CEM_WrongBillAmount = 2001
     }
 }

@@ -1,0 +1,161 @@
+﻿Location: OrganisationSetup/Areas/AccountNfinance/Services/AccountNfinanceUpsertService.cs
+STATUS: FIXED
+Issue #5 actually loses MONEY and creates UNTRACKED CASH:
+switch (postedData.PaymentTypeId)
+{
+    case (int)PaymentType.InvoiceWise:
+        #region PORTION FOR :: VALIDATE INVOICE EXISTS BEFORE SAVING RECEIPT
+        var AFInvoice = await _eRPOSContext.AFInvoice
+            .Where(x => x.Id == postedData.InvoiceId && x.Status == true)
+            .FirstOrDefaultAsync();
+        
+        if (AFInvoice == null)
+        {
+            await transaction.RollbackAsync();
+            return ServiceResult.failure(
+                $"Invoice #{postedData.InvoiceId} not found or inactive. Payment cannot be recorded against non-existent invoice.", 
+                (int)Code.NotFound
+            );
+        }
+        #endregion
+        
+        #region PORTION FOR :: VALIDATE PAYMENT DOES NOT EXCEED DUE AMOUNT
+        decimal oldDueAmount = AFInvoice.DueAmount ?? 0m;
+        if ((decimal)postedData.ReceiptAmount > oldDueAmount)
+        {
+            await transaction.RollbackAsync();
+            return ServiceResult.failure(
+                $"Payment amount (PKR {postedData.ReceiptAmount:F2}) exceeds invoice due amount (PKR {oldDueAmount:F2}). " +
+                $"Please verify the payment amount.", 
+                (int)Code.BadRequest
+            );
+        }
+        #endregion
+        
+        #region PORTION FOR :: UPDATE INVOICE DUE AMOUNT
+        decimal newDueAmount = Math.Max(0m, oldDueAmount - (decimal)postedData.ReceiptAmount);
+        AFInvoice.DueAmount = newDueAmount;
+        if (newDueAmount == 0)
+        {
+            AFInvoice.InvoiceStatus = (int?)InvoiceStatus.paid;
+        }
+        else if (newDueAmount < oldDueAmount)
+        {
+            AFInvoice.InvoiceStatus = (int?)InvoiceStatus.partialPaid;
+        }
+        _eRPOSContext.Entry(AFInvoice).Property(x => x.DueAmount).IsModified = true;
+        _eRPOSContext.Entry(AFInvoice).Property(x => x.InvoiceStatus).IsModified = true;
+        await _eRPOSContext.SaveChangesAsync();
+        #endregion
+        break;
+        
+    case (int)PaymentType.CustomerAccount:
+        // Intentionally left blank: Payment on account reduces overall ledger 
+        // balance via the global credit entry, without targeting specific invoices.
+        break;
+}
+
+Location: OrganisationSetup/wwwroot/js/AccountNfinance/CreateUpdate_AFInvoiceReceipt_INVW_UIScript.js
+
+function processPayment(btnElement) {
+    if (!validater()) return;
+
+    var tr = $(btnElement).closest('tr');
+    var rowData = invoiceTable.row(tr).data();
+    var guID = rowData.guID;
+    var invoiceId = rowData.invoiceId;
+
+    // VALIDATION 1: Invoice ID must exist
+    if (!invoiceId || invoiceId === 0 || invoiceId === '') {
+        toastr.error("Invalid invoice selection. Please select a valid invoice.");
+        return;
+    }
+
+    // VALIDATION 2: Payment amount must be > 0
+    var receiptAmount = parseFloat($('#TextBoxReceiptAmount_' + guID).val());
+    if (!receiptAmount || receiptAmount <= 0) {
+        toastr.warning("Please enter a valid payment amount (greater than 0).");
+        return;
+    }
+
+
+    // VALIDATION 3: Payment must not exceed due amount
+    var dueAmount = parseFloat(rowData.dueAmount) || 0;
+    if (receiptAmount > dueAmount) {
+        toastr.error(
+            "Payment amount (PKR " + receiptAmount.toFixed(2) + ") exceeds due amount (PKR " + dueAmount.toFixed(2) + "). " +
+            "Please correct the payment amount."
+        );
+        return;
+    }
+
+    // If all validations pass, proceed with AJAX
+    var jsonData = {
+        OperationType: $("#OperationType").val(),
+        LocationId: $("#DropDownListLocation :selected").val(),
+        TransactionDate: $("#TextBoxTransactionDate").val(),
+        CustomerId: $("#DropDownListCustomer :selected").val(),
+        PaymentMethodId: $("#DropDownListPaymentMethod :selected").val(),
+        Reference: $("#TextBoxReference").val(),
+        InvoiceId: invoiceId,
+        ReceiptAmount: receiptAmount,
+        Description: $('#TextBoxDescription_' + guID).val(),
+        PaymentTypeId: $("#PaymentTypeId").val(),
+    };
+
+    $.ajax({
+        url: window.basePath + "AccountNfinance/AFInvoiceReceiptManagement/createUpdateInvoiceReceipt",
+        type: "POST",
+        data: JSON.stringify(jsonData),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        beforeSend: function () {
+            initLoading();
+            $(btnElement).prop("disabled", true);
+        },
+        success: function (response) {
+            if (response.isSuccess) {
+                toastr.success(response.message);
+                $("#AFInvoiceReceipt").removeClass("was-validated");
+                getInvoiceList($("#DropDownListCustomer :selected").val());
+                clearInputFields();
+            } else {
+                toastr.error(response.message);  // Shows backend validation errors
+            }
+        },
+        error: function (xhr) {
+            toastr.error("System Error: " + (xhr.responseJSON?.message || xhr.statusText));
+        },
+        complete: function () {
+            stopLoading();
+            $(btnElement).prop("disabled", false);
+        }
+    });
+}
+
+
+
+1. Create Invoice #100 for Customer "ABC Corp" → Amount $500, Due $500
+2. Record payment → Invoice ID: 100, Amount: $300
+3. Expected: 
+   - Receipt saved ✓
+   - Invoice #100 Due updated to $200 ✓
+   - toastr: "Payment recorded successfully" ✓
+Test Case 2: Non-Existent Invoice (Should Fail & Rollback)
+Code
+1. Try to record payment → Invoice ID: 999 (doesn't exist), Amount: $100
+2. Expected: 
+   - NO receipt saved (rolled back) ✓
+   - toastr ERROR: "Invoice #999 not found" ✓
+   - Database clean (no orphaned receipt) ✓
+Test Case 3: Overpayment (Should Fail)
+Code
+1. Invoice #100 Due: $200
+2. Try to pay: $300
+3. Expected:
+   - NO receipt saved ✓
+   - toastr ERROR: "Payment exceeds due amount" ✓
+   - Invoice #100 remains unchanged ✓
+
+
+fix: prevent orphaned invoice receipts with validation
