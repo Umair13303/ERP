@@ -117,3 +117,16 @@ NEXT THINGS I PLAN TO MAKE ONCE THE CURRENT SETUP IS VERIFIED:
 	B. LAON
 	C. LEAVE
 	D. PAYROLL
+
+---------------------------------------------------------------------------------------
+BUGS FOUND & SOLVED
+1. INVOICE RECEIPT :
+	In code level at backend
+		Orphan transactions in database
+		No validation for invoice existance & amount receipt
+	In js level validation for:
+	a. valid invoice selection
+	b. valid amount . to be greater that 0
+	c. valid amount less than or equal to due amount
+
+

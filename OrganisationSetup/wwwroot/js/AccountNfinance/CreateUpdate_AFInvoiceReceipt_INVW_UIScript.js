@@ -208,7 +208,8 @@ function initialize() {
     changeEventHandler();
 }
 /* ------ Validation for user input ------ */
-function validater() {
+/* ------ Validation for user input ------ */
+function validater(btnElement) {
     var form = document.getElementById("AFInvoiceReceipt");
     if (!form.checkValidity()) {
         form.classList.add('was-validated');
@@ -222,28 +223,37 @@ function validater() {
         return false;
     }
 
-    if (!validater()) return;
+    if (btnElement) {
+        var tr = $(btnElement).closest('tr');
+        var rowData = invoiceTable.row(tr).data();
 
-    var tr = $(btnElement).closest('tr');
-    var rowData = invoiceTable.row(tr).data();
-    var guID = rowData.guID;
-    var invoiceId = rowData.invoiceId;
-    if (!invoiceId || invoiceId === 0 || invoiceId === '') {
-        toastr.error("Invalid invoice selection. Please select a valid invoice.");
-        return false;
-    }
-    var receiptAmount = parseFloat($('#TextBoxReceiptAmount_' + guID).val());
-    if (!receiptAmount || receiptAmount <= 0) {
-        toastr.warning("Please enter a valid payment amount (greater than 0).");
-        return false;
-    }
-    var dueAmount = parseFloat(rowData.dueAmount) || 0;
-    if (receiptAmount > dueAmount) {
-        toastr.error(
-            "Payment amount (PKR " + receiptAmount.toFixed(2) + ") exceeds due amount (PKR " + dueAmount.toFixed(2) + "). " +
-            "Please correct the payment amount."
-        );
-        return false;
+        if (!rowData) {
+            toastr.error("Unable to retrieve invoice row data.");
+            return false;
+        }
+
+        var guID = rowData.guID;
+        var invoiceId = rowData.invoiceId;
+
+        if (!invoiceId || invoiceId === 0 || invoiceId === '') {
+            toastr.error("Invalid invoice selection. Please select a valid invoice.");
+            return false;
+        }
+
+        var receiptAmount = parseFloat($('#TextBoxReceiptAmount_' + guID).val());
+        if (!receiptAmount || receiptAmount <= 0) {
+            toastr.warning("Please enter a valid payment amount (greater than 0).");
+            return false;
+        }
+
+        var dueAmount = parseFloat(rowData.dueAmount) || 0;
+        if (receiptAmount > dueAmount) {
+            toastr.error(
+                "Payment amount (PKR " + receiptAmount.toFixed(2) + ") exceeds due amount (PKR " + dueAmount.toFixed(2) + "). " +
+                "Please correct the payment amount."
+            );
+            return false;
+        }
     }
 
     return true;
