@@ -149,5 +149,23 @@ namespace SharedUI.Models.ViewModels
             public int? Id { get; set; }
 
         }
+        public class ProductVariant_List
+        {
+            public int? ProductCombinationId { get; set; }
+            public string? Attribute { get; set; }
+            public decimal AvailableQty { get; set; }
+        }
+
+        public class ProductSaleInfo_DTO
+        {
+            public decimal DefaultSalePrice { get; set; }
+            public decimal MinimumSalePrice { get; set; }
+            public string? Batch { get; set; }
+            public DateTime? ExpiryDate { get; set; }
+            public decimal AvailableQty { get; set; }
+            public bool IsExpiryApplicable { get; set; }
+            public int? CostingModeId { get; set; }
+            public bool IsBatchResolutionFailed { get; set; } // true => stock exists but all batches expired/rejected
+        }
     }
 }

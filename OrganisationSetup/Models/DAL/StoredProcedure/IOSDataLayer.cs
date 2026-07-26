@@ -414,6 +414,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             table.Columns.Add("InvoiceId", typeof(int));
             table.Columns.Add("ProductPriceLogId", typeof(int));
             table.Columns.Add("ProductId", typeof(int));
+            table.Columns.Add("ProductATIId", typeof(int));
             table.Columns.Add("ProductCombinationId", typeof(int));
             table.Columns.Add("Quantity", typeof(decimal));
             table.Columns.Add("UnitSalePrice", typeof(decimal));
@@ -436,6 +437,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                     (object?)item.InvoiceId ?? DBNull.Value,
                     (object?)item.ProductPriceLogId ?? DBNull.Value,
                     (object?)item.ProductId ?? DBNull.Value,
+                    (object?)item.ProductATIId ?? DBNull.Value,
                     (object?)item.ProductCombinationId ?? DBNull.Value,
                     (object)item.Quantity ?? DBNull.Value,
                     (object)item.UnitSalePrice ?? DBNull.Value,
@@ -709,6 +711,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             table.Columns.Add("GuID", typeof(Guid));
             table.Columns.Add("BillId", typeof(int));
             table.Columns.Add("ProductId", typeof(int));
+            table.Columns.Add("ProductATIId", typeof(int));
             table.Columns.Add("ProductCombinationId", typeof(int));
             table.Columns.Add("Quantity", typeof(decimal));
             table.Columns.Add("UnitPurchasePrice", typeof(decimal));
@@ -732,6 +735,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                     item.GuID,
                     (object?)item.BillId ?? DBNull.Value,
                     (object?)item.ProductId ?? DBNull.Value,
+                    (object?)item.ProductATIId ?? DBNull.Value,
                     (object?)item.ProductCombinationId ?? DBNull.Value,
                     (object)item.Quantity ?? DBNull.Value,
                     (object)item.UnitPurchasePrice ?? DBNull.Value,

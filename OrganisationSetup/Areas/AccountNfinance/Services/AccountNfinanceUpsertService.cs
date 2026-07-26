@@ -146,6 +146,10 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                     int computedInvoiceStatus = dueAmount <= 0 ? (int)InvoiceStatus.paid    : dueAmount < invoiceChargedAmount ? (int)InvoiceStatus.partialPaid : (int)InvoiceStatus.unPaid;
                     string invoiceStatus = Enum.GetName(typeof(InvoiceStatus), computedInvoiceStatus) ?? "UNKNOWN";
                     postedData.Description = "POS Direct Invoice Generated, Amounting " + invoiceChargedAmount + " @ " + DateTime.UtcNow;
+                    foreach (var i in postedData.PostedDataAFInvoicePPI)
+                    {
+                        i.ProductATIId = await _commonServices.get_activeProductATIByParam(i.ProductId);
+                    }
                     #region PORTION FOR :: UPSERT INTO dbo.AFInvoice
                     var AFInvoice = await _repo.UpsertInto_AFInvoice(
                                                   postedData.OperationType,
@@ -221,7 +225,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                             AFInvoice.insertedId,
                             receiptDescription,
                             (int?)PaymentType.InvoiceWise,
-                            postedData.PaymentMethodId ?? 1, // Default to 1 (Cash)
+                            postedData.PaymentMethodId ?? 1,
                             postedData.Reference,
                             receiptAmount,
                             (int?)Default.paymentStatus,
@@ -290,12 +294,12 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                 Description = postedData.Description?.Trim(),
                                 QuantityIn = 0,
                                 QuantityOut = item.Quantity,
-                                UnitPurchasePrice =  0,
+                                UnitPurchasePrice = 0,
                                 UnitSalePrice = item.UnitSalePrice,
                                 Debit = 0,
                                 Credit = item.ChargedAmount,
-                                Batch = "",//item.Batch,
-                                ExpiryDate = null, //item.ExpiryDate,
+                                //Batch = string.IsNullOrWhiteSpace(item.Batch) ? null : item.Batch.Trim(),
+                                //ExpiryDate = item.ExpiryDate, 
                                 ReconcillationStatus = (int?)Default.reconcileStatus,
                                 CreatedOn = DateTime.Now,
                                 CreatedBy = userInfo.UserId,
@@ -555,6 +559,19 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
 
             if (isOperationPermitted == true)
             {
+                #region PORTION FOR :: GENERATE PRODUCT COMBINATION
+                var comboList = postedData.PostedDataAFBillPPI.Select(i => new osvProductCombination
+                {
+                    ProductId = i.ProductId,
+                    Attribute = i.Attribute
+                }).ToList();
+                var combinationGeneration = await _commonServices.generate_productCombination((int)DocumentType.inventoryAdjustment, comboList);
+
+                foreach (var i in postedData.PostedDataAFBillPPI)
+                {
+                    i.ProductCombinationId = await _commonServices.get_productCombination(i.ProductId, i.Attribute);
+                }
+                #endregion
                 using var con = new SqlConnection(_connectionString);
                 await con.OpenAsync();
                 using var transaction = con.BeginTransaction();
@@ -571,7 +588,8 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                             GuID = Guid.NewGuid(),
                             BillId = 0,
                             ProductId = item.ProductId,
-                            Attribute = item.Attribute,
+                            ProductATIId = await _commonServices.get_activeProductATIByParam(item.ProductId),
+                            ProductCombinationId = await _commonServices.get_productCombination(item.ProductId, item.Attribute),
                             Quantity = item.Quantity,
                             UnitPurchasePrice = (decimal)item.UnitPurchasePrice,
                             ActualAmount = (decimal)item.ActualAmount,
@@ -587,9 +605,8 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                             DocumentStatus = (int?)DocumentStatus.active,
                             Status = true
                         });
-                    }
-                    ;
-
+                    };
+                    
                     #region PORTION FOR :: UPSERT INTO dbo.AFBill
                     var AFBill = await _repo.UpsertInto_AFBill(
                                                     postedData.OperationType,

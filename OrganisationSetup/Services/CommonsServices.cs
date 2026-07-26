@@ -35,6 +35,7 @@ namespace OrganisationSetup.Services
         Task<int> generate_productCombination(int? refDocumentType, List<osvProductCombination> combinationList);
         Task<int> get_productCombination(int? productId, string attributeKey);
         Task<object> get_productPricingbyParam(int? productId, int? productCombinationId, int? locationId, int? tierTypeId);
+        Task<int> get_activeProductATIByParam(int? productId);
     }
     public class CommonServices : ICommon
     {
@@ -232,7 +233,7 @@ namespace OrganisationSetup.Services
             }
             foreach (var item in combinationList)
             {
-                var isExist = await _context.osvProductCombination.Where(x => x.ProductId == item.ProductId && x.Attribute.Trim() == item.Attribute.Trim()).AnyAsync();
+                var isExist = await _context.osvProductCombination.Where(x => x.ProductId == item.ProductId && x.Attribute.Trim().ToLower() == item.Attribute.Trim().ToLower()).AnyAsync();
                 if (isExist == false)
                 {
                     var combination = new osvProductCombination
@@ -270,12 +271,17 @@ namespace OrganisationSetup.Services
                 .Select(x => new
                 {
                     ProductPriceLogId = x.Id,
-                    UnitSalePrice = x.DefaultSalePrice, 
+                    UnitSalePrice = x.DefaultSalePrice,
                     x.MinimumSalePrice
                 })
                 .FirstOrDefaultAsync();
 
             return result;
+        }
+        public async Task<int> get_activeProductATIByParam(int? productId)
+        {
+            int productATIId = await _context.IProductATI.Where(x => x.ProductId == productId && x.DocumentStatus == (int)DocumentStatus.active && x.Status == true).OrderByDescending(x => x.CreatedOn).Select(x => x.Id).FirstOrDefaultAsync();
+            return productATIId;
         }
     }
 }

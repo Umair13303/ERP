@@ -606,6 +606,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                         {
                             GuID = Guid.NewGuid(),
                             ProductId = i.ProductId,
+                            ProductATIId = await _commonServices.get_activeProductATIByParam(i.ProductId),
                             ProductCombinationId = i.ProductCombinationId,
                             TierTypeId = (int)Default.tierTypeId,
                             DefaultSalePrice = i.UnitSalePrice,
