@@ -148,7 +148,12 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                     postedData.Description = "POS Direct Invoice Generated, Amounting " + invoiceChargedAmount + " @ " + DateTime.UtcNow;
                     foreach (var i in postedData.PostedDataAFInvoicePPI)
                     {
+                        i.GuID = Guid.NewGuid();
                         i.ProductATIId = await _commonServices.get_activeProductATIByParam(i.ProductId);
+                        i.ProductCombinationId = i.ProductCombinationId;
+                        i.DocumentType = (int)DocumentType.invoiceProduct;
+                        i.DocumentStatus = (int)DocumentStatus.active;
+                        i.Status = true;
                     }
                     #region PORTION FOR :: UPSERT INTO dbo.AFInvoice
                     var AFInvoice = await _repo.UpsertInto_AFInvoice(
@@ -289,6 +294,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                 LocationId = postedData.LocationId,
                                 TransactionDate = postedData.TransactionDate,
                                 ProductId = item.ProductId,
+                                ProductCombinationId =item.ProductCombinationId,
                                 RefDocumentType = (int?)DocumentType.invoice,
                                 RefDocumentId = AFInvoice.insertedId,
                                 Description = postedData.Description?.Trim(),
@@ -298,8 +304,8 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                 UnitSalePrice = item.UnitSalePrice,
                                 Debit = 0,
                                 Credit = item.ChargedAmount,
-                                //Batch = string.IsNullOrWhiteSpace(item.Batch) ? null : item.Batch.Trim(),
-                                //ExpiryDate = item.ExpiryDate, 
+                                Batch = string.IsNullOrWhiteSpace(item.Batch) ? null : item.Batch.Trim(),
+                                ExpiryDate = item.ExpiryDate,
                                 ReconcillationStatus = (int?)Default.reconcileStatus,
                                 CreatedOn = DateTime.Now,
                                 CreatedBy = userInfo.UserId,
@@ -335,7 +341,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                         case (int)Code.Created:
                         case (int)Code.Accepted:
                             await transaction.CommitAsync();
-                            return ServiceResult.success(Message.serverResponse(AFInvoice.response), (int)AFInvoice.response);
+                            return ServiceResult.success(Message.serverResponse(AFInvoice.response), (int)AFInvoice.response,guID: invoiceGuID.ToString());
                         default:
                             await transaction.RollbackAsync();
                             return ServiceResult.failure(Message.serverResponse((int?)Code.BadRequest), (int)Code.BadRequest);
@@ -566,9 +572,9 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                     Attribute = i.Attribute
                 }).ToList();
                 var combinationGeneration = await _commonServices.generate_productCombination((int)DocumentType.inventoryAdjustment, comboList);
-
                 foreach (var i in postedData.PostedDataAFBillPPI)
                 {
+                    i.ProductATIId = await _commonServices.get_activeProductATIByParam(i.ProductId);
                     i.ProductCombinationId = await _commonServices.get_productCombination(i.ProductId, i.Attribute);
                 }
                 #endregion
@@ -588,8 +594,8 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                             GuID = Guid.NewGuid(),
                             BillId = 0,
                             ProductId = item.ProductId,
-                            ProductATIId = await _commonServices.get_activeProductATIByParam(item.ProductId),
-                            ProductCombinationId = await _commonServices.get_productCombination(item.ProductId, item.Attribute),
+                            ProductATIId = item.ProductATIId,
+                            ProductCombinationId = item.ProductCombinationId,
                             Quantity = item.Quantity,
                             UnitPurchasePrice = (decimal)item.UnitPurchasePrice,
                             ActualAmount = (decimal)item.ActualAmount,
@@ -685,7 +691,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                 LocationId = postedData.LocationId,
                                 TransactionDate = postedData.TransactionDate,
                                 ProductId = item.ProductId,
-                                ProductCombinationId = _commonServices.get_productCombination(item.ProductId, item.Attribute).Result,
+                                ProductCombinationId = item.ProductCombinationId,
                                 RefDocumentType = (int?)DocumentType.bill,
                                 RefDocumentId = AFBill.insertedId,
                                 Description = postedData.Description?.Trim(),
@@ -922,7 +928,6 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                 return ServiceResult.failure(Message.serverResponse((int?)Code.Conflict), (int)Code.Conflict);
             }
         }
-
 
     }
 }

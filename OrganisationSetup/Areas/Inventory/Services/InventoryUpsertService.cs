@@ -504,6 +504,28 @@ namespace OrganisationSetup.Areas.Inventory.Services
             }
             bool? isOperationPermitted = true; //await _validationService.isOSCustomerValid(postedData.OperationType, customerGuID, postedData.Description);
             #endregion
+            #region PORTION FOR :: VALIDATE ADJUSTMENT TYPE
+            var adjType = await _eRPOSContext.vInventoryAdjustmentType
+                .Where(x => x.Id == postedData.AdjustmentTypeId)
+                .FirstOrDefaultAsync();
+
+            if (adjType == null)
+                return ServiceResult.failure("Invalid adjustment type.", (int)Code.BadRequest);
+            foreach (var line in postedData.PostedDataIAdjustmentPPQD)
+            {
+                if (line.QuantityIn > 0 && !adjType.IsQuantityIn)
+                    return ServiceResult.failure($"Adjustment type '{adjType.Description}' does not permit stock-in quantities.", (int)Code.BadRequest);
+
+                if (line.QuantityOut > 0 && !adjType.IsQuantityOut)
+                    return ServiceResult.failure($"Adjustment type '{adjType.Description}' does not permit stock-out quantities.", (int)Code.BadRequest);
+
+                if (line.UnitPurchasePrice > 0 && !adjType.IsPurchasePrice)
+                    return ServiceResult.failure($"Adjustment type '{adjType.Description}' does not permit purchase price entry.", (int)Code.BadRequest);
+
+                if (line.UnitSalePrice > 0 && !adjType.IsSalePrice)
+                    return ServiceResult.failure($"Adjustment type '{adjType.Description}' does not permit sale price entry.", (int)Code.BadRequest);
+            }
+            #endregion
             #region PORTION FOR :: GENERATE PRODUCT COMBINATION
             var comboList = postedData.PostedDataIAdjustmentPPQD.Select(i => new osvProductCombination
             {

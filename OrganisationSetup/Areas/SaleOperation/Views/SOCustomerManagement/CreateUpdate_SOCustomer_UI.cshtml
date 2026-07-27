@@ -135,14 +135,16 @@
                     }
                     if(ViewBag.OperationType == nameof(OperationType.MPO_LIST))
                     {
-                        <div class="row g-3">
-                            <div class="bootstrap-admin-panel-content">
-                                <table class="table table-bordered table-sm order-column stripe table-hover" style="width: 100%" id="TableCustomerSummary">
-                                    <tbody id="TableBodyCustomerSummary">
-                        </tbody>
-                    </table>
-                </div>
-                </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover table-bordered table-sm align-middle mb-0" style="width: 100%" id="TableCustomerSummary">
+                                <thead class="table-light text-uppercase fs-7">
+                                    <!-- Dynamic headers populated via DataTables/JS -->
+                                </thead>
+                                <tbody id="TableBodyCustomerSummary">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
                         
                     }
                 }

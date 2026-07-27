@@ -12,62 +12,79 @@
     <style>
         @@page {
             size: @(isThermal ? "80mm auto" : "A4");
-            margin: @(isThermal ? "1mm" : "15mm");
+            margin: @(isThermal ? "2mm" : "12mm");
         }
 
         body {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: @(isThermal ? "12px" : "13px");
-            color: #000;
-            line-height: 1.2;
+            font-family: @(isThermal ? "'Courier New', Courier, monospace" : "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif");
+            font-size: @(isThermal ? "11px" : "13px");
+            color: #1f2937;
+            line-height: 1.4;
             margin: 0;
-            padding: @(isThermal ? "2px" : "0");
+            padding: @(isThermal ? "4px" : "0");
             width: @(isThermal ? "76mm" : "auto");
+            background-color: #ffffff;
         }
 
+        /* Header Section */
         .header {
             text-align: center;
-            border-bottom: 1px dashed #000;
-            padding-bottom: 6px;
-            margin-bottom: 6px;
+            border-bottom: @(isThermal ? "1px dashed #000" : "2px solid #e5e7eb");
+            padding-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .company-name {
-            font-size: @(isThermal ? "16px" : "20px");
-            font-weight: bold;
+            font-size: @(isThermal ? "15px" : "22px");
+            font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #111827;
+            margin-bottom: 2px;
         }
 
         .small {
-            font-size: @(isThermal ? "10px" : "11px");
+            font-size: @(isThermal ? "10px" : "12px");
+            color: #4b5563;
         }
 
+        /* Metadata Section */
         .invoice-meta {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 6px;
-            border-bottom: 1px dashed #000;
-            padding-bottom: 6px;
+            margin-bottom: 12px;
+            padding: @(isThermal ? "4px 0" : "8px 12px");
+            background-color: @(isThermal ? "transparent" : "#f9fafb");
+            border-radius: @(isThermal ? "0" : "6px");
+            border-bottom: @(isThermal ? "1px dashed #000" : "none");
             font-size: @(isThermal ? "11px" : "13px");
         }
 
+            .invoice-meta div div {
+                margin-bottom: 2px;
+            }
+
+        /* Table Styles */
         table.items {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 6px;
+            margin-bottom: 12px;
         }
 
             table.items th {
                 text-align: left;
-                padding: 2px 0;
-                border-bottom: 1px solid #000;
+                padding: @(isThermal ? "3px 0" : "8px 10px");
+                background-color: @(isThermal ? "transparent" : "#f3f4f6");
+                color: @(isThermal ? "#000" : "#374151");
+                border-bottom: @(isThermal ? "1px solid #000" : "2px solid #d1d5db");
                 font-size: @(isThermal ? "11px" : "12px");
+                font-weight: 600;
                 text-transform: uppercase;
             }
 
             table.items td {
-                padding: 3px 0;
-                border-bottom: 1px dotted #ccc;
+                padding: @(isThermal ? "4px 0" : "9px 10px");
+                border-bottom: @(isThermal ? "1px dotted #ccc" : "1px solid #f3f4f6");
                 vertical-align: top;
                 font-size: @(isThermal ? "11px" : "13px");
             }
@@ -76,45 +93,53 @@
             text-align: right;
         }
 
+        /* Totals Section */
         .totals-box {
-            width: 100%;
-            border-top: 1px dashed #000;
-            padding-top: 4px;
-            margin-bottom: 8px;
+            width: @(isThermal ? "100%" : "280px");
+            margin-left: @(isThermal ? "0" : "auto");
+            border-top: @(isThermal ? "1px dashed #000" : "1px solid #e5e7eb");
+            padding-top: 6px;
+            margin-bottom: 12px;
         }
 
         .totals-row {
             display: flex;
             justify-content: space-between;
-            padding: 1px 0;
+            padding: 3px 0;
             font-size: @(isThermal ? "11px" : "13px");
+            color: #4b5563;
         }
 
             .totals-row.net {
-                font-weight: bold;
-                font-size: @(isThermal ? "14px" : "16px");
-                border-top: 1px solid #000;
-                border-bottom: 1px solid #000;
-                padding: 4px 0;
-                margin-top: 2px;
+                font-weight: 700;
+                font-size: @(isThermal ? "13px" : "16px");
+                color: #111827;
+                background-color: @(isThermal ? "transparent" : "#f8fafc");
+                border-top: @(isThermal ? "1px solid #000" : "2px solid #111827");
+                border-bottom: @(isThermal ? "1px solid #000" : "2px solid #111827");
+                padding: @(isThermal ? "4px 0" : "8px 10px");
+                margin-top: 4px;
+                margin-bottom: 4px;
             }
 
+        /* QR & Footer */
         .qr-container {
             text-align: center;
-            margin: 8px 0;
+            margin: 12px 0;
         }
 
             .qr-container img {
-                width: @(isThermal ? "80px" : "110px");
-                height: @(isThermal ? "80px" : "110px");
+                width: @(isThermal ? "75px" : "100px");
+                height: @(isThermal ? "75px" : "100px");
             }
 
         .footer-note {
             text-align: center;
             font-size: @(isThermal ? "9px" : "11px");
-            border-top: 1px dashed #000;
-            padding-top: 4px;
-            margin-top: 4px;
+            color: #6b7280;
+            border-top: @(isThermal ? "1px dashed #000" : "1px solid #e5e7eb");
+            padding-top: 6px;
+            margin-top: 8px;
         }
     </style>
 </head>
@@ -123,24 +148,24 @@
     <div class="header">
         <div class="company-name">Organisation Name</div>
         <div class="small">@Model.Header.Location</div>
-        <div class="small">User: @Model.Header.UserName</div>
+        <div class="small">Cashier / User: @Model.Header.UserName</div>
     </div>
 
     <div class="invoice-meta">
         <div>
-            <div><strong>Inv:</strong> @Model.Header.Code</div>
-            <div class="small">Cust: @Model.Header.Customer</div>
+            <div><strong>Invoice:</strong> @Model.Header.Code</div>
+            <div class="small"><strong>Customer:</strong> @Model.Header.Customer</div>
         </div>
         <div style="text-align: right;">
             <div><strong>Date:</strong></div>
-            <div class="small">@Model.Header.TransactionDate?.ToString("yy-MM-dd HH:mm")</div>
+            <div class="small">@Model.Header.TransactionDate?.ToString("yyyy-MM-dd HH:mm")</div>
         </div>
     </div>
 
     <table class="items">
         <thead>
             <tr>
-                <th>Item</th>
+                <th>Item Description</th>
                 <th class="num">Qty</th>
                 @if (!isThermal)
                 {
@@ -154,10 +179,10 @@
             {
                 <tr>
                     <td>
-                        @l.Description
+                        <span style="font-weight: 500;">@l.Description</span>
                         @if (!string.IsNullOrEmpty(l.Attribute))
                         {
-                            <div class="small">[@l.Attribute]</div>
+                            <div class="small" style="color: #6b7280; font-style: italic;">[@l.Attribute]</div>
                         }
                     </td>
                     <td class="num">@l.Quantity.ToString("0.##")</td>
@@ -165,7 +190,7 @@
                     {
                         <td class="num">@l.UnitSalePrice.ToString("0.00")</td>
                     }
-                    <td class="num">@l.ChargedAmount.ToString("0.00")</td>
+                    <td class="num" style="font-weight: 500;">@l.ChargedAmount.ToString("0.00")</td>
                 </tr>
             }
         </tbody>
@@ -178,7 +203,7 @@
         </div>
         @if (Model.Header.DocDiscountAmount > 0)
         {
-            <div class="totals-row">
+            <div class="totals-row" style="color: #dc2626;">
                 <span>Discount</span>
                 <span>-@Model.Header.DocDiscountAmount.ToString("0.00")</span>
             </div>
@@ -208,24 +233,25 @@
             <span>NET AMOUNT</span>
             <span>@Model.Header.DocNetAmount.ToString("0.00")</span>
         </div>
-        <div class="totals-row" style="margin-top: 4px;">
-            <span>Due Amount</span>
+        <div class="totals-row">
+            <span>Due Balance</span>
             <span>@Model.Header.DueAmount.ToString("0.00")</span>
         </div>
     </div>
 
     @if (!string.IsNullOrEmpty(Model.Header.FBRStamp))
     {
-        <div class="small" style="text-align: center; margin-bottom: 4px;"><strong>FBR:</strong> @Model.Header.FBRStamp</div>
+        <div class="small" style="text-align: center; margin-bottom: 6px; font-family: monospace;"><strong>FBR POS ID:</strong> @Model.Header.FBRStamp</div>
     }
 
     <div class="qr-container">
         <img src="@qrCodeUrl" alt="QR Code" />
-        <div class="small">@Model.Header.Code</div>
+        <div class="small" style="letter-spacing: 1px; margin-top: 2px;">@Model.Header.Code</div>
     </div>
 
     <div class="footer-note">
-        Thank You! Computer Generated Invoice
+        Thank You for Your Busssiness! <br />
+        <span style="font-size: @(isThermal ? "8px" : "10px"); opacity: 0.8;">Computer Generated Invoice</span>
     </div>
 </body>
 </html>

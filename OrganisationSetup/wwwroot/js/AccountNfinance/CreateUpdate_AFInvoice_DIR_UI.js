@@ -456,8 +456,9 @@ function createUpdateDataIntoDB() {
             if (typeof initLoading === "function") initLoading();
         },
         success: function (response) {
-            if (response.IsSuccess == true) {
+            if (response.isSuccess == true) {
                 toastr.success(response.message);
+                $("#GuID").val(response.rptGuID);
                 $("#AFInvoiceForm").removeClass('was-validated');
                 clearInputFields();
             } else {
@@ -478,8 +479,8 @@ function clearInputFields() {
         invoicePPITable.clear().draw();
     }
     recalculateSummary();
-    $(".form-control").not("#DropDownListLocation").val('');
-    $(".select2").not("#DropDownListLocation").val('-1').trigger("change");
+    $(".form-control").not("#DropDownListLocation","#GuID").val('');
+    $(".select2").not("#DropDownListLocation,#GuID").val('-1').trigger("change");
     $("#AFInvoiceForm").removeClass('was-validated');
     $("#LabelPreviousBalance").text("0.00");
 }
@@ -503,3 +504,19 @@ $(function () {
     if (typeof setupGlobalAjax === "function") setupGlobalAjax();
     initialize();
 });
+
+$("#ButtonPrintInvoice").on("click", function (e) {
+    e.preventDefault();
+    var guID = $("#GuID").val();
+    if (guID) {
+        printThermalInvoice(guID);
+    } else {
+        toastr.warning("Invoice GuID is missing. Please save the record first.");
+    }
+});
+
+$("#ButtonPrintInvoice")
+function printThermalInvoice(guID) {
+    var url = '/AccountNfinance/AFReport/InvoiceRptThermal?guID=' + encodeURIComponent(guID);
+    window.open(url, '_blank', 'width=400,height=700');
+}

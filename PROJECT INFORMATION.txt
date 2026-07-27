@@ -131,6 +131,8 @@ REPORTING LEVEL
 9. SLOW MOVING
 10.CASH RECEIPT
 ---------------------------------------------------------------------------------------
+to do on 26 july:
+implement same pattren for invoice as it is in bill
 BUGS FOUND & SOLVED
 1. INVOICE RECEIPT :
 	In code level at backend
@@ -140,5 +142,8 @@ BUGS FOUND & SOLVED
 	a. valid invoice selection
 	b. valid amount . to be greater that 0
 	c. valid amount less than or equal to due amount
+2. HISTORICAL DATA PRESISTANCE
+	In code & db level at backend
+	a. added ProductATIId to keep up with actual history reports
 
 

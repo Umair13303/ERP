@@ -94,7 +94,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
         public async Task<IActionResult> createUpdateInvoice([FromBody] PostedData postedData)
         {
             var result = await _anfuService.updateInsertDataInto_AFInvoice(postedData);
-            return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message });
+            return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message,rptGuID = result.RptGuID });
         }
         #endregion
     }

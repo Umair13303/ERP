@@ -12,13 +12,14 @@ namespace SharedUI.Models.Responses
         public string Message { get; set; } = string.Empty;
         public int? DocumentNumber { get; set; }
         public int StatusCode { get; set; }
+        public string? RptGuID { get; set; }
 
         public static ServiceResult internalSuccess(string response, int requestStatus, int? documentNumber) =>
 
 
             new ServiceResult { IsSuccess = true, Message = response, StatusCode = requestStatus,DocumentNumber =documentNumber };
-        public static ServiceResult success(string response, int requestStatus) =>
-            new ServiceResult { IsSuccess = true, Message = response, StatusCode = requestStatus };
+        public static ServiceResult success(string response, int requestStatus, string? guID = "") =>
+            new ServiceResult { IsSuccess = true, Message = response, StatusCode = requestStatus, RptGuID = guID };
 
         public static ServiceResult failure(string response, int requestStatus) =>
             new ServiceResult { IsSuccess = false, Message = response, StatusCode = requestStatus };
