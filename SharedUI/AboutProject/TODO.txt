@@ -1,0 +1,102 @@
+--------------------------------------------------------
+REPORTING LEVEL -- ALL PENDING
+1. SALE LIST / INVOICE LIST -- WITH PRINT
+2. PURCHASE LIST / DIRECT BILL -- WITH PRINT
+3. PROFILE & LOSS REPORT
+4. STOCK REPORT
+5. LOW STOCK REPORT
+6. CUSTOMER OUTSTANDING REPORT
+7. VENDOR OUTSTANDING REPORT
+8. TOP SELLING
+9. SLOW MOVING
+10.CASH RECEIPT
+11. AUDIT REPORTS
+
+----------------------------------------------------------
+CODE LEVEL 
+
+1. INVOICE RECEIPT : 
+	STATUS : FIXED
+	In code level at backend
+		Orphan transactions in database
+		No validation for invoice existance & amount receipt
+	In js level validation for:
+	a. valid invoice selection
+	b. valid amount . to be greater that 0
+	c. valid amount less than or equal to due amount
+
+2. BILL RECEIPT :
+	STATUS : FIXED
+	In code level at backend
+		Orphan transactions in database
+		No validation for bill existance & amount receipt
+	In js level validation for:
+	a. valid bill selection
+	b. valid amount . to be greater that 0
+	c. valid amount less than or equal to due amount
+
+3. DIRECT BILL :
+	STATUS : FIXED
+	Integration of ProductATIIds in direct bill
+	Scenario:
+	BILL-0001 save with productId having productATIId =1 , will generate accounting info for now accurately
+	if after a year a ATI policy change the sp would read the active one and will impact all invoices in all reports using the function
+
+4. DIRECT INVOICE :
+	STATUS : FIXED
+	Integration of ProductATIIds in direct invoice
+	Scenario:
+	BILL-0001 save with productId having productATIId =1 , will generate accounting info for now accurately
+	if after a year a ATI policy change the sp would read the active one and will impact all invoices in all reports using the function
+
+5. Direct Invoice:
+	STATUS : FIXED
+	On save return guid and enable print of saved invoices
+
+6. INVENTORY ADJUSTMENT:
+	STATUS : FIXED
+	On basis of adjustment type validation at code level
+
+7. Direct Invoice:
+   STATUS : PENDING
+   A. Complete integration of product combination in direct invoice including costing mode, batch and expiry date selection
+   Add validation for stock availability
+   B. If the cached stock number disagrees with the ledger, WAQAS blocks the transaction rather than quietly "fixing" it. In a market full of POS software that silently drifts out of sync with reality (a notorious, universal complaint about cheap retail software), an engine that refuses to let stock records go stale is a trust signal worth marketing directly: "Your stock count is never a guess."
+
+
+8. Functionality:
+	STATUS : PENDING
+	if after a year a ATI policy change the sp would read the active one and will impact all invoices in all reports using the function
+
+9. Sale Closing Form:
+   STATUS : PENDING
+   Impact: after a sale closing is inititated no previous enteries to be allowed to be modified or deleted. This is a crucial step in accounting and auditing. The sale closing form will have a date and time stamp, and once closed, all transactions before that timestamp will be locked for editing.
+
+10. Functionality:
+	STATUS : PENDING
+	I need to track stock in cost layers (FIFO), locks the layer-sum as the source of truth, and treats the cached "current stock" figure as advisory only. That distinction sounds academic until a shop owner asks "what's my actual gross margin this month, given that I bought this batch at a different price than the last one?" — a plain running-total system can't answer that correctly; WAQAS can. That's the difference between a stock-counting app and a system an accountant would trust.
+
+11. INTER STORE ITEM TRANSFER:
+	STATUS : PENDING
+	Impact: inter store item transfer is a crucial step in inventory management. It will allow the user to transfer items from one store to another, and will update the stock levels accordingly. This will also help in tracking the movement of items between stores, and will provide a clear picture of the stock levels in each store.
+
+12. PETTY CASH MODULE:
+	STATUS : PENDING
+	Impact: The petty cash module will allow the user to manage petty cash transactions, including daily cash receiving, daily expenses, petty cash ledger, and monthly expense summary. This will help in tracking the petty cash transactions and will provide a clear picture of the petty cash balance.
+
+13. HRM MODULE:
+	STATUS : PENDING
+	Impact: The HRM module will allow the user to manage employee information, including adding employees, managing loans, leaves, and payroll. This will help in tracking employee information and will provide a clear picture of the employee records.
+
+14. SALE INVOICE RETURN:
+	STATUS : PENDING
+	Impact: The sale invoice return feature will allow the user to process returns for previously sold items. This will help in managing customer returns efficiently and will update the inventory levels accordingly.
+
+14. PURCHASE BILL RETURN:
+	STATUS : PENDING
+	Impact: The purchase bill return feature will allow the user to process returns for previously purchased items. This will help in managing vendor returns efficiently and will update the inventory levels accordingly.
+
+15. Functionality:
+	STATUS : PENDING
+	Proper accounting cycles should be implemented to ensure accurate financial reporting and compliance with accounting standards.
+	

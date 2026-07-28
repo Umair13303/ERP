@@ -117,33 +117,59 @@ NEXT THINGS I PLAN TO MAKE ONCE THE CURRENT SETUP IS VERIFIED:
 	B. LAON
 	C. LEAVE
 	D. PAYROLL
----------------------------------------------------------------------------------------
-REPORTING LEVEL
 
-1. SALE LIST / INVOICE LIST -- WITH PRINT
-2. PURCHASE LIST / DIRECT BILL -- WITH PRINT
-3. PROFILE & LOSS REPORT
-4. STOCK REPORT
-5. LOW STOCK REPORT
-6. CUSTOMER OUTSTANDING REPORT
-7. VENDOR OUTSTANDING REPORT
-8. TOP SELLING
-9. SLOW MOVING
-10.CASH RECEIPT
 ---------------------------------------------------------------------------------------
-to do on 26 july:
-implement same pattren for invoice as it is in bill
 BUGS FOUND & SOLVED
-1. INVOICE RECEIPT :
-	In code level at backend
-		Orphan transactions in database
-		No validation for invoice existance & amount receipt
-	In js level validation for:
-	a. valid invoice selection
-	b. valid amount . to be greater that 0
-	c. valid amount less than or equal to due amount
-2. HISTORICAL DATA PRESISTANCE
-	In code & db level at backend
-	a. added ProductATIId to keep up with actual history reports
+
+//  DONE
+
+//  DONE
+** NOTE NEED TO ADD
+EXPENSE OF PRODUCT PURCHASE AND HANDLE THEM
+
+5. reduntant ways to do product combination in direct invoice 
+
+TO DO IN WAYS
+1. Direct Invoice:
+In upsert of AFInventoryLedger
+make a function:
+takes productid,productCombinationId
+find the costingModeId, and return the batch and expiry date order wise of the combination
 
 
+3. Review RptSaleLedger_GLBParam sp
+One design decision for you
+
+The running-balance window function (SUM(...) OVER (...)) currently computes over whatever rows survive the WHERE clause — meaning if you now filter by date range, the running balance will start from 0 at the beginning of that filtered window, not the customer's true running balance carried in from before the start date. That's usually wrong for a ledger report (a ledger's whole point is showing the balance evolving from account inception).
+
+Two options:
+
+(a) Keep it simple — running balance resets within the selected date window (fine if this report is only ever used to review a period's activity, not to check "what's my balance today")
+(b) Compute the running balance over the unfiltered ledger first, then apply the date filter only to what's displayed — so the balance shown at the top of a filtered window reflects true history
+
+
+DONE:
+1. Added ATIId in Invoice , Bill , PriceLog to maintain historic data
+2. impact of ATIId made in sql code
+3. On basis of adjustment type validation at code level
+4. Direct invoice on save linked print button
+
+TO DO: 
+1. MAKE UI OF IADJUSTMENT AS OF IBill, Same in IInvoice
+    -- MAKE IT A QR SCAN WORKABLE 7
+    IF PASSED A PRODUCT QR/ SELECT ID, IN TEXT BOXES THERE WILL BE DYNAMIC RELEVANT ATTRIBUTES MAKE IT SASSY
+    & IF COMBINATION ID IS PROVIDED THEN SELECTED ATTRIBUTED DISBALED SIMPLE
+
+2. RN DISCOUNTS AND EVERY OTHER ENTERY IS ON FLY, I WILL LATER NEED PROPER 
+	P & L ACCOUNTS
+	GENERAL LEDGER
+	T ACCOUNTS
+	AND OTHER ACCOUNTS RELATED STATMENT
+	NEED TO REFINE THE STRUCTURE ACCORDINGLY
+
+. Multi Branch Stock Transfer
+
+
+
+
+6. AFChartOfAccount shows an intent to be a proper accounting system, not just a stock tracker — a system that ties inventory movement to real bookkeeping (assets, liabilities, equity) is a step toward being a QuickBooks-adjacent product for small retailers who currently juggle a separate POS and a separate accounting tool.
