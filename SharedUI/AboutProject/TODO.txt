@@ -12,6 +12,16 @@ REPORTING LEVEL -- ALL PENDING
 10.CASH RECEIPT
 11. AUDIT REPORTS
 
+
+----------------------------------------------------------
+CRITICAL FORMS -- NEED TO BE REVIEWED AND TESTED AND LOCKED
+1. ADD CUSTOMER
+2. ADD SUPPLIER
+3. ADD INVOICE
+4. ADD BILL
+5. ADD INVOICE RECEIPT
+6. ADD BILL RECEIPT
+7. ADD IADJUSTMENT
 ----------------------------------------------------------
 CODE LEVEL 
 
