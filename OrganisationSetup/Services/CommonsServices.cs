@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using NuGet.Packaging.Signing;
 using OrganisationSetup.Models.DAL;
 using OrganisationSetup.Models.DAL.StoredProcedure;
 using SharedUI.Models.Configurations;
@@ -32,7 +33,7 @@ namespace OrganisationSetup.Services
         Task<List<vCostingMode>> populateCostingModeByParam();
         Task<List<vTierType>> populateTierTypeByParam();
         Task<Dictionary<string, FieldConfig>> fetchProductSetting();
-        Task<int> generate_productCombination(int? refDocumentType, List<osvProductCombination> combinationList);
+        Task<int> generate_productCombination(int? refDocumentType, List<IProductCCE> combinationEngine);
         Task<int> get_productCombination(int? productId, string attributeKey);
         Task<object> get_productPricingbyParam(int? productId, int? productCombinationId, int? locationId, int? tierTypeId);
         Task<int> get_activeProductATIByParam(int? productId);
@@ -43,7 +44,17 @@ namespace OrganisationSetup.Services
         private readonly ERPOrganisationSetupContext _context;
         private readonly IConfiguration _conf;
 
+        public async Task<object> isCompanyConfigured()
+        {
+            #region REGION TO VALIDATE COA SEEDING
+            bool isDefaulAccountSeeded = false;
+            var seederCOA = await _context.osvChartOfAccount.Select(x=> x.GuID).ToListAsync();
+            var existingCOA = await _context.AFChartOfAccount.Where(x => seederCOA.Contains(x.GuID)).AnyAsync();
+            isDefaulAccountSeeded = !existingCOA;
+            #endregion
 
+            return isDefaulAccountSeeded;
+        }
         public CommonServices(TempUser currentUser, ERPOrganisationSetupContext context, IConfiguration conf)
         {
             _currentUser = currentUser;
@@ -225,7 +236,7 @@ namespace OrganisationSetup.Services
             };
             return result;
         }
-        public async Task<int> generate_productCombination(int? refDocumentType, List<osvProductCombination> combinationList)
+        public async Task<int> generate_productCombination(int? refDocumentType, List<IProductCCE> combinationList)
         {
             if (combinationList == null || !combinationList.Any())
             {
@@ -233,28 +244,30 @@ namespace OrganisationSetup.Services
             }
             foreach (var item in combinationList)
             {
-                var isExist = await _context.osvProductCombination.Where(x => x.ProductId == item.ProductId && x.Attribute.Trim().ToLower() == item.Attribute.Trim().ToLower()).AnyAsync();
+                var isExist = await _context.IProductCCE.Where(x => x.ProductId == item.ProductId && x.Description.Trim().ToLower() == item.Description.Trim().ToLower()).AnyAsync();
                 if (isExist == false)
                 {
-                    var combination = new osvProductCombination
+                    var combination = new IProductCCE
                     {
                         GuID = Guid.NewGuid(),
                         RefDocumentType = refDocumentType,
                         ProductId = item.ProductId,
-                        Attribute = item.Attribute,
-                        Status = true,
-                        AttributeKey = item.Attribute
+                        Description = item.Description,
+                        QRCode = item.QRCode,
+                        CreatedOn = DateTime.Now,
+                        CreatedBy = _currentUser.UserId,
+                        DocumentType = (int)DocumentType.productCombination,
+                        DocumentStatus = (int)DocumentStatus.active,
                     };
-                    _context.osvProductCombination.Add(combination);
+                    _context.IProductCCE.Add(combination);
                 }
-
             }
             await _context.SaveChangesAsync();
             return 200;
         }
-        public async Task<int> get_productCombination(int? productId, string attributeKey)
+        public async Task<int> get_productCombination(int? productId, string description)
         {
-            int productCombinationId = await _context.osvProductCombination.Where(x => x.ProductId == productId && x.AttributeKey == attributeKey).Select(x => x.Id).FirstOrDefaultAsync();
+            int productCombinationId = await _context.IProductCCE.Where(x => x.ProductId == productId && x.Description == description).Select(x => x.Id).FirstOrDefaultAsync();
             return productCombinationId;
         }
         public async Task<object> get_productPricingbyParam(int? productId, int? productCombinationId, int? locationId, int? tierTypeId)

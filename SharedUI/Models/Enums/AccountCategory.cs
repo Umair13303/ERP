@@ -31,6 +31,12 @@ namespace SharedUI.Models.Enums
         BANK_AND_CASH = 21,
         ACCOUNTS_PAYABLE = 22,
         INVENTORY = 23,
+        SALES_DISCOUNT_ALLOWED = 24,      // Invoice: discount given to customer (contra-revenue)
+        PURCHASE_DISCOUNT_RECEIVED = 25,  // Bill: discount received from supplier (if/when bills support it)
+        INVENTORY_ADJUSTMENT_GAIN = 26,   // Adjustment offset: surplus/found stock
+        INVENTORY_ADJUSTMENT_LOSS = 27,   // Adjustment offset: damaged/shortage/theft
+        OPENING_BALANCE_EQUITY = 28,      // Adjustment offset: opening stock balance
+        ROUNDING_ADJUSTMENT = 29
     }
     public enum FinancialStatement
     {

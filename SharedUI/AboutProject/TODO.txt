@@ -1,28 +1,114 @@
---------------------------------------------------------
-REPORTING LEVEL -- ALL PENDING
-1. SALE LIST / INVOICE LIST -- WITH PRINT
-2. PURCHASE LIST / DIRECT BILL -- WITH PRINT
-3. PROFILE & LOSS REPORT
-4. STOCK REPORT
-5. LOW STOCK REPORT
-6. CUSTOMER OUTSTANDING REPORT
-7. VENDOR OUTSTANDING REPORT
-8. TOP SELLING
-9. SLOW MOVING
-10.CASH RECEIPT
-11. AUDIT REPORTS
 
 
-----------------------------------------------------------
-CRITICAL FORMS -- NEED TO BE REVIEWED AND TESTED AND LOCKED
-1. ADD CUSTOMER
-2. ADD SUPPLIER
-3. ADD INVOICE
-4. ADD BILL
-5. ADD INVOICE RECEIPT
-6. ADD BILL RECEIPT
-7. ADD IADJUSTMENT
-----------------------------------------------------------
+Data handling threshold:
+1. CUSTOMER : 150,000
+1. VENDOR : 20,000
+1. DAILY SALE VOLUME : 500,000 - 1,500,000 INVOICES
+1. DAILY PURCHASE VOLUME : 50,000 - 100,000 BILL
+	AVG BILL RETURN : 25,000
+	AVG INVOICES RETURN : 150,000
+
+----------------------------------------------------------------------------------------------
+LIST OF ALL FORMS TO BE MADE IN FLOW WISE ORDER
+1. APPLICATION CONFIGURATION:
+	>. ADD COMPANY
+	>. ADD USER
+	>. ADD BRANCH
+
+1. COMPANY SETUP:
+	>. DEPARTMENT
+
+1. INVENTORY:
+	>. ADD SECTION
+	>. ADD CATEGORY
+	>. ADD SUB-CATEGORY
+	>. ADD BRAND
+	>. ADD PRODUCT
+	>. ADD ADJUSTMENT
+	>. ITEM INTER BRANCH TRANSFER -- PENDING
+
+1. ACCOUNTS & FINANCE:
+	>. ADD DIRECT BILL
+	>. ADD DIRECT INVOICE
+	>. ADD INVOICE WISE RECEIPT
+	>. ADD DIRECT RECEIPT
+	>. ADD BILL WISE PAYMENT
+	>. ADD DIRECT PAYMENT
+	>. ADD SALE CLOSING --PENDING
+	>. INVOICE RETURN & REFUND
+	>. BILL RETURN & REFUND
+
+1. SALE OPERATION
+	>. ADD CUSTOMER
+
+1. PROCURMENT
+	>. ADD SUPPLIER
+
+1. REPORTS & VIEW
+	1. CUSTOMER INVOICE LIST
+	1. SUPPLIER BILL LIST
+	1. ADJUSTMENT LIST
+	1. INVOICE PAYMENT RECEIPT
+	1. BILL PAYMENT RECEIPT
+	I. INVENTORY/STOCK REPORT
+	I. CUSTOMER LEDGER
+	I. SUPPLIER LEDGER
+	I. TOP SELLING PRODUCT REPORT
+	I. SLOW MOVING PRODUCT REPORT
+	I. INVOICE REPORT
+	I. BILL REPORT
+	i. T-LEDGER REPORT
+	I. TRIAL BALANCE REPORT
+	I. AGING REPORT
+	I. GENERAL JOURNAL REPORT
+	2. PROFIT & LOSS REPORT
+
+----------------------------------------------------------------------------------------------
+NO PERFORMANCE COMPROMISE AREA:
+>. CUSTOMER
+>. SUPPLIER
+>. IADJUSTMENT
+>. DIRECT INVOICE
+>. DIRECT BILL
+>. INVOICE RECEIPT
+>. DIRECT RECEIPT
+>. BILL PAYMENT
+>. DIRECT  PAYMENT
+>. STOCK TRANSFER
+>. BILL RETURN
+>. INVOICE RETURN
+
+
+----------------------------------------------------------------------------------------------
+> Item Inter-Branch Transfer
+> Sale Closing
+> Sales Invoice Return & Refund Workflow
+> Purchase Bill Return & Refund Workflow
+> Customer Ledger Report  
+> Supplier Ledger Report  
+> Stock Balance & Valuation Report  
+> Trial Balance Report  
+> Profit & Loss (P&L) Statement  
+> Accounts Receivable / Payable Aging Reports
+> Promotional Offers & Discount Rules
+> Advanced Voucher Printing & Audit Trail
+> Customer Payment Receipt Voucher
+> Supplier Payment Receipt / Bill Voucher
+> Customer Ledger Report
+> Supplier Ledger Report
+> Inventory / Stock Ledger Report (including attribute & variant resolution)
+> T-Ledger / General Ledger Report
+> Stock Balance & Valuation Report
+> Top-Selling / Best-Performing Products Report
+> Slow-Moving / Dead Stock Report
+> Inventory Adjustment Summary Report
+> Trial Balance Report
+> General Journal / Day Book Report
+> Accounts Receivable Aging Report
+> Accounts Payable Aging Report
+> Profit & Loss (P&L) / Income Statement
+----------------------------------------------------------------------------------------------
+
 CODE LEVEL 
 
 1. INVOICE RECEIPT : 
@@ -69,44 +155,87 @@ CODE LEVEL
 
 7. Direct Invoice:
    STATUS : PENDING
-   A. Complete integration of product combination in direct invoice including costing mode, batch and expiry date selection
-   Add validation for stock availability
-   B. If the cached stock number disagrees with the ledger, WAQAS blocks the transaction rather than quietly "fixing" it. In a market full of POS software that silently drifts out of sync with reality (a notorious, universal complaint about cheap retail software), an engine that refuses to let stock records go stale is a trust signal worth marketing directly: "Your stock count is never a guess."
-
-
-8. Functionality:
-	STATUS : PENDING
-	if after a year a ATI policy change the sp would read the active one and will impact all invoices in all reports using the function
+   A. On text search of product and select of product
+		i. append a row in table with combinations boxes - design refrence DIRECT BILL, here in boxes , auto populated relevant combinations from osvProductCombinaton on basis of product
+		ii. in case a qr code scanner is working : send parameter product combination and then return the relevant id and fix it in combination box
+	Reason: Currently the form is not sending combinationid, which will surely make confussion for stock count
+		iii.On basis of IProduct.CostingModeId
+				.. FEFO, FIFO,LIFO, WAC
+			populate batches & expiry date if available in inventory ledger allow the user to change the batch and expiry date if he want
+			use scenario:
+			a product has 5 batches
+			a customer picks up the 2nd batch if we hard code it to some order , it will restrictedly deducted from this and will result in mismatch of reporting & actual counts
+		iv. Need to show available stock in list for purpose of validation and same validation to be implemented in upsert
 
 9. Sale Closing Form:
    STATUS : PENDING
-   Impact: after a sale closing is inititated no previous enteries to be allowed to be modified or deleted. This is a crucial step in accounting and auditing. The sale closing form will have a date and time stamp, and once closed, all transactions before that timestamp will be locked for editing.
+   Discussion needed
+   To close periodic daily sale statments and disable ledger enteries and invoices behind the date
+   Reason: to avoid back date enteries to prevent fraud in business and strength audit reporting of tax & accounts
 
-10. Functionality:
+10. INTER BRANCH ITEM TRANSFER:
 	STATUS : PENDING
-	I need to track stock in cost layers (FIFO), locks the layer-sum as the source of truth, and treats the cached "current stock" figure as advisory only. That distinction sounds academic until a shop owner asks "what's my actual gross margin this month, given that I bought this batch at a different price than the last one?" — a plain running-total system can't answer that correctly; WAQAS can. That's the difference between a stock-counting app and a system an accountant would trust.
+	Discussion needed
+	To transfer of stock available from one branch to other
 
-11. INTER STORE ITEM TRANSFER:
-	STATUS : PENDING
-	Impact: inter store item transfer is a crucial step in inventory management. It will allow the user to transfer items from one store to another, and will update the stock levels accordingly. This will also help in tracking the movement of items between stores, and will provide a clear picture of the stock levels in each store.
-
-12. PETTY CASH MODULE:
-	STATUS : PENDING
-	Impact: The petty cash module will allow the user to manage petty cash transactions, including daily cash receiving, daily expenses, petty cash ledger, and monthly expense summary. This will help in tracking the petty cash transactions and will provide a clear picture of the petty cash balance.
-
-13. HRM MODULE:
-	STATUS : PENDING
-	Impact: The HRM module will allow the user to manage employee information, including adding employees, managing loans, leaves, and payroll. This will help in tracking employee information and will provide a clear picture of the employee records.
-
-14. SALE INVOICE RETURN:
-	STATUS : PENDING
-	Impact: The sale invoice return feature will allow the user to process returns for previously sold items. This will help in managing customer returns efficiently and will update the inventory levels accordingly.
-
-14. PURCHASE BILL RETURN:
+11. PURCHASE BILL RETURN:
 	STATUS : PENDING
 	Impact: The purchase bill return feature will allow the user to process returns for previously purchased items. This will help in managing vendor returns efficiently and will update the inventory levels accordingly.
 
-15. Functionality:
+12. SALE INVOICE RETURN:
 	STATUS : PENDING
-	Proper accounting cycles should be implemented to ensure accurate financial reporting and compliance with accounting standards.
+	Discussion needed
+	Impact: The sale invoice return feature will allow the user to process returns for previously sold items. This will help in managing customer returns efficiently and will update the inventory levels accordingly.
+
+13. Functionality:
+    Discussion needed
+    STATUS : PENDING
+	I need to track stock in cost layers (FIFO), locks the layer-sum as the source of truth, and treats the cached "current stock" figure as advisory only. That distinction sounds academic until a shop owner asks "what's my actual gross margin this month, given that I bought this batch at a different price than the last one?" — a plain running-total system can't answer that correctly; WAQAS can. That's the difference between a stock-counting app and a system an accountant would trust.
+
+
+14. Functionality:
+	STATUS : PENDING
 	
+	
+
+15. PETTY CASH MODULE:
+	STATUS : PENDING
+	FORM LIST:
+	I. ADD EDIT EXPENSE ACCOUNT
+	II. ADD EDIT INCOME ACCOUNT
+	III. ADD PETTY CASH CLOSING
+	IV. ADD EDIT INCOME
+	V. ADD EDIT EXPENSES
+	VI. VIEW EXPENSE LEDGER (HTML/PDF)
+	VII. VIEW EXPENSE SUMMARY MONTHLY
+
+16. HRM MODULE:
+	STATUS : PENDING
+	FORM LIST:
+	Impact: The HRM module will allow the user to manage employee information, including adding employees, managing loans, leaves, and payroll. This will help in tracking employee information and will provide a clear picture of the employee records.
+
+
+
+	---------------------------------------------------------
+
+. Add Customer : Add CreditLimit DECIMAL(18,2) 
+. Add Direct Bill : Add restriction if current invoice + due  - paid = || > then credeit limit , do not let invoice proceed
+
+
+
+CREATE TABLE [dbo].CSDefaultChartOfAccount(
+	[Id] [int] PRIMARY KEY IDENTITY(1,1) NOT NULL,
+	[GuID] [uniqueidentifier] NULL,
+	[Code] [nvarchar](max) NULL,
+	[AccountCategoryId] INT NULL,         
+    [DefaultChartOfAccountId] INT ,   
+	[CreatedOn] [datetime] NULL,
+	[CreatedBy] [int] NULL,
+	[UpdatedOn] [datetime] NULL,
+	[UpdatedBy] [int] NULL,
+	[DocumentType] [int] NULL,
+	[DocumentStatus] [int] NULL,
+	[Status] [bit] NULL,
+	[BranchId] [int] NULL,
+	[CompanyId] [int] NULL
+	)

@@ -566,10 +566,10 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
             if (isOperationPermitted == true)
             {
                 #region PORTION FOR :: GENERATE PRODUCT COMBINATION
-                var comboList = postedData.PostedDataAFBillPPI.Select(i => new osvProductCombination
+                var comboList = postedData.PostedDataAFBillPPI.Select(i => new IProductCCE
                 {
                     ProductId = i.ProductId,
-                    Attribute = i.Attribute
+                    Description = i.Attribute
                 }).ToList();
                 var combinationGeneration = await _commonServices.generate_productCombination((int)DocumentType.inventoryAdjustment, comboList);
                 foreach (var i in postedData.PostedDataAFBillPPI)

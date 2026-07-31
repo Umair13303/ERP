@@ -22,7 +22,6 @@ using static OrganisationSetup.Areas.Procurement.Services.IProcurementValidation
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- FIX A: FORWARDED HEADERS (Fixes the "Unsafe Attempt" / Protocol mismatch) ---
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -30,7 +29,6 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 
-// --- FIX B: DATA PROTECTION (Fixes 401 on Free Tier) ---
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "keys")))
     .SetApplicationName("OrganisationSetup");
@@ -89,7 +87,6 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Services (Keep your existing Scoped services here)
 builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddScoped<IMenuService, MenuService>();
 builder.Services.AddScoped<IOSDataLayer, OSDataLayerRepository>();
@@ -112,13 +109,9 @@ builder.Services.AddScoped<ISaleOperationRetriever, SaleOperationRetrieverServic
 builder.Services.AddScoped<IProcurementUpsert, ProcurementUpsertService>();
 builder.Services.AddScoped<IProcurementRetriever, ProcurementRetrieverService>();
 builder.Services.AddScoped<IProcurementValidation, ProcurementValidationService>();
-
-//builder.Services.AddScoped<IPOSService, POSService>();
 builder.Services.AddScoped<TempUser>();
 
 var app = builder.Build();
-
-// PathBase
 var pathBase = builder.Configuration["PathBase"];
 if (!string.IsNullOrEmpty(pathBase))
 {
@@ -128,11 +121,7 @@ if (!string.IsNullOrEmpty(pathBase))
         return next();
     });
 }
-
-
-
-// ORDER IS CRITICAL
-app.UseForwardedHeaders(); // Must be first
+app.UseForwardedHeaders();
 
 if (!app.Environment.IsDevelopment())
 {

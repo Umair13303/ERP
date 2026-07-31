@@ -78,8 +78,8 @@
                     </div>
                     <div class="col-sm-12 col-md-3">
                         <div class="form-group">
-                            @Html.Label("DropDownListAccountCatagory", "Account Catagory", new { @class = "col-form-label" })
-                            @Html.DropDownList("AccountCatagoryId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListAccountCatagory" })
+                            @Html.Label("DropDownListAccountCategory", "Account Category", new { @class = "col-form-label" })
+                            @Html.DropDownList("AccountCategoryId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListAccountCategory" })
                         </div>
                     </div>
 
@@ -89,11 +89,6 @@
                             @Html.DropDownList("FinancialStatementId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListFinancialStatement" })
                         </div>
                     </div>
-                    <div class="col-sm-12 col-md-3">
-                        @Html.Label("CheckBoxIsDefault", "Is Default", new { @class = "col-form-label" })
-                        @Html.CheckBox("IsDefault",true, new {@id="ChecBoxIsDefault"})
-                    </div>
-
                 </div>
 
             </div>

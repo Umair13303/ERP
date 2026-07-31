@@ -104,8 +104,9 @@ function initialize() {
     changeEventHandler();
 }
 /* ------ Validation for user input ------ */
+
 function validater() {
-    var form = document.getElementById("ACChartOfAccountForm ");
+    var form = document.getElementById("ACChartOfAccountForm");
     if (!form.checkValidity()) {
         form.classList.add('was-validated');
 
@@ -125,19 +126,17 @@ function createUpdateDataIntoDB() {
     var operationType = $("#OperationType").val();
     var guID = $("#GuID").val();
     var description = $("#TextBoxDescription").val();
-    var accountCatagoryId = $("#DropDownListAccountCatagory :selected").val();
+    var accountCategoryId = $("#DropDownListAccountCatagory :selected").val();
     var financialStatementId = $("#DropDownListFinancialStatement :selected").val();
    // var isDefault = $("CheckBoxIsDefault").prop().val();
     var jsonData = {
         OperationType: operationType,
         GuID: guID ? guID : null,
         Description: description,
-        AccountCatagoryId: accountCatagoryId,
+        AccountCategoryId: accountCategoryId,
         FinancialStatementId: financialStatementId,
        // IsDefault: isDefault,
     };
-    console.log(jsonData);
-    return;
 
     $.ajax({
         url: window.basePath + "AccountNfinance/AFChartOfAccountManagement/createUpdateChartOfAccount",

@@ -29,6 +29,8 @@ public partial class ERPOrganisationSetupContext : DbContext
 
     public virtual DbSet<AFCustomerLedger> AFCustomerLedger { get; set; }
 
+    public virtual DbSet<AFGeneralLedger> AFGeneralLedger { get; set; }
+
     public virtual DbSet<AFInventoryLedger> AFInventoryLedger { get; set; }
 
     public virtual DbSet<AFInvoice> AFInvoice { get; set; }
@@ -41,6 +43,8 @@ public partial class ERPOrganisationSetupContext : DbContext
 
     public virtual DbSet<AFProductPriceLog> AFProductPriceLog { get; set; }
 
+    public virtual DbSet<AFStockLedger> AFStockLedger { get; set; }
+
     public virtual DbSet<AFSupplierLedger> AFSupplierLedger { get; set; }
 
     public virtual DbSet<AppForm> AppForm { get; set; }
@@ -48,6 +52,8 @@ public partial class ERPOrganisationSetupContext : DbContext
     public virtual DbSet<AppUser> AppUser { get; set; }
 
     public virtual DbSet<Branch> Branch { get; set; }
+
+    public virtual DbSet<CSDefaultChartOfAccount> CSDefaultChartOfAccount { get; set; }
 
     public virtual DbSet<CSDepartment> CSDepartment { get; set; }
 
@@ -79,11 +85,13 @@ public partial class ERPOrganisationSetupContext : DbContext
 
     public virtual DbSet<confClientSetting> confClientSetting { get; set; }
 
+    public virtual DbSet<confScheduledMessage> confScheduledMessage { get; set; }
+
     public virtual DbSet<confclientproductsetting> confclientproductsetting { get; set; }
 
     public virtual DbSet<osvChartOfAccount> osvChartOfAccount { get; set; }
 
-    public virtual DbSet<osvProductCombination> osvProductCombination { get; set; }
+    public virtual DbSet<IProductCCE> IProductCCE { get; set; }
 
     public virtual DbSet<vAccountCatagory> vAccountCatagory { get; set; }
 
@@ -211,6 +219,26 @@ public partial class ERPOrganisationSetupContext : DbContext
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
         });
 
+        modelBuilder.Entity<AFGeneralLedger>(entity =>
+        {
+            entity.HasIndex(e => new { e.LocationId, e.TransactionDate, e.AccountId }, "IX_AFGeneralLedger_Location_Date_Account");
+
+            entity.HasIndex(e => new { e.PartyId, e.TransactionDate }, "IX_AFGeneralLedger_Party_Date");
+
+            entity.HasIndex(e => new { e.RefDocumentType, e.RefDocumentId }, "IX_AFGeneralLedger_RefDocument");
+
+            entity.HasIndex(e => new { e.LocationId, e.TransactionDate, e.AccountId }, "IX_AFGeneralLedger_ReportLookup");
+
+            entity.Property(e => e.CreatedOn)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.Credit).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.Debit).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.TransactionDate)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+        });
+
         modelBuilder.Entity<AFInventoryLedger>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__ILedger__3214EC07240B5AAA");
@@ -280,6 +308,30 @@ public partial class ERPOrganisationSetupContext : DbContext
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
         });
 
+        modelBuilder.Entity<AFStockLedger>(entity =>
+        {
+            entity.HasIndex(e => new { e.ProductId, e.BatchNo, e.ExpiryDate }, "IX_AFStockLedger_Batch_Expiry");
+
+            entity.HasIndex(e => new { e.LocationId, e.ProductId, e.ProductCombinationId }, "IX_AFStockLedger_Location_Product_Combination");
+
+            entity.HasIndex(e => new { e.RefDocumentType, e.RefDocumentId }, "IX_AFStockLedger_RefDocument");
+
+            entity.Property(e => e.BatchNo)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.CreatedOn)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.DocumentCode).HasMaxLength(100);
+            entity.Property(e => e.QtyIn).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.QtyOut).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.TransactionDate)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.UnitCost).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 4)");
+        });
+
         modelBuilder.Entity<AFSupplierLedger>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__AFSuppli__3214EC0779569B61");
@@ -344,6 +396,14 @@ public partial class ERPOrganisationSetupContext : DbContext
                 .HasForeignKey(d => d.CompanyId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Branch__CompanyI__6C040022");
+        });
+
+        modelBuilder.Entity<CSDefaultChartOfAccount>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__CSDefaul__3214EC0759969E84");
+
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<CSDepartment>(entity =>
@@ -483,11 +543,19 @@ public partial class ERPOrganisationSetupContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__confAppl__3214EC070C3A2310");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.DefaultSaleMargin).HasColumnType("decimal(18, 2)");
         });
 
         modelBuilder.Entity<confClientSetting>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__confClie__3214EC07CF3B99B2");
+        });
+
+        modelBuilder.Entity<confScheduledMessage>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__confSche__3214EC07D2C08F90");
+
+            entity.Property(e => e.ScheduledOn).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<confclientproductsetting>(entity =>
@@ -505,15 +573,6 @@ public partial class ERPOrganisationSetupContext : DbContext
 
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
-        });
-
-        modelBuilder.Entity<osvProductCombination>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__osvProdu__3214EC07D19CECAB");
-
-            entity.HasIndex(e => new { e.ProductId, e.AttributeKey }, "UX_osvProductCombination_ProductAttribute").IsUnique();
-
-            entity.Property(e => e.AttributeKey).HasComputedColumnSql("(CONVERT([nvarchar](450),isnull([Attribute],'##NULL_SENTINEL##')))", true);
         });
 
         modelBuilder.Entity<vAccountCatagory>(entity =>

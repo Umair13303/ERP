@@ -15,6 +15,8 @@ public partial class AFInvoicePPI
 
     public int? ProductId { get; set; }
 
+    public int? ProductATIId { get; set; }
+
     public int? ProductCombinationId { get; set; }
 
     public decimal Quantity { get; set; }

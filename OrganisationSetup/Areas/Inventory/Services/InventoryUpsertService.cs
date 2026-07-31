@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using Humanizer;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -502,43 +503,44 @@ namespace OrganisationSetup.Areas.Inventory.Services
             {
                 adjustmentGuID = postedData.GuID;
             }
-            bool? isOperationPermitted = true; //await _validationService.isOSCustomerValid(postedData.OperationType, customerGuID, postedData.Description);
+            bool? isOperationPermitted = true; //NEED TO SHIFT "PORTION FOR :: FETCH & VALIDATE ADJUSTMENT RECORD" IN A SEPRATE MICRO FUNCTION THE ADJUSTMENT RECORD & RETURN APPROPRIATE MESSAGE
             #endregion
-            #region PORTION FOR :: VALIDATE ADJUSTMENT TYPE
-            var adjType = await _eRPOSContext.vInventoryAdjustmentType
-                .Where(x => x.Id == postedData.AdjustmentTypeId)
-                .FirstOrDefaultAsync();
+            
+            #region PORTION FOR :: FETCH & VALIDATE ADJUSTMENT RECORD
+            var adjustmentType = await _eRPOSContext.vInventoryAdjustmentType.Where(x => x.Id == postedData.AdjustmentTypeId).FirstOrDefaultAsync();
 
-            if (adjType == null)
+            if (adjustmentType == null)
                 return ServiceResult.failure("Invalid adjustment type.", (int)Code.BadRequest);
+            var companyDefaultAccounts = await _eRPOSContext.osvChartOfAccount.Where(x => x.CompanyId == userInfo.CompanyId && x.Status == true).ToListAsync();
             foreach (var line in postedData.PostedDataIAdjustmentPPQD)
             {
-                if (line.QuantityIn > 0 && !adjType.IsQuantityIn)
-                    return ServiceResult.failure($"Adjustment type '{adjType.Description}' does not permit stock-in quantities.", (int)Code.BadRequest);
+                if (line.QuantityIn > 0 && !adjustmentType.IsQuantityIn)
+                    return ServiceResult.failure($"Adjustment type '{adjustmentType.Description}' does not permit stock-in quantities.", (int)Code.BadRequest);
 
-                if (line.QuantityOut > 0 && !adjType.IsQuantityOut)
-                    return ServiceResult.failure($"Adjustment type '{adjType.Description}' does not permit stock-out quantities.", (int)Code.BadRequest);
+                if (line.QuantityOut > 0 && !adjustmentType.IsQuantityOut)
+                    return ServiceResult.failure($"Adjustment type '{adjustmentType.Description}' does not permit stock-out quantities.", (int)Code.BadRequest);
 
-                if (line.UnitPurchasePrice > 0 && !adjType.IsPurchasePrice)
-                    return ServiceResult.failure($"Adjustment type '{adjType.Description}' does not permit purchase price entry.", (int)Code.BadRequest);
+                if (line.UnitPurchasePrice > 0 && !adjustmentType.IsPurchasePrice)
+                    return ServiceResult.failure($"Adjustment type '{adjustmentType.Description}' does not permit purchase price entry.", (int)Code.BadRequest);
 
-                if (line.UnitSalePrice > 0 && !adjType.IsSalePrice)
-                    return ServiceResult.failure($"Adjustment type '{adjType.Description}' does not permit sale price entry.", (int)Code.BadRequest);
+                if (line.UnitSalePrice > 0 && !adjustmentType.IsSalePrice)
+                    return ServiceResult.failure($"Adjustment type '{adjustmentType.Description}' does not permit sale price entry.", (int)Code.BadRequest);
             }
             #endregion
-            #region PORTION FOR :: GENERATE PRODUCT COMBINATION
-            var comboList = postedData.PostedDataIAdjustmentPPQD.Select(i => new osvProductCombination
+            
+            #region PORTION FOR :: FETCH & GENERATE PRODUCT COMBINATION
+            var combinationList = postedData.PostedDataIAdjustmentPPQD.Select(i => new IProductCCE
             {
                 ProductId = i.ProductId,
-                Attribute = i.Attribute
+                Description = i.Attribute
             }).ToList();
-            var combinationGeneration = await _commonServices.generate_productCombination((int)DocumentType.inventoryAdjustment, comboList);
-
+            var combinationGeneration = await _commonServices.generate_productCombination((int)DocumentType.inventoryAdjustment, combinationList);
             foreach (var i in postedData.PostedDataIAdjustmentPPQD)
             {
                 i.ProductCombinationId = await _commonServices.get_productCombination(i.ProductId, i.Attribute);
             }
             #endregion
+  
             await using var transaction = await _eRPOSContext.Database.BeginTransactionAsync();
             var con = (SqlConnection)_eRPOSContext.Database.GetDbConnection();
             var sqlTransaction = (SqlTransaction)transaction.GetDbTransaction();
@@ -568,41 +570,39 @@ namespace OrganisationSetup.Areas.Inventory.Services
                     con, sqlTransaction
                 );
                 #endregion
+
                 #region PORTION FOR :: UPSERT INTO dbo.AFInventoryLedger
-                var AFInventoryLedgerInfo = new List<AFInventoryLedger_TVP>();
-                foreach (var ppqd in postedData.PostedDataIAdjustmentPPQD)
+                var AFInventoryLedgerInfo = postedData.PostedDataIAdjustmentPPQD.Select(ppqd => new AFInventoryLedger_TVP
                 {
-                    var LedgerPPQD = new AFInventoryLedger_TVP
-                    {
-                        GuID = Guid.NewGuid(),
-                        LocationId = postedData.LocationId,
-                        TransactionDate = transactionDate,
-                        ProductId = ppqd.ProductId,
-                        ProductCombinationId = await _commonServices.get_productCombination(ppqd.ProductId, ppqd.Attribute),
-                        RefDocumentType = (int?)DocumentType.inventoryAdjustment,
-                        RefDocumentId = (int?)IAdjustment.insertedId,
-                        Description = $"Inventory Adjustment Recorded",
-                        QuantityIn = ppqd.QuantityIn,
-                        QuantityOut = ppqd.QuantityOut,
-                        UnitPurchasePrice = ppqd.UnitPurchasePrice,
-                        UnitSalePrice = ppqd.UnitSalePrice,
-                        Debit = ppqd.UnitPurchasePrice * ppqd.QuantityIn,
-                        Credit = ppqd.UnitPurchasePrice * ppqd.QuantityOut,
-                        Batch = ppqd.Batch,
-                        ExpiryDate = ppqd.ExpiryDate,
-                        ReconcillationStatus = (int)ReconcileStatus.reconciled,
-                        CreatedOn = transactionDate,
-                        CreatedBy = userInfo.UserId,
-                        UpdatedOn = transactionDate,
-                        UpdatedBy = userInfo.UserId,
-                        DocumentType = (int?)DocumentType.inventoryLedgerRecord,
-                        DocumentStatus = (int?)DocumentStatus.active,
-                        Status = true,
-                        BranchId = userInfo.BranchId,
-                        CompanyId = userInfo.CompanyId
-                    };
-                    AFInventoryLedgerInfo.Add(LedgerPPQD);
-                }
+                    GuID = Guid.NewGuid(),
+                    LocationId = postedData.LocationId,
+                    TransactionDate = transactionDate,
+                    ProductId = ppqd.ProductId,
+                    ProductCombinationId = ppqd.ProductCombinationId,
+                    RefDocumentType = (int?)DocumentType.inventoryAdjustment,
+                    RefDocumentId = (int?)IAdjustment.insertedId,
+                    Description = $"Inventory Adjustment Recorded ({adjustmentType.Description})",
+                    QuantityIn = ppqd.QuantityIn,
+                    QuantityOut = ppqd.QuantityOut,
+                    UnitPurchasePrice = ppqd.UnitPurchasePrice,
+                    UnitSalePrice = ppqd.UnitSalePrice,
+                    Debit = ppqd.UnitPurchasePrice * ppqd.QuantityIn,
+                    Credit = ppqd.UnitPurchasePrice * ppqd.QuantityOut,
+                    Batch = ppqd.Batch,
+                    ExpiryDate = ppqd.ExpiryDate,
+                    ReconcillationStatus = (int)ReconcileStatus.reconciled,
+                    CreatedOn = transactionDate,
+                    CreatedBy = userInfo.UserId,
+                    UpdatedOn = transactionDate,
+                    UpdatedBy = userInfo.UserId,
+                    DocumentType = (int?)DocumentType.inventoryLedgerRecord,
+                    DocumentStatus = (int?)DocumentStatus.active,
+                    Status = true,
+                    BranchId = userInfo.BranchId,
+                    CompanyId = userInfo.CompanyId
+                }).ToList();
+
+
                 var AFInventoryLedger = await _repo.UpsertInto_AFInventoryLedger(
                     postedData.OperationType,
                     AFInventoryLedgerInfo.FirstOrDefault()?.RefDocumentType,
@@ -611,9 +611,9 @@ namespace OrganisationSetup.Areas.Inventory.Services
                     sqlTransaction
                 );
                 #endregion
+
                 #region PORTION FOR :: UPDATE PRICES INCASE OF AUTO PRICE UPDATE IS ENABLED FOR THE ADJUSTMENT TYPE
-                bool? isAutoPriceUpdate = await _eRPOSContext.vInventoryAdjustmentType.Where(x => x.Id == postedData.AdjustmentTypeId).Select(x => x.IsAutoPriceUpdate).FirstOrDefaultAsync();
-                if (isAutoPriceUpdate == true)
+                if (adjustmentType.IsAutoPriceUpdate == true)
                 {
                     foreach (var i in postedData.PostedDataIAdjustmentPPQD)
                     {
@@ -646,6 +646,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                     await _eRPOSContext.SaveChangesAsync();
                 }
                 #endregion
+
                 #region PORTION FOR :: HANDLE TRANSACTION
                 switch (IAdjustment.response)
                 {
@@ -752,6 +753,84 @@ namespace OrganisationSetup.Areas.Inventory.Services
             }
         }
         #endregion
-   
+      
     }
 }
+
+//#region PORTION FOR :: RESOLVE GL ACCOUNTS (BEFORE TOUCHING THE DB)
+//var defaultAccountMappings = await _eRPOSContext.CSDefaultChartOfAccount
+//    .Where(x => x.CompanyId == userInfo.CompanyId && x.Status == true)
+//    .ToListAsync();
+
+//int inventoryAssetAccountId = defaultAccountMappings
+//    .FirstOrDefault(x => x.AccountCategoryId == (int)AccountCategory.INVENTORY)?.DefaultChartOfAccountId ?? 0;
+
+//int offsetAccountId = defaultAccountMappings
+//    .FirstOrDefault(x => x.AccountCategoryId == adjustmentType.AccountCategoryId)?.DefaultChartOfAccountId ?? 0;
+
+//if (inventoryAssetAccountId == 0 || offsetAccountId == 0)
+//    return ServiceResult.failure("Default GL accounts are not configured for this company or adjustment type category. Please update Company Setup.", (int)Code.BadRequest);
+
+//if (inventoryAssetAccountId == offsetAccountId)
+//    return ServiceResult.failure("Inventory account and offset account cannot be the same account.", (int)Code.BadRequest);
+//#endregion
+
+//private AFGeneralLedger_TVP CreateGlEntry(
+//  PostedData postedData,
+//  (int? response, int? insertedId, string? documentCode) iAdjustmentResult,
+//  DateTime transactionDate,
+//  TempUser userInfo,
+//  int accountId,
+//  string description,
+//  decimal debit,
+//  decimal credit,
+//  int partyId
+//)
+//{
+//    return new AFGeneralLedger_TVP
+//    {
+//        GuID = Guid.NewGuid(),
+//        LocationId = (int)postedData.LocationId,
+//        TransactionDate = transactionDate,
+//        AccountId = accountId,
+//        PartyId = partyId, // Fixed to use the passed parameter instead of hardcoded 0
+//        RefDocumentType = (int)DocumentType.inventoryAdjustment,
+//        RefDocumentId = (int)iAdjustmentResult.insertedId,
+//        DocumentCode = iAdjustmentResult.documentCode,
+//        Description = description,
+//        Debit = debit,
+//        Credit = credit,
+//        CreatedOn = DateTime.Now,
+//        CreatedBy = (int)userInfo.UserId,
+//        CompanyId = userInfo.CompanyId,
+//        BranchId = userInfo.BranchId,
+//    };
+
+//}
+
+
+//#region PORTION FOR :: GENERATE GENERAL LEDGER ENTRIES
+//decimal totalInValue = postedData.PostedDataIAdjustmentPPQD.Sum(x => x.QuantityIn * x.UnitPurchasePrice);
+//decimal totalOutValue = postedData.PostedDataIAdjustmentPPQD.Sum(x => x.QuantityOut * x.UnitPurchasePrice);
+//var afGlLedgerInfo = new List<AFGeneralLedger_TVP>();
+
+//if (totalInValue > 0)
+//{
+//    afGlLedgerInfo.Add(CreateGlEntry(postedData, IAdjustment, (DateTime)transactionDate, userInfo, inventoryAssetAccountId, $"Stock Adjustment In - Ref #{adjustmentGuID}", totalInValue, 0, 0));
+//    afGlLedgerInfo.Add(CreateGlEntry(postedData, IAdjustment, (DateTime)transactionDate, userInfo, offsetAccountId, $"Stock Adjustment In Offset - Ref #{adjustmentGuID}", 0, totalInValue, 0));
+//}
+//if (totalOutValue > 0)
+//{
+//    afGlLedgerInfo.Add(CreateGlEntry(postedData, IAdjustment, (DateTime)transactionDate, userInfo, offsetAccountId, $"Stock Adjustment Out Loss - Ref #{adjustmentGuID}", totalOutValue, 0, 0));
+//    afGlLedgerInfo.Add(CreateGlEntry(postedData, IAdjustment, (DateTime)transactionDate, userInfo, inventoryAssetAccountId, $"Stock Adjustment Out Asset Reduction - Ref #{adjustmentGuID}", 0, totalOutValue, 0));
+//}
+
+//(int? response, int? insertedIn, string? documentCode) AFGeneralLedger = (response: (int)Code.Accepted, insertedIn: null, documentCode: null);
+//if (afGlLedgerInfo.Any())
+//{
+//    AFGeneralLedger = await _repo.UpsertInto_AFGeneralLedger(
+//        postedData.OperationType, (int?)DocumentType.inventoryAdjustment,
+//        afGlLedgerInfo, con, sqlTransaction
+//    );
+//}
+//#endregion

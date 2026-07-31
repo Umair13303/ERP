@@ -50,8 +50,17 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
         }
         #endregion
 
+        #region PORTION CONTAIN CODE TO: ADD/EDIT/DELETE DOCUMENT
+        [HttpPost]
+        public async Task<IActionResult> createUpdateChartOfAccount([FromBody] PostedData postedData)
+        {
+            var result = await _anfuService.updateInsertDataInto_AFChartOfAccount(postedData,false);
+            return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message });
+        }
+        #endregion
 
 
-       
+
+
     }
 }

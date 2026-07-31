@@ -42,6 +42,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
         Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_IAdjustment(string operationType, Guid? guID, int? locationId, DateTime? transactionDate, string? description, int? adjustmentTypeId,int? adjustmentStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, bool? status, int? branchId, int? companyId, List<IInventoryAdjustmentPPQD_TVP> details, SqlConnection con, SqlTransaction trans);
         Task<(int? response, int? insertedIn, string? documentCode)> UpsertInto_AFInventoryLedger(string operationType,int? refDocumentType, List<AFInventoryLedger_TVP> ledgerDetails, SqlConnection con, SqlTransaction trans);
         Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_AFBillReceipt(string? operationType, Guid? guId, int? locationId, DateTime? transactionDate, int? supplierId, int? billId, string? description, int? paymentTypeId, int? paymentMethodId, string? reference, decimal? receiptAmount, int? paymentStatus, DateTime? createdOn, int? createdBy, DateTime? updatedOn, int? updatedBy, int? documentType, int? documentStatus, int? branchId, int? companyId, SqlConnection con, SqlTransaction trans);
+        //Task<(int? response, int? insertedIn, string? documentCode)> UpsertInto_AFGeneralLedger(string operationType, int? refDocumentType, List<AFGeneralLedger_TVP> ledgerDetails,SqlConnection con, SqlTransaction trans);
         #endregion
         #region RETRIEVE OPERATION
         Task<IReadOnlyList<DTObject.Invoice_List>> ret_Invoice_ByParam(Guid? guId, int? customerId, int?[] documentStatusIds, int?[] invoiceStatusIds,string connStr);
@@ -1085,7 +1086,40 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                 documentCode: documentCodeParam.Value == DBNull.Value ? null : (string?)documentCodeParam.Value
             );
         }
+        //public async Task<(int? response, int? insertedId, string? documentCode)> UpsertInto_AFGeneralLedger(string operationType, int? refDocumentType, List<AFGeneralLedger_TVP> ledgerDetails, SqlConnection con, SqlTransaction trans)
+        //{
+        //    using var cmd = new SqlCommand("sp_UpsertInto_AFGeneralLedger", con, trans);
+        //    cmd.CommandType = CommandType.StoredProcedure;
 
+        //    // Input Parameters
+        //    cmd.Parameters.AddWithValue("@OperationType", operationType ?? (object)DBNull.Value);
+        //    cmd.Parameters.AddWithValue("@RefDocumentType", refDocumentType ?? (object)DBNull.Value);
+
+        //    // Table-Valued Parameter (TVP) for Ledger list
+        //    var tvpTable = ledgerDetails != null;
+        //    var tvpParam = cmd.Parameters.AddWithValue("@LedgerDetails", tvpTable);
+        //    tvpParam.SqlDbType = SqlDbType.Structured;
+        //    tvpParam.TypeName = "dbo.AFGeneralLedger_TVP";
+
+        //    // Output Parameters (Must match the exact names/types expected by your stored procedure)
+        //    var responseParam = new SqlParameter("@Response", SqlDbType.Int) { Direction = ParameterDirection.Output };
+        //    var insertedIdParam = new SqlParameter("@InsertedId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+        //    var documentCodeParam = new SqlParameter("@DocumentCode", SqlDbType.VarChar, 50) { Direction = ParameterDirection.Output };
+
+        //    cmd.Parameters.Add(responseParam);
+        //    cmd.Parameters.Add(insertedIdParam);
+        //    cmd.Parameters.Add(documentCodeParam);
+
+        //    // Execute the command to populate output parameters
+        //    await cmd.ExecuteNonQueryAsync();
+
+        //    // Map outputs safely after execution
+        //    int? response = responseParam.Value != DBNull.Value ? (int?)responseParam.Value : null;
+        //    int? insertedId = insertedIdParam.Value != DBNull.Value ? (int?)insertedIdParam.Value : null;
+        //    string? documentCode = documentCodeParam.Value != DBNull.Value ? documentCodeParam.Value.ToString() : null;
+
+        //    return (response, insertedId, documentCode);
+        //}
         #endregion
 
         #region RETRIEVE OPERATION SP

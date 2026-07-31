@@ -40,9 +40,14 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
             ViewBag.ProductSetting = await _IcService.fetchProductSetting();
             return View();
         }
+        public async Task<IActionResult> CreateUpdate_IProductCCE_UI(UISetting ui)
+        {
+            ViewBag.OperationType = ui.OperationType;
+            ViewBag.DisplayName = ui.DisplayName;
+            ViewBag.ProductSetting = await _IcService.fetchProductSetting();
+            return View();
+        }
         #endregion
-
-
 
         #region PORTION CONTAIN CODE TO: RETURN DEPENDING DDL
         [HttpGet]

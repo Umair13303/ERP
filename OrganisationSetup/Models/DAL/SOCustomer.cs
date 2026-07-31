@@ -14,7 +14,9 @@ public partial class SOCustomer
     public string? Description { get; set; }
 
     public int? TierTypeId { get; set; }
+
     public bool? IsWalkInCustomer { get; set; }
+
     public string? Contact { get; set; }
 
     public string? Email { get; set; }

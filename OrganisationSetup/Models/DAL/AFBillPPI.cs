@@ -12,6 +12,7 @@ public partial class AFBillPPI
     public int? BillId { get; set; }
 
     public int? ProductId { get; set; }
+
     public int? ProductATIId { get; set; }
 
     public int? ProductCombinationId { get; set; }

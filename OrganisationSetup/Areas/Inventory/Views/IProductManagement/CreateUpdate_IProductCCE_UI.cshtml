@@ -1,0 +1,76 @@
+﻿@{
+    Layout = null; // Loaded dynamically within the parent tab pane
+}
+
+<div class="card shadow-sm border-0 mb-3">
+    <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+        <span class="fw-bold text-primary small">
+            <i class="fa-solid fa-network-wired me-2"></i> PRODUCT COMBINATION & MATRIX ENGINE (CCE)
+        </span>
+        <span class="text-muted small">Parent Product ID: <span id="lblParentProductId" class="fw-semibold text-dark">-</span></span>
+    </div>
+    <div class="card-body">
+
+        <!-- Matrix Generation Controls -->
+        <div class="row g-3 mb-4 p-3 bg-light rounded-2 border mx-0 align-items-end">
+            <div class="col-md-4">
+                <div class="form-group mb-0">
+                    <label class="form-label text-secondary fw-semibold small mb-1">Select Attributes (e.g. Size, Color)</label>
+                    <select id="CCE_AttributeSelector" class="form-select form-select-sm select2" multiple="multiple">
+                        <!-- Populated dynamically via JS -->
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group mb-0">
+                    <label class="form-label text-secondary fw-semibold small mb-1">SKU Suffix Pattern</label>
+                    <input type="text" id="CCE_SkuPattern" class="form-control form-control-sm" placeholder="e.g. -[Color]-[Size]" />
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group mb-0">
+                    <label class="form-label text-secondary fw-semibold small mb-1">Base Price Modifier</label>
+                    <input type="number" id="CCE_BasePrice" class="form-control form-control-sm" placeholder="0.00" />
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="button" id="ButtonGenerateMatrix" class="btn btn-sm btn-primary w-100 shadow-sm">
+                    <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Generate Matrix
+                </button>
+            </div>
+        </div>
+
+        <!-- Matrix Combinations Table Grid -->
+        <div class="table-responsive border rounded-2" style="max-height: 450px; overflow-y: auto;">
+            <table class="table table-sm table-striped table-hover table-bordered text-nowrap align-middle mb-0 office-table" id="TableCCECombinations" style="width: 100%">
+                <thead class="table-light text-secondary sticky-top" style="font-size: 0.785rem;">
+                    <tr>
+                        <th style="width: 5%;">
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="checkbox" id="SelectAllCCE">
+                            </div>
+                        </th>
+                        <th>Variant Description</th>
+                        <th>SKU / Code</th>
+                        <th>QR Code</th>
+                        <th>Additional Cost</th>
+                        <th class="text-center" style="width: 10%;">Status</th>
+                        <th class="text-center" style="width: 10%;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="TableBodyCCECombinations" class="text-dark" style="font-size: 0.785rem; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                    <!-- Dynamic Rows Generated Here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Bulk Save Footer Action -->
+        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+            <span class="text-muted small"><i class="fa-solid fa-circle-info me-1"></i> Check rows and click save to commit variations to database.</span>
+            <button type="button" id="ButtonSaveAllCCE" class="btn btn-sm btn-success px-4 shadow-sm">
+                <i class="fa-solid fa-cloud-arrow-up me-1"></i> Save Selected Combinations
+            </button>
+        </div>
+
+    </div>
+</div>
