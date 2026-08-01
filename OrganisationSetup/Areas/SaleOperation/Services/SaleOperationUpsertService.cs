@@ -95,23 +95,28 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                 using var transaction = con.BeginTransaction();
                 try
                 {
-                    #region PORTION FOR :: UPSERT INTO dbo.AFChartOfAccount
-                    var AFChartOfAccount = await _repo.UpsertInto_AFChartOfAccount(
-                                                      postedData.OperationType,
-                                                      chartOfAccountGuID,
-                                                      postedData.DefaultReceivableAccount?.Trim(),
-                                                      (int?)AccountCategory.ACCOUNTS_RECEIVABLE,
-                                                      (int?)FinancialStatement.BALANCE_SHEET,
-                                                      DateTime.Now,
-                                                      userInfo.UserId,
-                                                      DateTime.Now,
-                                                      userInfo.UserId,
-                                                      (int?)DocumentType.accountChartOfAccount,
-                                                      (int?)DocumentStatus.active,
-                                                      userInfo.BranchId,
-                                                      userInfo.CompanyId,
-                                                      con, transaction);
-                    #endregion
+                    postedData.isAutoChartOfAccount = true;
+                    if (postedData.isAutoChartOfAccount == true)
+                    {
+                        #region PORTION FOR :: UPSERT INTO dbo.AFChartOfAccount
+                        var AFChartOfAccount = await _repo.UpsertInto_AFChartOfAccount(
+                                                          postedData.OperationType,
+                                                          chartOfAccountGuID,
+                                                          postedData.DefaultReceivableAccount?.Trim(),
+                                                          (int?)AccountCategory.ACCOUNTS_RECEIVABLE,
+                                                          (int?)FinancialStatement.BALANCE_SHEET,
+                                                          DateTime.Now,
+                                                          userInfo.UserId,
+                                                          DateTime.Now,
+                                                          userInfo.UserId,
+                                                          (int?)DocumentType.accountChartOfAccount,
+                                                          (int?)DocumentStatus.active,
+                                                          userInfo.BranchId,
+                                                          userInfo.CompanyId,
+                                                          con, transaction);
+                        postedData.ChartOfAccountId = AFChartOfAccount.insertedId;
+                        #endregion
+                    }
 
                     #region PORTION FOR :: UPSERT INTO dbo.SOCustomer
                     var SOCustomer = await _repo.UpsertInto_SOCustomer(
@@ -125,8 +130,9 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                                                     postedData.CNICNumber?.Trim(),
                                                     postedData.Address?.Trim(),
                                                     postedData.AdditionalDetail?.Trim(),
-                                                    AFChartOfAccount.insertedId,
+                                                    postedData.ChartOfAccountId,
                                                     postedData.OpeningBalance,
+                                                    postedData.CreditLimit,
                                                     DateTime.Now,
                                                     userInfo.UserId,
                                                     DateTime.Now,

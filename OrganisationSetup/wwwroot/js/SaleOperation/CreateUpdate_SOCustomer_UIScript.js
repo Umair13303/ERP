@@ -139,6 +139,7 @@ function createUpdateDataIntoDB() {
         defaultReceivableAccount = description.trim() + " Default Receivable Account";
     }
     var openingBalance = $("#TextBoxOpeningBalance").val();
+    var creditLimit = $("#TextBoxCreditLimit").val();
 
     var jsonData = {
         OperationType: operationType,
@@ -153,7 +154,8 @@ function createUpdateDataIntoDB() {
         AdditionalDetail: additionalDetail,
         IsAutoChartOfAccount: isAutoChartOfAccount,
         DefaultReceivableAccount: defaultReceivableAccount,
-        OpeningBalance: openingBalance
+        OpeningBalance: openingBalance,
+        CreditLimit: creditLimit,
     };
     $.ajax({
         url: window.basePath + "SaleOperation/SOCustomerManagement/createUpdateCustomer",
@@ -168,10 +170,10 @@ function createUpdateDataIntoDB() {
             if (response.isSuccess == true) {
                 toastr.success(response.message);
                 $("#SOCustomerForm").removeClass('was-validated');
+                clearInputFields();
             }
             else {
                 toastr.info(response.message);
-                clearInputFields();
             }
         },
         error: function (xhr) {

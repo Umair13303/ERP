@@ -131,6 +131,12 @@
                                     @Html.TextBox("OpeningBalance", 0.00, new { @class = "form-control form-control-sm numberOnly", placeholder = "Provide Opening Balance!", @id = "TextBoxOpeningBalance", type = "number", min = "0" })
                                 </div>
                             </div>
+                            <div class="col-sm-12 col-md-3">
+                                <div class="form-group">
+                                    @Html.Label("TextBoxCreditLimit", "Credit Limit", new { @class = "col-form-label" })
+                                    @Html.TextBox("CreditLimit", 0.00, new { @class = "form-control form-control-sm numberOnly", placeholder = "Provide Opening Balance!", @id = "TextBoxCreditLimit", type = "number", min = "0" })
+                                </div>
+                            </div>
                         </div>
                     }
                     if(ViewBag.OperationType == nameof(OperationType.MPO_LIST))
