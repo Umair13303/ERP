@@ -13,9 +13,6 @@ function changeEventHandler() {
     });
 }
 
-
-
-
 /* ------ Call Initial Components ------ */
 function initialize() {
     changeEventHandler();
@@ -65,6 +62,7 @@ function createUpdateDataIntoDB() {
             if (response.IsSuccess == true) {
                 toastr.success(response.message);
                 $("#CSDepartmentForm").removeClass('was-validated');
+                clearInputFields();
             }
             else {
                 toastr.info(response.message);
@@ -75,7 +73,6 @@ function createUpdateDataIntoDB() {
         },
         complete: function () {
             stopLoading();
-            clearInputFields();
         }
     });
 }

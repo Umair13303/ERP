@@ -297,10 +297,15 @@ function createUpdateDataIntoDB(btnElement) {
             $(btnElement).prop("disabled", true);
         },
         success: function (response) {
-            toastr.success(response.message);
-            $("#AFInvoiceReceipt").removeClass("was-validated");
-            getInvoiceList($("#DropDownListCustomer :selected").val());
-            clearInputFields();
+            if (response.isSuccess == true) {
+                toastr.success(response.message);
+                $("#AFInvoiceReceipt").removeClass('was-validated');
+                clearInputFields();
+                getInvoiceList($("#DropDownListCustomer :selected").val());
+            }
+            else {
+                toastr.info(response.message);
+            }
         },
         error: function (xhr) {
             toastr.error("System Error: " + xhr.statusText);

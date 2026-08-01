@@ -10,6 +10,8 @@ namespace SharedUI.Models.SQLParameters
     public class PostedData
     {
         public string? OperationType { get; set; }
+        public bool? isAutoChartOfAccount { get; set; }
+        public int? ChartOfAccountId { get; set; }
         public Guid? GuID { get; set; }
         public Guid? ProductATIGuID { get; set; }
         public string? Description { get; set; }
@@ -50,6 +52,7 @@ namespace SharedUI.Models.SQLParameters
         public string? Reference { get; set; }
         public decimal CriticalLimit { get; set; }
         public decimal? OpeningBalance { get; set; }
+        public decimal? CreditLimit { get; set; }
         public decimal? Credit { get; set; }
         public decimal? Debit { get; set; }
         public decimal? DueAmount { get; set; }

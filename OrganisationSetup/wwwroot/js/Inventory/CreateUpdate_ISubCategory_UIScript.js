@@ -233,9 +233,10 @@ function createUpdateDataIntoDB() {
             initLoading();
         },
         success: function (response) {
-            if (response.IsSuccess == true) {
+            if (response.isSuccess == true) {
                 toastr.success(response.message);
                 $("#ICategoryForm").removeClass('was-validated');
+                clearInputFields();
             }
             else {
                 toastr.info(response.message);
@@ -246,15 +247,13 @@ function createUpdateDataIntoDB() {
         },
         complete: function () {
             stopLoading();
-            clearInputFields();
-            subCategoryTable.ajax.reload();
         }
     });
 }
 function clearInputFields() {
     $(".form-control").val('');
     $(".select2").val('-1').trigger("change");
-
+    subCategoryTable.ajax.reload();
 }
 $(function () {
     if (typeof setupGlobalAjax === "function") setupGlobalAjax();

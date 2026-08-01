@@ -88,9 +88,10 @@ function createUpdateDataIntoDB() {
             initLoading();
         },
         success: function (response) {
-            if (response.IsSuccess == true) {
+            if (response.isSuccess == true) {
                 toastr.success(response.message);
                 $("#ISectionForm").removeClass('was-validated');
+                clearInputFields();
             }
             else {
                 toastr.info(response.message);
@@ -101,7 +102,6 @@ function createUpdateDataIntoDB() {
         },
         complete: function () {
             stopLoading();
-            clearInputFields();
         }
     });
 }

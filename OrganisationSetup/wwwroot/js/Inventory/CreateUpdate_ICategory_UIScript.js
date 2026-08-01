@@ -158,6 +158,7 @@ function initialize() {
     changeEventHandler();
     domCategoryTable();
 }
+
 /* ------ Validation for user input ------ */
 function validater() {
     var form = document.getElementById("ICategoryForm");
@@ -191,7 +192,6 @@ function createUpdateDataIntoDB() {
         Description: description,
         DepartmentId: departmentId,
         SectionId: sectionId,
-
     };
     $.ajax({
         url: window.basePath + "Inventory/ICategoryManagement/createUpdateCategory",
@@ -203,9 +203,10 @@ function createUpdateDataIntoDB() {
             initLoading();
         },
         success: function (response) {
-            if (response.IsSuccess == true) {
+            if (response.isSuccess == true) {
                 toastr.success(response.message);
                 $("#ICategoryForm").removeClass('was-validated');
+                clearInputFields();
             }
             else {
                 toastr.info(response.message);
@@ -216,15 +217,13 @@ function createUpdateDataIntoDB() {
         },
         complete: function () {
             stopLoading();
-            clearInputFields();
-            categoryTable.ajax.reload();
         }
     });
 }
 function clearInputFields() {
     $(".form-control").val('');
     $(".select2").val('-1').trigger("change");
-
+    categoryTable.ajax.reload();
 }
 $(function () {
     if (typeof setupGlobalAjax === "function") setupGlobalAjax();

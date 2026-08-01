@@ -126,16 +126,14 @@ function createUpdateDataIntoDB() {
     var operationType = $("#OperationType").val();
     var guID = $("#GuID").val();
     var description = $("#TextBoxDescription").val();
-    var accountCategoryId = $("#DropDownListAccountCatagory :selected").val();
+    var accountCategoryId = $("#DropDownListAccountCategory :selected").val();
     var financialStatementId = $("#DropDownListFinancialStatement :selected").val();
-   // var isDefault = $("CheckBoxIsDefault").prop().val();
     var jsonData = {
         OperationType: operationType,
         GuID: guID ? guID : null,
         Description: description,
         AccountCategoryId: accountCategoryId,
         FinancialStatementId: financialStatementId,
-       // IsDefault: isDefault,
     };
 
     $.ajax({
@@ -148,9 +146,10 @@ function createUpdateDataIntoDB() {
             initLoading();
         },
         success: function (response) {
-            if (response.IsSuccess == true) {
+            if (response.isSuccess == true) {
                 toastr.success(response.message);
-                $("#ACBranchForm").removeClass('was-validated');
+                $("#ACChartOfAccountForm").removeClass('was-validated');
+                clearInputFields();
             }
             else {
                 toastr.info(response.message);
@@ -161,7 +160,6 @@ function createUpdateDataIntoDB() {
         },
         complete: function () {
             stopLoading();
-            clearInputFields();
         }
     });
 }

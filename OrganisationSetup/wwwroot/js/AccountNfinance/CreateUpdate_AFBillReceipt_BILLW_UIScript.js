@@ -242,10 +242,15 @@ function createUpdateDataIntoDB(btnElement) {
             $(btnElement).prop("disabled", true);
         },
         success: function (response) {
-            toastr.success(response.message);
-            $("#AFBillReceipt").removeClass("was-validated");
-            getBillList($("#DropDownListSupplier :selected").val());
-            clearInputFields();
+            if (response.isSuccess == true) {
+                toastr.success(response.message);
+                $("#AFBillReceipt").removeClass("was-validated");
+                clearInputFields();
+                getBillList($("#DropDownListSupplier :selected").val());
+            }
+            else {
+                toastr.info(response.message);
+            }
         },
         error: function (xhr) {
             toastr.error("System Error: " + xhr.statusText);

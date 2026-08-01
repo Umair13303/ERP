@@ -456,9 +456,10 @@ function createUpdateDataIntoDB() {
             if (typeof initLoading === "function") initLoading();
         },
         success: function (response) {
-            if (response.IsSuccess == true) {
+            if (response.isSuccess == true) {
                 toastr.success(response.message);
                 $("#IInventoryAdjustmentForm").removeClass('was-validated');
+                clearInputFields();
             }
             else {
                 toastr.info(response.message);
@@ -469,7 +470,6 @@ function createUpdateDataIntoDB() {
         },
         complete: function () {
             if (typeof stopLoading === "function") stopLoading();
-            clearInputFields();
         }
     });
 }

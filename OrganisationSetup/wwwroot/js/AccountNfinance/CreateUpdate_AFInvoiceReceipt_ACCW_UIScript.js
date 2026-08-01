@@ -205,16 +205,21 @@ function createUpdateDataIntoDB() {
             initLoading();
         },
         success: function (response) {
-            toastr.success(response.message);
-            $("#AFInvoiceReceiptForm").removeClass('was-validated');
+            if (response.isSuccess == true) {
+                toastr.success(response.message);
+                $("#AFInvoiceReceiptForm").removeClass('was-validated');
+                clearInputFields();
+                getInvoiceReceiptList(customerId);
+            }
+            else {
+                toastr.info(response.message);
+            }
         },
         error: function (xhr) {
             toastr.error("System Error: " + xhr.statusText);
         },
         complete: function () {
-            getInvoiceReceiptList(customerId);
             stopLoading();
-            clearInputFields();
         }
     });
 }

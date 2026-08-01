@@ -165,12 +165,13 @@ function createUpdateDataIntoDB() {
             initLoading();
         },
         success: function (response) {
-            if (response.IsSuccess == true) {
+            if (response.isSuccess == true) {
                 toastr.success(response.message);
                 $("#SOCustomerForm").removeClass('was-validated');
             }
             else {
                 toastr.info(response.message);
+                clearInputFields();
             }
         },
         error: function (xhr) {
@@ -178,7 +179,6 @@ function createUpdateDataIntoDB() {
         },
         complete: function () {
             stopLoading();
-            clearInputFields();
         }
     });
 }
