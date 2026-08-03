@@ -27,34 +27,85 @@ function initializeDataTable() {
         columns: [
             { title: 'Product', data: 'ProductName' },
             {
-                title: 'Attributes', data: 'AttributeDisplayString',
-                render: function (data) {
-                    return '<span class="badge bg-light text-dark border">' + data + '</span>';
+                title: 'Attributes / Combination',
+                data: 'AttributeIds',
+                render: function (data, type, row) {
+                    var attrIds = [];
+                    if (data) {
+                        attrIds = data.toString().split(',');
+                    } else if (row.Attribute) {
+                        var attrs = typeof row.Attribute === 'string' ? JSON.parse(row.Attribute) : row.Attribute;
+                        if (Array.isArray(attrs)) {
+                            attrIds = attrs.map(a => a.Id);
+                        }
+                    }
+
+                    if (attrIds.length === 0) return '<span class="text-muted">N/A</span>';
+
+                    var html = '<div class="d-flex flex-column gap-1 inline-attr-container" data-product-id="' + row.ProductId + '">';
+
+                    $.each(attrIds, function (i, attrId) {
+                        attrId = attrId.trim();
+                        var attrObj = attributeList.find(a => a.id == attrId);
+                        var attrName = attrObj ? attrObj.description : 'Attribute';
+
+                        var existingVal = '';
+                        if (row.Attribute) {
+                            var attrs = typeof row.Attribute === 'string' ? JSON.parse(row.Attribute) : row.Attribute;
+                            if (Array.isArray(attrs)) {
+                                var match = attrs.find(a => String(a.Id) === String(attrId));
+                                if (match) {
+                                    existingVal = match.Description || '';
+                                }
+                            }
+                        }
+
+                        html += '<input type="text" class="form-control form-control-sm grid-attr-field" ' +
+                            'data-attribute-id="' + attrId + '" ' +
+                            'value="' + existingVal + '" ' +
+                            'placeholder="' + attrName + '">';
+                    });
+
+                    html += '</div>';
+                    return html;
                 }
             },
             {
-                title: 'Purchase Price/e', data: 'UnitPurchasePrice',
+                title: 'Purchase Price',
+                data: 'UnitPurchasePrice',
                 className: 'text-end',
-                render: function (data) { return parseFloat(data).toFixed(2); }
+                render: function (data) {
+                    return '<input type="number" step="0.01" class="form-control form-control-sm text-end grid-purchase-price" value="' + (data || '0.00') + '">';
+                }
             },
             {
-                title: 'Sale Price/e', data: 'UnitSalePrice',
+                title: 'Sale Price',
+                data: 'UnitSalePrice',
                 className: 'text-end',
-                render: function (data) { return parseFloat(data).toFixed(2); }
+                render: function (data) {
+                    return '<input type="number" step="0.01" class="form-control form-control-sm text-end grid-sale-price" value="' + (data || '0.00') + '">';
+                }
             },
             {
-                title: 'QTY IN', data: 'QuantityIn',
-                className: 'text-end text-success fw-bold'
+                title: 'QTY IN',
+                data: 'QuantityIn',
+                className: 'text-end',
+                render: function (data) {
+                    return '<input type="number" step="1" class="form-control form-control-sm text-end grid-qty-in" value="' + (data || '0') + '">';
+                }
             },
             {
-                title: 'QTY OUT', data: 'QuantityOut',
-                className: 'text-end text-danger fw-bold'
+                title: 'QTY OUT',
+                data: 'QuantityOut',
+                className: 'text-end',
+                render: function (data) {
+                    return '<input type="number" step="1" class="form-control form-control-sm text-end grid-qty-out" value="' + (data || '0') + '">';
+                }
             },
             {
                 title: 'Batch',
                 data: 'Batch',
                 render: function (data, type, row) {
-                    // Only render text input if item configuration dictates expiry tracking
                     if (row.IsExpiryApplied) {
                         return '<input type="text" class="form-control form-control-sm grid-batch-input" value="' + (data || "") + '" placeholder="Enter Batch">';
                     }
@@ -63,7 +114,7 @@ function initializeDataTable() {
             },
             {
                 title: 'Expiry',
-                data: 'Expiry',
+                data: 'ExpiryDate',
                 render: function (data, type, row) {
                     if (row.IsExpiryApplied) {
                         return '<input type="date" class="form-control form-control-sm grid-expiry-input" value="' + (data || "") + '">';
@@ -77,7 +128,7 @@ function initializeDataTable() {
                 className: 'text-center',
                 orderable: false,
                 searchable: false,
-                render: function (data, type, row, meta) {
+                render: function () {
                     return HTML_DATATABLE_UTIL.HTML_TBL_DELETE_BTN("", "");
                 }
             }
@@ -265,11 +316,11 @@ function addLineItemToStaging() {
     }
     var itemAttributes = [];
     var attributeDescriptions = [];
-    $("#ContainerStockAttribute .attr-field, #ContainerStockAttribute input").each(function () {
+    $("#ContainerStockAttribute .attr-field, #ContainerStockAttribute input, #ContainerStockAttribute select").each(function () {
         var $input = $(this);
         var attrId = $input.attr("data-attribute-id") || $input.attr("id");
         var value = $.trim($input.val());
-        if (value !== "") {
+        if (value !== "" && value !== null && value !== "-1") {
             itemAttributes.push({
                 Id: attrId,
                 Description: value
@@ -330,28 +381,30 @@ function clearLineItemInputs() {
 
 /* ------ Change Cases DDL's ------ */
 function changeEventHandler() {
+
     $("#DropDownListProduct").on("change", function () {
         var $selected = $(this).find(':selected');
-        var attributeIds = $selected.data('attids');
-        if (attributeIds) {
-            var attributeArray = attributeIds.toString().split(',');
-            $("#ContainerStockAttribute").empty();
-            $.each(attributeArray, function (index, attrId) {
-                attrId = attrId.trim();
-                if (attributeList.length > 0) {
-                    $("#DivVariantInformation").slideDown('slow');
-                    var attribute = attributeList.find(a => a.id == attrId);
-                    if (attribute) {
-                        var fieldHtml = inputField.textBox(attribute.description, attribute.description, "", "Standard", false, attribute.id);
-                        $("#ContainerStockAttribute").append(fieldHtml);
-                    }
-                }
-            });
-        }
-    });
-    $("#ButtonAddLineItem").on("click", function (e) {
-        e.preventDefault();
-        addLineItemToStaging();
+        var productId = $selected.val();
+        var productName = $selected.text();
+        if (!productId || productId === "-1") return;
+        var attributeIds = $selected.data('attids') || "";
+        var isExpiryApplied = $selected.data('isexpiryapplied');
+        var hasExpiry = (isExpiryApplied === true || isExpiryApplied === "True" || isExpiryApplied === 1 || isExpiryApplied === "1");
+
+        var lineItem = {
+            ProductId: productId,
+            ProductName: productName,
+            UnitPurchasePrice: 0.00,
+            UnitSalePrice: 0.00,
+            QuantityIn: 1,
+            QuantityOut: 0,
+            AttributeIds: attributeIds ? attributeIds.toString() : "",
+            IsExpiryApplied: hasExpiry,
+            Batch: "",
+            ExpiryDate: ""
+        };
+        adjustmentTable.row.add(lineItem).draw(false);
+        $(this).val('-1').trigger('change.select2');
     });
 
     $("#ButtonSaveData, #ButtonUpdateData").on("click", function (e) {
@@ -362,14 +415,13 @@ function changeEventHandler() {
     });
 }
 
-
 /* ------ Call Initial Components ------ */
 function initialize() {
     initializeDataTable();
     getBranchList();
     getvAdjustmentTypeList();
     getvAttributeList();
-    getProductList();
+    getProductList(null);
     changeEventHandler();
     $('.select2').select2({
         width: '100%'
@@ -404,28 +456,53 @@ function createUpdateDataIntoDB() {
     var attribute = [];
     $("#ContainerStockAttribute .attr-field").each(function () {
         var $input = $(this);
-        attribute.push({
-            Id: $input.attr('data-attribute-id'),
-            Description: $input.val()
-        });
+        var val = $.trim($input.val());
+        if (val) {
+            attribute.push({
+                Id: $input.attr('data-attribute-id'),
+                Description: val
+            });
+        }
     });
     var iAdjustmentPPQD = adjustmentTable.rows().nodes().to$().map(function (index, node) {
         var row = adjustmentTable.row(node).data();
+
+        var unitPurchasePrice = parseFloat($(node).find('.grid-purchase-price').val()) || 0;
+        var unitSalePrice = parseFloat($(node).find('.grid-sale-price').val()) || 0;
+        var quantityIn = parseFloat($(node).find('.grid-qty-in').val()) || 0;
+        var quantityOut = parseFloat($(node).find('.grid-qty-out').val()) || 0;
         var batch = $(node).find('.grid-batch-input').val() || "";
         var expiry = $(node).find('.grid-expiry-input').val() || "";
+
         batch = (batch && batch.trim() !== "") ? batch : null;
         var expiryDate = (expiry && expiry.trim() !== "") ? expiry : null;
+
+        var rowAttributes = [];
+        $(node).find('.grid-attr-field').each(function () {
+            var $field = $(this);
+            var val = $.trim($field.val());
+            if (val) {
+                rowAttributes.push({
+                    Id: $field.attr('data-attribute-id'),
+                    Description: val
+                });
+            }
+        });
         return {
             ProductId: row.ProductId,
-            UnitPurchasePrice: row.UnitPurchasePrice,
-            UnitSalePrice: row.UnitSalePrice,
-            QuantityIn: row.QuantityIn,
-            QuantityOut: row.QuantityOut,
-            Attribute: (row.Attribute && row.Attribute.length > 0) ? JSON.stringify(row.Attribute) : null,
+            UnitPurchasePrice: unitPurchasePrice,
+            UnitSalePrice: unitSalePrice,
+            QuantityIn: quantityIn,
+            QuantityOut: quantityOut,
+            Attribute: rowAttributes.length > 0 ? JSON.stringify(rowAttributes) : null,
             Batch: batch,
             ExpiryDate: expiryDate
         };
     }).get();
+    if (iAdjustmentPPQD.length === 0) {
+        toastr.warning("Please add at least one item to the adjustment table.");
+        return;
+    }
     var jsonData = {
         OperationType: operationType,
         GuID: adjustmentGuID ? adjustmentGuID : null,

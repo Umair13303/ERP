@@ -77,6 +77,13 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
         }
         #endregion
 
+        [HttpGet]
+        public async Task<IActionResult> populateProductCCEListByParam(int? attributeId, int? productId)
+        {
+            var result = await _irService.populateAttributeValueSuggestionsByParam(attributeId, productId);
+            return Json(result);
+        }
+
         #region PORTION CONTAIN CODE TO: ADD/EDIT/DELETE DOCUMENT
         [HttpPost]
         public async Task<IActionResult> createUpdateInventoryAdjustment([FromBody] PostedData postedData)

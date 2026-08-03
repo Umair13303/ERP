@@ -8,7 +8,7 @@ using SharedUI.Models.ViewModels;
 using System;
 using System.Linq;
 using static SharedUI.Models.ViewModels.DTObject;
-
+using System.Text.Json;
 namespace OrganisationSetup.Areas.Inventory.Services
 {
     public interface IInventoryRetriever
@@ -21,6 +21,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         Task<List<Product_Master_List>> populateProductMasterBySearch(int brandId, int sectionId, int categoryId, int subCategoryId, int productTypeId, bool? status = true);
         Task<List<Category_Master_List>> populateCategoryMasterBySearch(int? departmentId, int? sectionId, bool? status = true);
         Task<List<SubCategory_Master_List>> populateSubCategoryMasterBySearch(int? departmentId, int? sectionId,int? categoryId, bool? status = true);
+        Task<List<string>> populateAttributeValueSuggestionsByParam(int? attributeId, int? productId);
     }
     public class InventoryRetrieverService : IInventoryRetriever
     {
@@ -207,20 +208,20 @@ namespace OrganisationSetup.Areas.Inventory.Services
             {
                 return new List<Category_Master_List>();
             }
-            return await (from c in _eRPOSContext.ICategory.AsNoTracking().Where(c => c.CompanyId == userInfo.CompanyId && (c.Status == status || status== null) )
+            return await (from c in _eRPOSContext.ICategory.AsNoTracking().Where(c => c.CompanyId == userInfo.CompanyId && (c.Status == status || status == null))
                           join s in _eRPOSContext.ISection.AsNoTracking().Where(s => s.Id == sectionId || sectionId == -1 && (s.Status == status || status == null))
                             on c.SectionId equals s.Id
 
                           select new Category_Master_List
                           {
                               GuID = c.GuID,
-                              Code= c.Code,
+                              Code = c.Code,
                               Description = c.Description,
                               Section = s.Description,
                               DocumentStatus = c.DocumentStatus
                           }).ToListAsync();
         }
-        public async Task<List<SubCategory_Master_List>> populateSubCategoryMasterBySearch(int? departmentId, int? sectionId,int? categoryId, bool? status = true)
+        public async Task<List<SubCategory_Master_List>> populateSubCategoryMasterBySearch(int? departmentId, int? sectionId, int? categoryId, bool? status = true)
         {
             var userInfo = _currentUser;
             if (!userInfo.IsAuthenticated)
@@ -268,7 +269,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                               GuID = p.GuID,
                               Code = p.Code,
                               Description = p.Description,
-                              Category = c.Description,    
+                              Category = c.Description,
                               SubCategory = sc.Description,
                               Brand = b.Description,
                               ProductType = vPT.Description,
@@ -276,6 +277,62 @@ namespace OrganisationSetup.Areas.Inventory.Services
                           }).ToListAsync();
         }
 
-    }
+        public async Task<List<string>> populateAttributeValueSuggestionsByParam(int? attributeId, int? productId)
+        {
+            if (attributeId == null) return new List<string>();
 
+            var userInfo = _currentUser;
+            if (!userInfo.IsAuthenticated) return new List<string>();
+
+            var raw = await _eRPOSContext.IProductCCE.AsNoTracking()
+                .Where(x => (productId == null || x.ProductId == productId)
+                       && x.Status == true
+                       && x.Description != null)
+                .Select(x => x.Description)
+                .ToListAsync();
+
+            var targetIdStr = attributeId.ToString();
+            var values = new HashSet<string>();
+
+            foreach (var desc in raw)
+            {
+                try
+                {
+                    // Parse the JSON array string stored by iProductCCEResolver
+                    using var doc = JsonDocument.Parse(desc);
+                    if (doc.RootElement.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var element in doc.RootElement.EnumerateArray())
+                        {
+                            string idVal = null;
+                            if (element.TryGetProperty("Id", out var idProp))
+                                idVal = idProp.GetString();
+                            else if (element.TryGetProperty("id", out var idPropLower))
+                                idVal = idPropLower.GetString();
+
+                            // Match exact Attribute ID
+                            if (idVal == targetIdStr)
+                            {
+                                string descVal = null;
+                                if (element.TryGetProperty("Description", out var descProp))
+                                    descVal = descProp.GetString();
+                                else if (element.TryGetProperty("description", out var descPropLower))
+                                    descVal = descPropLower.GetString();
+
+                                if (!string.IsNullOrEmpty(descVal))
+                                {
+                                    values.Add(descVal.Trim());
+                                }
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            return values.OrderBy(v => v).ToList();
+        }
+    }
 }
