@@ -149,7 +149,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                     foreach (var i in postedData.PostedDataAFInvoicePPI)
                     {
                         i.GuID = Guid.NewGuid();
-                        i.ProductATIId = await _commonServices.get_activeProductATIByParam(i.ProductId);
+                        //i.ProductATIId = await _commonServices.get_activeProductATIByParam(i.ProductId);
                         i.ProductCombinationId = i.ProductCombinationId;
                         i.DocumentType = (int)DocumentType.invoiceProduct;
                         i.DocumentStatus = (int)DocumentStatus.active;
@@ -574,7 +574,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                 var combinationGeneration = await _commonServices.generate_productCombination((int)DocumentType.inventoryAdjustment, comboList);
                 foreach (var i in postedData.PostedDataAFBillPPI)
                 {
-                    i.ProductATIId = await _commonServices.get_activeProductATIByParam(i.ProductId);
+                    //i.ProductATIId = await _commonServices.get_activeProductATIByParam(i.ProductId);
                     i.ProductCombinationId = await _commonServices.get_productCombination(i.ProductId, i.Attribute);
                 }
                 #endregion

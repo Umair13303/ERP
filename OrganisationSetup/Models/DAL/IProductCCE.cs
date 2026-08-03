@@ -6,7 +6,6 @@ namespace OrganisationSetup.Models.DAL;
 public partial class IProductCCE
 {
     public int Id { get; set; }
-
     public Guid? GuID { get; set; }
     public int? RefDocumentType { get; set; }
     public int? ProductId { get; set; }
@@ -18,5 +17,5 @@ public partial class IProductCCE
     public int? UpdatedBy { get; set; }
     public int? DocumentType { get; set; }
     public int? DocumentStatus { get; set; }
-    public int? Status { get; set; }
+    public bool? Status { get; set; }
 }

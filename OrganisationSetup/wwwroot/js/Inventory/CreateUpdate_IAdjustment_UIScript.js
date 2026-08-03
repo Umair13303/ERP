@@ -204,54 +204,119 @@ function getProductList(productId) {
 
 
 /* ------ Grid Actions ------ */
+function attributeKeyBuilder(attributes) {
+    return attributes
+        .slice()
+        .sort((a, b) => a.Id.localeCompare(b.Id))
+        .map(x => `${x.Id}:${x.Description}`)
+        .join("|");
+}
 function addLineItemToStaging() {
-    var productName = $("#DropDownListProduct option:selected").text();
-    var productId = $("#DropDownListProduct").val();
-    var isExpiryApplied = $("#DropDownListProduct option:selected").data('isexpiryapplied');
 
-    var unitPurchasePrice = parseFloat($("#TextBoxUnitPurchasePrice").val()) || 0;
-    var unitSalePrice = parseFloat($("#TextBoxUnitSalePrice").val()) || 0;
+    var productId = $("#DropDownListProduct option:selected").val();
+    var productName = $("#DropDownListProduct option:selected").text();
     var quantityIn = parseFloat($("#TextBoxQuantityIn").val()) || 0;
     var quantityOut = parseFloat($("#TextBoxQuantityOut").val()) || 0;
+    var unitPurchasePrice = parseFloat($("#TextBoxUnitPurchasePrice").val()) || 0;
+    var unitSalePrice = parseFloat($("#TextBoxUnitSalePrice").val()) || 0;
+    var isExpiryApplied = $("#DropDownListProduct option:selected").data("isexpiryapplied");
+    var hasExpiry =
+        isExpiryApplied === true ||
+        isExpiryApplied === "True" ||
+        isExpiryApplied === 1 ||
+        isExpiryApplied === "1";
 
+    var batch = "";
+    var expiry = null;
+
+    if (hasExpiry) {
+
+        batch = $("#TextBoxBatch").val() || "";
+        expiry = $("#TextBoxExpiryDate").val() || null;
+
+        if ($.trim(batch) === "") {
+            toastr.warning("Batch is required for this product.");
+            return;
+        }
+
+        if (!expiry) {
+            toastr.warning("Expiry date is required for this product.");
+            return;
+        }
+    }
     if (!productId || productId === "-1") {
         toastr.warning("Please select a valid product.");
         return;
     }
+
+    if (quantityIn > 0 && quantityOut > 0) {
+        toastr.warning("A line item cannot have both Quantity In and Quantity Out.");
+        return;
+    }
+
     if (quantityIn <= 0 && quantityOut <= 0) {
         toastr.warning("Quantity In or Quantity Out must be greater than zero.");
         return;
     }
 
-    var hasExpiry = (isExpiryApplied === true || isExpiryApplied === "True" || isExpiryApplied === 1 || isExpiryApplied === "1");
-
+    if (quantityIn > 0 && unitPurchasePrice <= 0) {
+        toastr.warning("Purchase price must be greater than zero.");
+        return;
+    }
     var itemAttributes = [];
     var attributeDescriptions = [];
     $("#ContainerStockAttribute .attr-field, #ContainerStockAttribute input").each(function () {
         var $input = $(this);
-        var attrId = $input.attr('data-attribute-id') || $input.attr('id');
-        var val = $input.val();
-        if (val) {
-            itemAttributes.push({ Id: attrId, Description: val });
-            attributeDescriptions.push(val);
+        var attrId = $input.attr("data-attribute-id") || $input.attr("id");
+        var value = $.trim($input.val());
+        if (value !== "") {
+            itemAttributes.push({
+                Id: attrId,
+                Description: value
+            });
+            attributeDescriptions.push(value);
+        }
+    });
+    var attributeString = attributeDescriptions.length > 0? attributeDescriptions.join(", "): "N/A";
+    var duplicate = false;
+    var currentAttributeKey = attributeKeyBuilder(itemAttributes);
+    adjustmentTable.rows().every(function () {
+        var row = this.data();
+        var existingAttributeKey = attributeKeyBuilder(row.Attribute);
+        if (String(row.ProductId) === String(productId) &&
+            existingAttributeKey === currentAttributeKey) {
+            duplicate = true;
+            return false;
         }
     });
 
-    var attributeString = attributeDescriptions.length > 0 ? attributeDescriptions.join(', ') : "N/A";
-    var lineItem = {    
+    if (duplicate) {
+        toastr.warning("This product/variant already exists in the adjustment.");
+        return;
+    }
+
+    var lineItem = {
+
         ProductId: productId,
         ProductName: productName,
+
         UnitPurchasePrice: unitPurchasePrice,
         UnitSalePrice: unitSalePrice,
+
         QuantityIn: quantityIn,
         QuantityOut: quantityOut,
+
         Attribute: itemAttributes,
         AttributeDisplayString: attributeString,
+
         IsExpiryApplied: hasExpiry,
-        Batch: "",
-        Expiry: ""
+        Batch: batch,
+        ExpiryDate: expiry
+
     };
+
     adjustmentTable.row.add(lineItem).draw(false);
+
     clearLineItemInputs();
 }
 function clearLineItemInputs() {

@@ -6,6 +6,7 @@ using SharedUI.Models.Configurations;
 using SharedUI.Models.Contexts;
 using SharedUI.Models.Enums;
 using SharedUI.Models.ViewModels;
+using System.Linq;
 using static SharedUI.Models.Enums.SetupRoute;
 
 namespace OrganisationSetup.Services
@@ -36,7 +37,8 @@ namespace OrganisationSetup.Services
         Task<int> generate_productCombination(int? refDocumentType, List<IProductCCE> combinationEngine);
         Task<int> get_productCombination(int? productId, string attributeKey);
         Task<object> get_productPricingbyParam(int? productId, int? productCombinationId, int? locationId, int? tierTypeId);
-        Task<int> get_activeProductATIByParam(int? productId);
+        Task<Dictionary<int, int>> getActiveATIByParam(IEnumerable<int> productIds);
+
     }
     public class CommonServices : ICommon
     {
@@ -258,6 +260,7 @@ namespace OrganisationSetup.Services
                         CreatedBy = _currentUser.UserId,
                         DocumentType = (int)DocumentType.productCombination,
                         DocumentStatus = (int)DocumentStatus.active,
+                        Status = true
                     };
                     _context.IProductCCE.Add(combination);
                 }
@@ -291,10 +294,29 @@ namespace OrganisationSetup.Services
 
             return result;
         }
-        public async Task<int> get_activeProductATIByParam(int? productId)
+        public async Task<Dictionary<int, int>> getActiveATIByParam(IEnumerable<int> productIds)
         {
-            int productATIId = await _context.IProductATI.Where(x => x.ProductId == productId && x.DocumentStatus == (int)DocumentStatus.active && x.Status == true).OrderByDescending(x => x.CreatedOn).Select(x => x.Id).FirstOrDefaultAsync();
-            return productATIId;
+            var validIds = productIds.Where(id => id > 0).Distinct().ToList();
+
+            if (!validIds.Any())
+            {
+                return new Dictionary<int, int>();
+            }
+
+            var rawAtiList = await _context.IProductATI
+                .AsNoTracking()
+                .Where(x => validIds.Contains((int)x.ProductId)
+                         && x.DocumentStatus == (int)DocumentStatus.active
+                         && x.Status == true)
+                .Select(x => new { x.ProductId, x.Id, x.CreatedOn })
+                .ToListAsync();
+
+            return rawAtiList
+                .GroupBy(x => x.ProductId.Value)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.OrderByDescending(x => x.CreatedOn).First().Id
+                );
         }
     }
 }

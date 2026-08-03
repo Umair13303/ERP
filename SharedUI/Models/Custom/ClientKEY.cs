@@ -10,4 +10,9 @@ namespace SharedUI.Models.Custom
     {
         AKCHM=1
     }
+    public class AttributeItem
+    {
+        public string Id { get; set; }
+        public string Description { get; set; }
+    }
 }

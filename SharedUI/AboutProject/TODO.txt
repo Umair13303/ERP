@@ -1,13 +1,5 @@
 
 
-Data handling threshold:
-1. CUSTOMER : 150,000
-1. VENDOR : 20,000
-1. DAILY SALE VOLUME : 500,000 - 1,500,000 INVOICES
-1. DAILY PURCHASE VOLUME : 50,000 - 100,000 BILL
-	AVG BILL RETURN : 25,000
-	AVG INVOICES RETURN : 150,000
-
 ----------------------------------------------------------------------------------------------
 LIST OF ALL FORMS TO BE MADE IN FLOW WISE ORDER
 1. APPLICATION CONFIGURATION:
