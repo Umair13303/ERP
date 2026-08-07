@@ -703,6 +703,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                 Credit = 0,
                                 Batch = item.Batch,
                                 ExpiryDate = item.ExpiryDate,
+                                RemainingStock = item.Quantity,
                                 ReconcillationStatus = (int)Default.reconcileStatus,
                                 CreatedOn = DateTime.Now,
                                 CreatedBy = userInfo.UserId,

@@ -524,7 +524,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
             try
             {
                 DateTime? transactionDate = postedData.TransactionDate;
-                await iProductCCEResolver((int)DocumentType.inventoryAdjustment, postedData.PostedDataIAdjustmentPPQD);
+                await iProductCCE_SPR((int)DocumentType.inventoryAdjustment, postedData.PostedDataIAdjustmentPPQD);
 
                 #region PORTION FOR :: UPSERT INTO dbo.IAdjustment
                 var IAdjustment = await _repo.UpsertInto_IAdjustment(
@@ -568,6 +568,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                     Credit = ppqd.UnitPurchasePrice * ppqd.QuantityOut,
                     Batch = ppqd.Batch,
                     ExpiryDate = ppqd.ExpiryDate,
+                    RemainingStock = ppqd.QuantityIn > 0 ? ppqd.QuantityIn : (decimal?)null,
                     ReconcillationStatus = (int)Default.reconcileStatus,
                     CreatedOn = transactionDate,
                     CreatedBy = userInfo.UserId,
@@ -596,9 +597,6 @@ namespace OrganisationSetup.Areas.Inventory.Services
 
                 #region PORTION FOR :: UPDATE PRICES IF AUTO PRICE UPDATE IS ENABLED
 
-
-                    
-
                 var adjustmentLines = postedData.PostedDataIAdjustmentPPQD.Where(x => x.ProductId.HasValue && (x.UnitSalePrice > 0 || x.UnitPurchasePrice > 0)).Select(x => new
                 {
                     ProductId = x.ProductId!.Value,
@@ -609,15 +607,9 @@ namespace OrganisationSetup.Areas.Inventory.Services
                 {
                     var productIds = postedData.PostedDataIAdjustmentPPQD.Where(x => x.ProductId.HasValue).Select(x => x.ProductId!.Value).Distinct().ToList();
 
-                    var existingPriceLogs = await _eRPOSContext.AFProductPriceLog
-                        .Where(x => x.ProductId.HasValue
-                                 && productIds.Contains(x.ProductId.Value)
-                                 && x.Status == true
-                                 && x.DocumentStatus == (int)DocumentStatus.active
-                                 && x.CompanyId == userInfo.CompanyId
-                                 && x.BranchId == userInfo.BranchId
-                                 && x.TierTypeId == (int)Default.tierTypeId)
-                        .ToListAsync();
+                    var existingPriceLogs = await _eRPOSContext.AFProductPriceLog.Where(x => x.ProductId.HasValue && productIds.Contains(x.ProductId.Value)
+                                 && x.Status == true && x.DocumentStatus == (int)DocumentStatus.active && x.CompanyId == userInfo.CompanyId && x.BranchId == userInfo.BranchId
+                                 && x.TierTypeId == (int)Default.tierTypeId).ToListAsync();
 
                     var productATIMapping = await _commonServices.getActiveATIByParam(productIds);
 
@@ -766,311 +758,52 @@ namespace OrganisationSetup.Areas.Inventory.Services
         }
         #endregion
 
-        private async Task iProductCCEResolver(int refDocumentType, List<IInventoryAdjustmentPPQD_TVP> items)
+        private async Task iProductCCE_SPR(int refDocumentType, List<IInventoryAdjustmentPPQD_TVP> invADJ_items)
         {
-            var productIds = items.Select(x => x.ProductId).Distinct().ToList();
+            List<int?>productIds;
+            List<IProductCCE> existingCombination;
+            List<IProductCCE> newCombination = new List<IProductCCE>(); 
 
-            var existingCombinations = await _eRPOSContext.IProductCCE
-                .Where(x => productIds.Contains(x.ProductId))
-                .ToListAsync();
-
-            var newCombinations = new List<IProductCCE>();
-
-            foreach (var item in items)
+            switch (refDocumentType)
             {
-                var cleanDesc = item.Attribute?.Trim().ToLower();
-                var match = existingCombinations.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == cleanDesc)
-                         ?? newCombinations.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == cleanDesc);
-
-                if (match == null)
-                {
-                    var combination = new IProductCCE
+                case (int)DocumentType.inventoryAdjustment:
+                     productIds = invADJ_items.Select(x => x.ProductId).Distinct().ToList();
+                     existingCombination = await _eRPOSContext.IProductCCE.Where(x => productIds.Contains(x.ProductId)).ToListAsync();
+                    foreach(var item in invADJ_items)
                     {
-                        GuID = Guid.NewGuid(),
-                        RefDocumentType = refDocumentType,
-                        ProductId = item.ProductId,
-                        Description = item.Attribute,
-                        CreatedOn = DateTime.UtcNow,
-                        CreatedBy = _currentUser.UserId,
-                        DocumentType = (int)DocumentType.productCombination,
-                        DocumentStatus = (int)DocumentStatus.active,
-                        Status = true
-                    };
-                    newCombinations.Add(combination);
-                    _eRPOSContext.IProductCCE.Add(combination);
-                }
-            }
-
-            if (newCombinations.Any())
-            {
-                await _eRPOSContext.SaveChangesAsync();
-                existingCombinations.AddRange(newCombinations);
-            }
-            foreach (var item in items)
-            {
-                var cleanDesc = item.Attribute?.Trim().ToLower();
-                item.ProductCombinationId = existingCombinations
-                    .First(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == cleanDesc).Id;
+                        var formattedDescription = item.Attribute?.Trim().ToLower();
+                        var productCombination = existingCombination.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == formattedDescription) ?? newCombination.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == formattedDescription);
+                        if (productCombination == null)
+                        {
+                            var combination = new IProductCCE
+                            {
+                                GuID = Guid.NewGuid(),
+                                RefDocumentType = refDocumentType,
+                                ProductId = item.ProductId,
+                                Description = item.Attribute,
+                                CreatedOn = DateTime.UtcNow,
+                                CreatedBy = _currentUser.UserId,
+                                DocumentType = (int)DocumentType.productCombination,
+                                DocumentStatus = (int)DocumentStatus.active,
+                                Status = true
+                            };
+                            newCombination.Add(combination);
+                            _eRPOSContext.IProductCCE.Add(combination);
+                        }
+                    }
+                    if (newCombination.Any())
+                    {
+                        await _eRPOSContext.SaveChangesAsync();
+                        existingCombination.AddRange(newCombination);
+                    }
+                    foreach (var item in invADJ_items)
+                    {
+                        var cleanDesc = item.Attribute?.Trim().ToLower();
+                        item.ProductCombinationId = existingCombination.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == cleanDesc).Id;
+                    }
+                    break;
             }
         }
     }
 
 }
-  //public async Task<ServiceResult> updateInsertDataInto_IAdjustment(PostedData postedData)
-  //      {
-  //          var userInfo = _currentUser;
-  //          if (!userInfo.IsAuthenticated)
-  //              return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
-
-  //          #region PORTION FOR :: DOCUMENT SETTING ON BASIS OF OperationType
-  //          Guid? adjustmentGuID = Guid.Empty;
-  //          if (postedData.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB))
-  //          {
-  //              adjustmentGuID = Guid.NewGuid();
-  //          }
-  //          else
-  //          {
-  //              adjustmentGuID = postedData.GuID;
-  //          }
-  //          var validationResult = await _validationService.isAdjustmentValid(postedData.OperationType, adjustmentGuID, userInfo.CompanyId, postedData.LocationId, postedData.AdjustmentTypeId, postedData.PostedDataIAdjustmentPPQD); ;
-  //          if (!validationResult.IsSuccess)
-  //          {
-  //              return ServiceResult.failure(validationResult.Message, (int)validationResult.StatusCode);
-  //          }
-  //          var adjustmentType = await _eRPOSContext.vInventoryAdjustmentType.Where(x => x.Id == postedData.AdjustmentTypeId).FirstOrDefaultAsync();
-  //          if (adjustmentType == null)
-  //              return ServiceResult.failure("Invalid adjustment type provided.", (int)Code.BadRequest);
-
-  //          foreach (var item in postedData.PostedDataIAdjustmentPPQD)
-  //          {
-  //              item.Attribute = CSharedUtility.attributeKeyBuilder(item.Attribute);
-  //          }
-  //          #endregion
-  //          //#region PORTION FOR :: FETCH & GENERATE PRODUCT COMBINATION
-  //          //foreach (var item in postedData.PostedDataIAdjustmentPPQD)
-  //          //{
-  //          //    item.Attribute = CSharedUtility.attributeKeyBuilder(item.Attribute);
-  //          //}
-  //          //var combinationList = postedData.PostedDataIAdjustmentPPQD.Select(i => new IProductCCE { ProductId = i.ProductId, Description = i.Attribute }).ToList();
-
-  //          //var combinationGeneration = await _commonServices.generate_productCombination((int)DocumentType.inventoryAdjustment, combinationList);
-  //          //foreach (var i in postedData.PostedDataIAdjustmentPPQD)
-  //          //{
-  //          //    i.ProductCombinationId = await _commonServices.get_productCombination(i.ProductId, i.Attribute);
-  //          //}
-  //          //#endregion
-
-  //          await using var transaction = await _eRPOSContext.Database.BeginTransactionAsync();
-  //          var con = (SqlConnection)_eRPOSContext.Database.GetDbConnection();
-  //          var sqlTransaction = (SqlTransaction)transaction.GetDbTransaction();
-
-  //          try
-  //          {
-  //              DateTime? transactionDate = postedData.TransactionDate;
-  //              await iProductCCEResolver((int)DocumentType.inventoryAdjustment, postedData.PostedDataIAdjustmentPPQD);
-
-  //              #region PORTION FOR :: UPSERT INTO dbo.IAdjustment
-  //              var IAdjustment = await _repo.UpsertInto_IAdjustment(
-  //                  postedData.OperationType,
-  //                  adjustmentGuID,
-  //                  postedData.LocationId,
-  //                  postedData.TransactionDate,
-  //                  postedData.Description,
-  //                  postedData.AdjustmentTypeId,
-  //                  (int)Default.adjustmentStatus,
-  //                  transactionDate,
-  //                  userInfo.UserId,
-  //                  transactionDate,
-  //                  userInfo.UserId,
-  //                  (int?)DocumentType.inventoryAdjustment,
-  //                  (int?)DocumentStatus.active,
-  //                  true,
-  //                  userInfo.BranchId,
-  //                  userInfo.CompanyId,
-  //                  postedData.PostedDataIAdjustmentPPQD,
-  //                  con, sqlTransaction
-  //              );
-  //              #endregion
-
-  //              #region PORTION FOR :: UPSERT INTO dbo.AFInventoryLedger
-  //              var AFInventoryLedgerInfo = postedData.PostedDataIAdjustmentPPQD.Select(ppqd => new AFInventoryLedger_TVP
-  //              {
-  //                  GuID = Guid.NewGuid(),
-  //                  LocationId = postedData.LocationId,
-  //                  TransactionDate = transactionDate,
-  //                  ProductId = ppqd.ProductId,
-  //                  ProductCombinationId = ppqd.ProductCombinationId,
-  //                  RefDocumentType = (int?)DocumentType.inventoryAdjustment,
-  //                  RefDocumentId = (int?)IAdjustment.insertedId,
-  //                  Description = $"Inventory Adjustment Recorded ({adjustmentType.Description})",
-  //                  QuantityIn = ppqd.QuantityIn,
-  //                  QuantityOut = ppqd.QuantityOut,
-  //                  UnitPurchasePrice = ppqd.UnitPurchasePrice,
-  //                  UnitSalePrice = ppqd.UnitSalePrice,
-  //                  Debit = ppqd.UnitPurchasePrice * ppqd.QuantityIn,
-  //                  Credit = ppqd.UnitPurchasePrice * ppqd.QuantityOut,
-  //                  Batch = ppqd.Batch,
-  //                  ExpiryDate = ppqd.ExpiryDate,
-  //                  ReconcillationStatus = (int)Default.reconcileStatus,
-  //                  CreatedOn = transactionDate,
-  //                  CreatedBy = userInfo.UserId,
-  //                  UpdatedOn = transactionDate,
-  //                  UpdatedBy = userInfo.UserId,
-  //                  DocumentType = (int?)DocumentType.inventoryLedgerRecord,
-  //                  DocumentStatus = (int?)DocumentStatus.active,
-  //                  Status = true,
-  //                  BranchId = userInfo.BranchId,
-  //                  CompanyId = userInfo.CompanyId
-  //              }).ToList();
-
-
-  //              var AFInventoryLedger = await _repo.UpsertInto_AFInventoryLedger(
-  //                  postedData.OperationType,
-  //                  AFInventoryLedgerInfo.FirstOrDefault()?.RefDocumentType,
-  //                  AFInventoryLedgerInfo,
-  //                  con,
-  //                  sqlTransaction
-  //              );
-  //              #endregion
-
-  //              #region PORTION FOR :: UPDATE PRICES INCASE OF AUTO PRICE UPDATE IS ENABLED FOR THE ADJUSTMENT TYPE
-  //              if (adjustmentType.IsAutoPriceUpdate == true)
-  //              {
-  //                  var productIds = postedData.PostedDataIAdjustmentPPQD.Where(x => x.ProductId.HasValue).Select(x => x.ProductId.Value).Distinct().ToList();
-  //                  var existingPriceLogs = await _eRPOSContext.AFProductPriceLog.Where(x => productIds.Contains(x.ProductId.Value) && x.Status == true && x.DocumentStatus == (int)DocumentStatus.active && x.CompanyId == userInfo.CompanyId
-  //                                              && x.BranchId == userInfo.BranchId && x.TierTypeId == (int)Default.tierTypeId).ToListAsync();
-  //                  var productATIMapping = await _commonServices.getActiveATIByParam(productIds);
-
-
-  //                  foreach (var item in existingPriceLogs)
-  //                  {
-  //                      item.DocumentStatus = (int)DocumentStatus.expired;
-  //                      item.UpdatedOn = transactionDate;
-  //                      item.UpdatedBy = userInfo.UserId;
-  //                  }
-  //                  foreach (var item in postedData.PostedDataIAdjustmentPPQD)
-  //                  {
-  //                      var priceLog = new AFProductPriceLog
-  //                      {
-  //                          GuID = Guid.NewGuid(),
-  //                          ProductId = item.ProductId,
-  //                          ProductATIId = item.ProductId.HasValue && productATIMapping.TryGetValue(item.ProductId.Value, out var atiId) ? atiId : null,
-  //                          ProductCombinationId = item.ProductCombinationId,
-  //                          TierTypeId = (int)Default.tierTypeId,
-  //                          DefaultSalePrice = item.UnitSalePrice,
-  //                          MinimumSalePrice = item.UnitPurchasePrice,
-  //                          CreatedOn = transactionDate,
-  //                          CreatedBy = userInfo.UserId,
-  //                          DocumentType = (int)DocumentType.productPriceLog,
-  //                          DocumentStatus = (int)DocumentStatus.active,
-  //                          Status = true,
-  //                          BranchId = userInfo.BranchId,
-  //                          CompanyId = userInfo.CompanyId,
-  //                      };
-  //                      _eRPOSContext.AFProductPriceLog.Add(priceLog);
-  //                  }
-  //                  await _eRPOSContext.SaveChangesAsync();
-  //              }
-  //              #endregion
-
-  //              #region PORTION FOR :: HANDLE TRANSACTION
-  //              switch (IAdjustment.response)
-  //              {
-  //                  case (int)Code.Created:
-  //                  case (int)Code.Accepted:
-
-
-  //                      await transaction.CommitAsync();
-
-  //                      return ServiceResult.success(Message.serverResponse(IAdjustment.response), (int)IAdjustment.response);
-  //                  default:
-  //                      await transaction.RollbackAsync();
-  //                      return ServiceResult.failure(Message.serverResponse((int?)Code.BadRequest), (int)Code.BadRequest);
-  //              }
-  //              #endregion
-  //          }
-  //          catch (Exception ex)
-  //          {
-  //              await transaction.RollbackAsync();
-  //              return ServiceResult.failure("System error: " + ex.Message, (int)Code.InternalServerError);
-  //          }
-  //      }
-
-
-//#region PORTION FOR :: RESOLVE GL ACCOUNTS (BEFORE TOUCHING THE DB)
-//var defaultAccountMappings = await _eRPOSContext.CSDefaultChartOfAccount
-//    .Where(x => x.CompanyId == userInfo.CompanyId && x.Status == true)
-//    .ToListAsync();
-
-//int inventoryAssetAccountId = defaultAccountMappings
-//    .FirstOrDefault(x => x.AccountCategoryId == (int)AccountCategory.INVENTORY)?.DefaultChartOfAccountId ?? 0;
-
-//int offsetAccountId = defaultAccountMappings
-//    .FirstOrDefault(x => x.AccountCategoryId == adjustmentType.AccountCategoryId)?.DefaultChartOfAccountId ?? 0;
-
-//if (inventoryAssetAccountId == 0 || offsetAccountId == 0)
-//    return ServiceResult.failure("Default GL accounts are not configured for this company or adjustment type category. Please update Company Setup.", (int)Code.BadRequest);
-
-//if (inventoryAssetAccountId == offsetAccountId)
-//    return ServiceResult.failure("Inventory account and offset account cannot be the same account.", (int)Code.BadRequest);
-//#endregion
-
-//private AFGeneralLedger_TVP CreateGlEntry(
-//  PostedData postedData,
-//  (int? response, int? insertedId, string? documentCode) iAdjustmentResult,
-//  DateTime transactionDate,
-//  TempUser userInfo,
-//  int accountId,
-//  string description,
-//  decimal debit,
-//  decimal credit,
-//  int partyId
-//)
-//{
-//    return new AFGeneralLedger_TVP
-//    {
-//        GuID = Guid.NewGuid(),
-//        LocationId = (int)postedData.LocationId,
-//        TransactionDate = transactionDate,
-//        AccountId = accountId,
-//        PartyId = partyId, // Fixed to use the passed parameter instead of hardcoded 0
-//        RefDocumentType = (int)DocumentType.inventoryAdjustment,
-//        RefDocumentId = (int)iAdjustmentResult.insertedId,
-//        DocumentCode = iAdjustmentResult.documentCode,
-//        Description = description,
-//        Debit = debit,
-//        Credit = credit,
-//        CreatedOn = DateTime.Now,
-//        CreatedBy = (int)userInfo.UserId,
-//        CompanyId = userInfo.CompanyId,
-//        BranchId = userInfo.BranchId,
-//    };
-
-//}
-
-
-//#region PORTION FOR :: GENERATE GENERAL LEDGER ENTRIES
-//decimal totalInValue = postedData.PostedDataIAdjustmentPPQD.Sum(x => x.QuantityIn * x.UnitPurchasePrice);
-//decimal totalOutValue = postedData.PostedDataIAdjustmentPPQD.Sum(x => x.QuantityOut * x.UnitPurchasePrice);
-//var afGlLedgerInfo = new List<AFGeneralLedger_TVP>();
-
-//if (totalInValue > 0)
-//{
-//    afGlLedgerInfo.Add(CreateGlEntry(postedData, IAdjustment, (DateTime)transactionDate, userInfo, inventoryAssetAccountId, $"Stock Adjustment In - Ref #{adjustmentGuID}", totalInValue, 0, 0));
-//    afGlLedgerInfo.Add(CreateGlEntry(postedData, IAdjustment, (DateTime)transactionDate, userInfo, offsetAccountId, $"Stock Adjustment In Offset - Ref #{adjustmentGuID}", 0, totalInValue, 0));
-//}
-//if (totalOutValue > 0)
-//{
-//    afGlLedgerInfo.Add(CreateGlEntry(postedData, IAdjustment, (DateTime)transactionDate, userInfo, offsetAccountId, $"Stock Adjustment Out Loss - Ref #{adjustmentGuID}", totalOutValue, 0, 0));
-//    afGlLedgerInfo.Add(CreateGlEntry(postedData, IAdjustment, (DateTime)transactionDate, userInfo, inventoryAssetAccountId, $"Stock Adjustment Out Asset Reduction - Ref #{adjustmentGuID}", 0, totalOutValue, 0));
-//}
-
-//(int? response, int? insertedIn, string? documentCode) AFGeneralLedger = (response: (int)Code.Accepted, insertedIn: null, documentCode: null);
-//if (afGlLedgerInfo.Any())
-//{
-//    AFGeneralLedger = await _repo.UpsertInto_AFGeneralLedger(
-//        postedData.OperationType, (int?)DocumentType.inventoryAdjustment,
-//        afGlLedgerInfo, con, sqlTransaction
-//    );
-//}
-//#endregion

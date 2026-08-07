@@ -80,7 +80,7 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
         [HttpGet]
         public async Task<IActionResult> populateProductCCEListByParam(int? attributeId, int? productId)
         {
-            var result = await _irService.populateAttributeValueSuggestionsByParam(attributeId, productId);
+            var result = await _irService.populateProductCCEByParam(attributeId, productId);
             return Json(result);
         }
 

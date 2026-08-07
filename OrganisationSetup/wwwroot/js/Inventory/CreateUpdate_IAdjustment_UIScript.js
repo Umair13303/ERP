@@ -27,7 +27,7 @@ function initializeDataTable() {
         columns: [
             { title: 'Product', data: 'ProductName' },
             {
-                title: 'Attributes / Combination',
+                title: 'Combination',
                 data: 'AttributeIds',
                 render: function (data, type, row) {
                     var attrIds = [];

@@ -62,8 +62,7 @@
                 @Html.DropDownList("LocationId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListLocation" })
             </div>
             <div class="col-6 col-sm-4 col-md-3">
-                <label class="form-label text-secondary fw-semibold mb-0" style="font-size:0.72rem;">Invoice Date</label>
-                @Html.Label("TextBoxTransactionDate", "Date", new { @class = "form-label text-secondary fw-semibold mb-0" })
+                @Html.Label("TextBoxTransactionDate", "Transaction Date", new { @class = "form-label text-secondary fw-semibold mb-0" })
                 @Html.TextBox("TransactionDate", null, new { @class = "form-control form-control-sm simpleDatePicker", type = "date", required = "required", @id = "TextBoxTransactionDate" })
             </div>
             <div class="col-12 col-sm-4 col-md-3">

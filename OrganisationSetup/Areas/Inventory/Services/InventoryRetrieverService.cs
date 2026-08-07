@@ -21,7 +21,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         Task<List<Product_Master_List>> populateProductMasterBySearch(int brandId, int sectionId, int categoryId, int subCategoryId, int productTypeId, bool? status = true);
         Task<List<Category_Master_List>> populateCategoryMasterBySearch(int? departmentId, int? sectionId, bool? status = true);
         Task<List<SubCategory_Master_List>> populateSubCategoryMasterBySearch(int? departmentId, int? sectionId,int? categoryId, bool? status = true);
-        Task<List<string>> populateAttributeValueSuggestionsByParam(int? attributeId, int? productId);
+        Task<List<string>> populateProductCCEByParam(int? attributeId, int? productId);
     }
     public class InventoryRetrieverService : IInventoryRetriever
     {
@@ -277,7 +277,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                           }).ToListAsync();
         }
 
-        public async Task<List<string>> populateAttributeValueSuggestionsByParam(int? attributeId, int? productId)
+        public async Task<List<string>> populateProductCCEByParam(int? attributeId, int? productId)
         {
             if (attributeId == null) return new List<string>();
 

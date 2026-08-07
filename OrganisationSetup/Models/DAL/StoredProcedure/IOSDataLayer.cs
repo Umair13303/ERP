@@ -968,6 +968,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             table.Columns.Add("Credit", typeof(decimal));
             table.Columns.Add("Batch", typeof(string));
             table.Columns.Add("ExpiryDate", typeof(DateTime));
+            table.Columns.Add("RemainingStock", typeof(decimal));
             table.Columns.Add("ReconcillationStatus", typeof(int));
             table.Columns.Add("CreatedOn", typeof(DateTime));
             table.Columns.Add("CreatedBy", typeof(int));
@@ -1000,6 +1001,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                         item.Credit,
                         item.Batch ?? (object)DBNull.Value,
                         item.ExpiryDate ?? (object)DBNull.Value,
+                        item.RemainingStock ?? (object)DBNull.Value,
                         item.ReconcillationStatus ?? (object)DBNull.Value,
                         item.CreatedOn ?? (object)DBNull.Value,
                         item.CreatedBy ?? (object)DBNull.Value,
