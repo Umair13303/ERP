@@ -5,6 +5,7 @@ using OrganisationSetup.Models.DAL.StoredProcedure;
 using SharedUI.Models.Configurations;
 using SharedUI.Models.Contexts;
 using SharedUI.Models.Enums;
+using SharedUI.Models.TVP;
 using SharedUI.Models.ViewModels;
 using System.Linq;
 using static SharedUI.Models.Enums.SetupRoute;
@@ -37,8 +38,8 @@ namespace OrganisationSetup.Services
         Task<int> generate_productCombination(int? refDocumentType, List<IProductCCE> combinationEngine);
         Task<int> get_productCombination(int? productId, string attributeKey);
         Task<object> get_productPricingbyParam(int? productId, int? productCombinationId, int? locationId, int? tierTypeId);
-        Task<Dictionary<int, int>> getActiveATIByParam(IEnumerable<int> productIds);
-
+        Task<Dictionary<int, int>> get_ActiveATIByParam(IEnumerable<int> productIds);
+        //Task iProductCCE_SPR(int refDocumentType, List<IInventoryAdjustmentPPQD_TVP> lines, bool allowCreate);
     }
     public class CommonServices : ICommon
     {
@@ -294,7 +295,7 @@ namespace OrganisationSetup.Services
 
             return result;
         }
-        public async Task<Dictionary<int, int>> getActiveATIByParam(IEnumerable<int> productIds)
+        public async Task<Dictionary<int, int>> get_ActiveATIByParam(IEnumerable<int> productIds)
         {
             var validIds = productIds.Where(id => id > 0).Distinct().ToList();
 
@@ -318,5 +319,53 @@ namespace OrganisationSetup.Services
                     g => g.OrderByDescending(x => x.CreatedOn).First().Id
                 );
         }
+        private async Task iProductCCE_SPR(int refDocumentType, List<IInventoryAdjustmentPPQD_TVP> invADJ_items)
+        {
+            List<int?> productIds;
+            List<IProductCCE> existingCombination;
+            List<IProductCCE> newCombination = new List<IProductCCE>();
+
+            switch (refDocumentType)
+            {
+                case (int)DocumentType.inventoryAdjustment:
+                    productIds = invADJ_items.Select(x => x.ProductId).Distinct().ToList();
+                    existingCombination = await _context.IProductCCE.Where(x => productIds.Contains(x.ProductId)).ToListAsync();
+                    foreach (var item in invADJ_items)
+                    {
+                        var formattedDescription = item.Attribute?.Trim().ToLower();
+                        var productCombination = existingCombination.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == formattedDescription) ?? newCombination.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == formattedDescription);
+                        if (productCombination == null)
+                        {
+                            var combination = new IProductCCE
+                            {
+                                GuID = Guid.NewGuid(),
+                                RefDocumentType = refDocumentType,
+                                ProductId = item.ProductId,
+                                Description = item.Attribute,
+                                CreatedOn = DateTime.UtcNow,
+                                CreatedBy = _currentUser.UserId,
+                                DocumentType = (int)DocumentType.productCombination,
+                                DocumentStatus = (int)DocumentStatus.active,
+                                Status = true
+                            };
+                            newCombination.Add(combination);
+                            _context.IProductCCE.Add(combination);
+                        }
+                    }
+                    if (newCombination.Any())
+                    {
+                        await _context.SaveChangesAsync();
+                        existingCombination.AddRange(newCombination);
+                    }
+                    foreach (var item in invADJ_items)
+                    {
+                        var cleanDesc = item.Attribute?.Trim().ToLower();
+                        item.ProductCombinationId = existingCombination.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == cleanDesc).Id;
+                    }
+                    break;
+            }
+        }
+
     }
+
 }

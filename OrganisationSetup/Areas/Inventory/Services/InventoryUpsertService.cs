@@ -611,7 +611,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                                  && x.Status == true && x.DocumentStatus == (int)DocumentStatus.active && x.CompanyId == userInfo.CompanyId && x.BranchId == userInfo.BranchId
                                  && x.TierTypeId == (int)Default.tierTypeId).ToListAsync();
 
-                    var productATIMapping = await _commonServices.getActiveATIByParam(productIds);
+                    var productATIMapping = await _commonServices.get_ActiveATIByParam(productIds);
 
                     foreach (var item in existingPriceLogs)
                     {
