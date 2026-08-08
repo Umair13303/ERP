@@ -78,9 +78,9 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
         #endregion
 
         [HttpGet]
-        public async Task<IActionResult> populateProductCCEListByParam(int? attributeId, int? productId)
+        public async Task<IActionResult> populateProductCCEListByParam(string operationType,int? productId, string? attributeId, string searchParam="")
         {
-            var result = await _irService.populateProductCCEByParam(attributeId, productId);
+            var result = await _irService.populateProductCCEByParam(productId, attributeId, searchParam);
             return Json(result);
         }
 

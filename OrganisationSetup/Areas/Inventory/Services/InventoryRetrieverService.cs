@@ -21,7 +21,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         Task<List<Product_Master_List>> populateProductMasterBySearch(int brandId, int sectionId, int categoryId, int subCategoryId, int productTypeId, bool? status = true);
         Task<List<Category_Master_List>> populateCategoryMasterBySearch(int? departmentId, int? sectionId, bool? status = true);
         Task<List<SubCategory_Master_List>> populateSubCategoryMasterBySearch(int? departmentId, int? sectionId,int? categoryId, bool? status = true);
-        Task<List<string>> populateProductCCEByParam(int? attributeId, int? productId);
+        Task<List<string>> populateProductCCEByParam(int? productId, string attributeId, string searchParam);
     }
     public class InventoryRetrieverService : IInventoryRetriever
     {
@@ -277,52 +277,33 @@ namespace OrganisationSetup.Areas.Inventory.Services
                           }).ToListAsync();
         }
 
-        public async Task<List<string>> populateProductCCEByParam(int? attributeId, int? productId)
+        public async Task<List<string>> populateProductCCEByParam(int? productId)
         {
-            if (attributeId == null) return new List<string>();
-
             var userInfo = _currentUser;
             if (!userInfo.IsAuthenticated) return new List<string>();
 
-            var raw = await _eRPOSContext.IProductCCE.AsNoTracking()
-                .Where(x => (productId == null || x.ProductId == productId)
-                       && x.Status == true
-                       && x.Description != null)
-                .Select(x => x.Description)
-                .ToListAsync();
+            var unprocessCombination = await _eRPOSContext.IProductCCE.AsNoTracking().Where(x => (productId == null || x.ProductId == productId)
+                                        && x.Status == true && x.Description != null).Select(x => x.Description).ToListAsync();
 
-            var targetIdStr = attributeId.ToString();
             var values = new HashSet<string>();
 
-            foreach (var desc in raw)
+            foreach (var description in unprocessCombination)
             {
                 try
                 {
-                    // Parse the JSON array string stored by iProductCCEResolver
-                    using var doc = JsonDocument.Parse(desc);
-                    if (doc.RootElement.ValueKind == JsonValueKind.Array)
+                    using var jsonDocument = JsonDocument.Parse(description);
+                    if (jsonDocument.RootElement.ValueKind == JsonValueKind.Array)
                     {
-                        foreach (var element in doc.RootElement.EnumerateArray())
+                        foreach (var option in jsonDocument.RootElement.EnumerateArray())
                         {
-                            string idVal = null;
-                            if (element.TryGetProperty("Id", out var idProp))
-                                idVal = idProp.GetString();
-                            else if (element.TryGetProperty("id", out var idPropLower))
-                                idVal = idPropLower.GetString();
-
-                            // Match exact Attribute ID
-                            if (idVal == targetIdStr)
+                            string? optionDescription = null;
+                            if (option.TryGetProperty("Description", out var descProp))
+                                optionDescription = descProp.GetString();
+                            else if (option.TryGetProperty("description", out var descPropLower))
+                                optionDescription = descPropLower.GetString();
+                            if (!string.IsNullOrEmpty(optionDescription))
                             {
-                                string descVal = null;
-                                if (element.TryGetProperty("Description", out var descProp))
-                                    descVal = descProp.GetString();
-                                else if (element.TryGetProperty("description", out var descPropLower))
-                                    descVal = descPropLower.GetString();
-
-                                if (!string.IsNullOrEmpty(descVal))
-                                {
-                                    values.Add(descVal.Trim());
-                                }
+                                values.Add(optionDescription.Trim());
                             }
                         }
                     }
@@ -331,7 +312,56 @@ namespace OrganisationSetup.Areas.Inventory.Services
                 {
                 }
             }
+            return values.OrderBy(v => v).ToList();
+        }
 
+        public async Task<List<string>> populateProductCCEByParam(int? productId, string attributeId, string searchParam)
+        {
+            var userInfo = _currentUser;
+            if (!userInfo.IsAuthenticated) return new List<string>();
+
+            var raw = await _eRPOSContext.IProductCCE.AsNoTracking()
+                .Where(x => (productId == null || x.ProductId == productId)
+                         && x.Status == true
+                         && x.Description != null)
+                .Select(x => x.Description)
+                .ToListAsync();
+
+            var values = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var description in raw)
+            {
+                try
+                {
+                    using var jsonDocument = JsonDocument.Parse(description);
+                    if (jsonDocument.RootElement.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var option in jsonDocument.RootElement.EnumerateArray())
+                        {
+                            string? optId = null;
+                            string? optDesc = null;
+
+                            if (option.TryGetProperty("Id", out var idProp)) optId = idProp.GetString();
+                            else if (option.TryGetProperty("id", out var idPropLower)) optId = idPropLower.GetString();
+
+                            if (option.TryGetProperty("Description", out var descProp)) optDesc = descProp.GetString();
+                            else if (option.TryGetProperty("description", out var descPropLower)) optDesc = descPropLower.GetString();
+
+                            if (!string.IsNullOrEmpty(attributeId) && optId != attributeId)
+                                continue;
+
+                            if (!string.IsNullOrEmpty(optDesc))
+                            {
+                                var trimmed = optDesc.Trim();
+                                values.Add(trimmed);
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                }
+            }
             return values.OrderBy(v => v).ToList();
         }
     }

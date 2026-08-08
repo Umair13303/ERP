@@ -179,6 +179,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                   con, transaction
                                                   );
                     #endregion
+
                     #region PORTION FOR :: FILL & UPSERT CustomerLedger
                     List<AFCustomerLedger_TVP> customerLedger = new List<AFCustomerLedger_TVP>
                     {
@@ -217,6 +218,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
 
                     #endregion
                     #endregion
+
                     #region PORTION FOR :: IF PAID, GENERATE RECEIPT AND LEDGER CREDIT
                     string receiptDescription = "POS Cash received against Invoice #" + AFInvoice.documentCode;
                     if (receiptAmount > 0)
@@ -281,6 +283,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                         );
                     }
                     #endregion
+
                     #region PORTION FOR :: PREPARE InventoryLedger TVP (Stock OUT)
                     var InventoryLedger = new List<AFInventoryLedger_TVP>();
 
