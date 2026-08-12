@@ -22,6 +22,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         Task<List<Category_Master_List>> populateCategoryMasterBySearch(int? departmentId, int? sectionId, bool? status = true);
         Task<List<SubCategory_Master_List>> populateSubCategoryMasterBySearch(int? departmentId, int? sectionId,int? categoryId, bool? status = true);
         Task<List<string>> populateProductCCEByParam(int? productId, string attributeId, string searchParam);
+        Task<decimal> get_iProductCurrentStockByParam(int? productId, int? productCombinationId, int? locationId);
     }
     public class InventoryRetrieverService : IInventoryRetriever
     {
@@ -363,6 +364,20 @@ namespace OrganisationSetup.Areas.Inventory.Services
                 }
             }
             return values.OrderBy(v => v).ToList();
+        }
+        public async Task<decimal> get_iProductCurrentStockByParam(int? productId, int? productCombinationId, int? locationId)
+        {
+            var userInfo = _currentUser;
+            if (!userInfo.IsAuthenticated) return 0;
+
+            return await _eRPOSContext.AFInventoryLedger.AsNoTracking()
+                .Where(x =>
+                    x.ProductId == productId
+                    && x.ProductCombinationId == productCombinationId
+                    && x.LocationId == locationId
+                    && x.CompanyId == userInfo.CompanyId
+                    && x.Status == true)
+                .SumAsync(x => (x.QuantityIn) - (x.QuantityOut));
         }
     }
 }

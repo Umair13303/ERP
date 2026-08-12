@@ -568,7 +568,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                     Credit = ppqd.UnitPurchasePrice * ppqd.QuantityOut,
                     Batch = ppqd.Batch,
                     ExpiryDate = ppqd.ExpiryDate,
-                    RemainingStock = ppqd.QuantityIn > 0 ? ppqd.QuantityIn : (decimal?)null,
+                    ReceiptBalanceQuantity = ppqd.QuantityIn > 0 ? ppqd.QuantityIn : (decimal?)null,
                     ReconcillationStatus = (int)Default.reconcileStatus,
                     CreatedOn = transactionDate,
                     CreatedBy = userInfo.UserId,

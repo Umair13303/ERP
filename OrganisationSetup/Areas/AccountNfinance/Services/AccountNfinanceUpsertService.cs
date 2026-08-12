@@ -1,5 +1,6 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using OrganisationSetup.Areas.Inventory.Services;
 using OrganisationSetup.Models.DAL;
 using OrganisationSetup.Models.DAL.StoredProcedure;
 using OrganisationSetup.Services;
@@ -27,12 +28,13 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
         private readonly IOSDataLayer _repo;
         private readonly string _connectionString;
         private readonly IAccountNfinanceValidation _validationService;
+        private readonly IInventoryRetriever _inventoryRetriever;
         private readonly TempUser _currentUser;
         private readonly ERPOrganisationSetupContext _eRPOSContext;
         private readonly ICommon _commonServices;
 
 
-        public AccountNfinanceUpsertService(TempUser currentUser,IOSDataLayer repo, ERPOrganisationSetupContext eRPOSContext, IHttpContextAccessor httpContextAccessor, IAccountNfinanceValidation validationService, IAccountNfinanceRetriever retrieverService, ICommon commonServices)
+        public AccountNfinanceUpsertService(TempUser currentUser,IOSDataLayer repo, IInventoryRetriever inventoryRetriever, ERPOrganisationSetupContext eRPOSContext, IHttpContextAccessor httpContextAccessor, IAccountNfinanceValidation validationService, IAccountNfinanceRetriever retrieverService, ICommon commonServices)
         {
             _currentUser = currentUser;
             _repo = repo;
@@ -40,6 +42,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
             _connectionString = _eRPOSContext.Database.GetDbConnection().ConnectionString;
             _validationService = validationService;
             _commonServices = commonServices;
+            _inventoryRetriever = inventoryRetriever;
         }
         public async Task<ServiceResult> updateInsertDataInto_AFChartOfAccount(PostedData postedData, bool? isCustomerAutoAccount)
         {
@@ -562,25 +565,16 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                 billGuID = postedData.GuID;
                 supplierLedgerGuID = postedData.GuID;
             }
-
+            foreach (var item in postedData.PostedDataAFBillPPI)
+            {
+                item.Attribute = CSharedUtility.attributeKeyBuilder(item.Attribute);
+            }
             bool? isOperationPermitted = true; // validation baad mein add karna
             #endregion
 
             if (isOperationPermitted == true)
             {
-                #region PORTION FOR :: GENERATE PRODUCT COMBINATION
-                var comboList = postedData.PostedDataAFBillPPI.Select(i => new IProductCCE
-                {
-                    ProductId = i.ProductId,
-                    Description = i.Attribute
-                }).ToList();
-                var combinationGeneration = await _commonServices.generate_productCombination((int)DocumentType.inventoryAdjustment, comboList);
-                foreach (var i in postedData.PostedDataAFBillPPI)
-                {
-                    //i.ProductATIId = await _commonServices.get_activeProductATIByParam(i.ProductId);
-                    i.ProductCombinationId = await _commonServices.get_productCombination(i.ProductId, i.Attribute);
-                }
-                #endregion
+            
                 using var con = new SqlConnection(_connectionString);
                 await con.OpenAsync();
                 using var transaction = con.BeginTransaction();
@@ -588,16 +582,24 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                 {
                     #region PORTION FOR :: FILL & UPSERT Bill
                     var billPPI = new List<AFBillPPI_TVP>();
+                    await iProductCCE_SPR((int)DocumentType.inventoryAdjustment, postedData.PostedDataAFBillPPI);
+                    var productIds = postedData.PostedDataAFBillPPI.Where(x => x.ProductId.HasValue).Select(x => x.ProductId!.Value).Distinct().ToList();
+                    var productATIMapping = await _commonServices.get_ActiveATIByParam(productIds);
+
+
+
 
                     foreach (var item in postedData.PostedDataAFBillPPI)
                     {
-                        billPPI.Add(new AFBillPPI_TVP
+                        decimal existingStock = await _inventoryRetriever.getCurrentStockByParam(
+
+                    billPPI.Add(new AFBillPPI_TVP
                         {
                             Id = 0,
                             GuID = Guid.NewGuid(),
                             BillId = 0,
                             ProductId = item.ProductId,
-                            ProductATIId = item.ProductATIId,
+                            ProductATIId = item.ProductId.HasValue && productATIMapping.TryGetValue(item.ProductId.Value, out var atiId) ? atiId : null,
                             ProductCombinationId = item.ProductCombinationId,
                             Quantity = item.Quantity,
                             UnitPurchasePrice = (decimal)item.UnitPurchasePrice,
@@ -706,7 +708,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                 Credit = 0,
                                 Batch = item.Batch,
                                 ExpiryDate = item.ExpiryDate,
-                                RemainingStock = item.Quantity,
+                                ReceiptBalanceQuantity = item.Quantity,
                                 ReconcillationStatus = (int)Default.reconcileStatus,
                                 CreatedOn = DateTime.Now,
                                 CreatedBy = userInfo.UserId,
@@ -933,5 +935,52 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
             }
         }
 
+
+        private async Task iProductCCE_SPR(int refDocumentType, List<AFBillPPI_TVP> afBill_items)
+        {
+            List<int?> productIds;
+            List<IProductCCE> existingCombination;
+            List<IProductCCE> newCombination = new List<IProductCCE>();
+
+            switch (refDocumentType)
+            {
+                case (int)DocumentType.inventoryAdjustment:
+                    productIds = afBill_items.Select(x => x.ProductId).Distinct().ToList();
+                    existingCombination = await _eRPOSContext.IProductCCE.Where(x => productIds.Contains(x.ProductId)).ToListAsync();
+                    foreach (var item in afBill_items)
+                    {
+                        var formattedDescription = item.Attribute?.Trim().ToLower();
+                        var productCombination = existingCombination.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == formattedDescription) ?? newCombination.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == formattedDescription);
+                        if (productCombination == null)
+                        {
+                            var combination = new IProductCCE
+                            {
+                                GuID = Guid.NewGuid(),
+                                RefDocumentType = refDocumentType,
+                                ProductId = item.ProductId,
+                                Description = item.Attribute,
+                                CreatedOn = DateTime.UtcNow,
+                                CreatedBy = _currentUser.UserId,
+                                DocumentType = (int)DocumentType.productCombination,
+                                DocumentStatus = (int)DocumentStatus.active,
+                                Status = true
+                            };
+                            newCombination.Add(combination);
+                            _eRPOSContext.IProductCCE.Add(combination);
+                        }
+                    }
+                    if (newCombination.Any())
+                    {
+                        await _eRPOSContext.SaveChangesAsync();
+                        existingCombination.AddRange(newCombination);
+                    }
+                    foreach (var item in afBill_items)
+                    {
+                        var cleanDesc = item.Attribute?.Trim().ToLower();
+                        item.ProductCombinationId = existingCombination.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == cleanDesc).Id;
+                    }
+                    break;
+            }
+        }
     }
 }

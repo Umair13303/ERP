@@ -1,0 +1,25 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Consider current costing system as trash we will not use it,
+now there are few things i need to know:
+1. There are 7 batch of colgate toothpaste each with different cost, now the sales person want to stock out the batch specifically how to deal this
+2. there are 4 batch of oil each with different cost, a buyer purchase 4 pack of batch 1, 3 of batch 2, and 2 of batch 3, how to calculate the total cost for this purchase
+3. the invoice of 2 oil pack is returned how to evaluate their cost
+4. how to deal the billing
+5. how would the auditor at end of tax year will make P&L statement and balance sheet when there is so much confusion in the costing system for me imaging how to do it for him
+
+p.s we are not making a sytem which is only easy to use by 10 pass , we are making one we can debug easily, we can report easily, and we can maintain easily. So please consider this while answering the above questions, we cant wait for the edge cases to happend i dont want to spend hours in manualy correctnes
+also i am scared to loosing the strength of database cleanliness and integrity, so we need to ensure that our costing system is robust and reliable.

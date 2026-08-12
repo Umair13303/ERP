@@ -33,7 +33,9 @@ namespace SharedUI.Models.TVP
         public decimal Credit { get; set; }
         public string? Batch { get; set; }
         public DateTime? ExpiryDate { get; set; }
-        public decimal? RemainingStock { get; set; }
+        public decimal? ReceiptBalanceQuantity { get; set; }
+        public decimal? RemainingStockQuantity { get; set; }
+        public int? ConsumedInventoryLedgerId { get; set; }
 
         public int? ReconcillationStatus { get; set; }
 

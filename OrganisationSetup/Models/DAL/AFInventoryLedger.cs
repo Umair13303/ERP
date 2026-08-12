@@ -40,7 +40,9 @@ public partial class AFInventoryLedger
     public string? Batch { get; set; }
 
     public DateTime? ExpiryDate { get; set; }
-
+    
+    public decimal? RemainingStock { get; set; }
+    
     public int? ReconcillationStatus { get; set; }
 
     public DateTime? CreatedOn { get; set; }
