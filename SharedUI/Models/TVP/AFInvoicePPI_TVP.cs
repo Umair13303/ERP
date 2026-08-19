@@ -24,6 +24,7 @@ namespace SharedUI.Models.TVP
         public int? DocumentType { get; set; }
         public int? DocumentStatus { get; set; }
         public bool? Status { get; set; }
+        public int? vCostingModeId { get; set; }
     }
     public class AFBillPPI_TVP
     {

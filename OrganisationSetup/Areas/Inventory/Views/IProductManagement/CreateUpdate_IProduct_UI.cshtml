@@ -281,15 +281,15 @@
                                 @Html.DropDownList("BrandId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListBrand" })
                             </div>
                         </div>
-                        <div class="col-sm-12 col-md-3" style="display: @department.Display  !important">
-                            <div class="form-group">
-                                @Html.Label("DropDownListDepartment", "Department", new { @class = "col-form-label" })
+                        <div class="col-sm-6 col-md-3" style="display: @department.Display  !important">
+                            <div class="form-group  mb-0">
+                                @Html.Label("DropDownListDepartment", "Department", new { @class = "form-label text-secondary fw-semibold small mb-1" })
                                 @Html.DropDownList("DepartmentId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListDepartment" })
                             </div>
                         </div>
                         <div class="col-sm-12 col-md-2">
-                            <div class="form-group">
-                                @Html.Label("DropDownListSection", "Section", new { @class = "col-form-label" })
+                            <div class="form-group  mb-0">
+                                @Html.Label("DropDownListSection", "Section", new { @class = "form-label text-secondary fw-semibold small mb-1" })
                                 @Html.DropDownList("SectionId", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", required = "required", @id = "DropDownListSection" })
                             </div>
                         </div>

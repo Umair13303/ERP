@@ -11,6 +11,7 @@ using SharedUI.Models.SQLParameters;
 using SharedUI.Models.TVP;
 using System.Configuration;
 using System.Diagnostics;
+using System.Linq;
 
 
 namespace OrganisationSetup.Areas.AccountNfinance.Services
@@ -34,7 +35,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
         private readonly ICommon _commonServices;
 
 
-        public AccountNfinanceUpsertService(TempUser currentUser,IOSDataLayer repo, IInventoryRetriever inventoryRetriever, ERPOrganisationSetupContext eRPOSContext, IHttpContextAccessor httpContextAccessor, IAccountNfinanceValidation validationService, IAccountNfinanceRetriever retrieverService, ICommon commonServices)
+        public AccountNfinanceUpsertService(TempUser currentUser, IOSDataLayer repo, IInventoryRetriever inventoryRetriever, ERPOrganisationSetupContext eRPOSContext, IHttpContextAccessor httpContextAccessor, IAccountNfinanceValidation validationService, IAccountNfinanceRetriever retrieverService, ICommon commonServices)
         {
             _currentUser = currentUser;
             _repo = repo;
@@ -115,7 +116,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
         }
         public async Task<ServiceResult> updateInsertDataInto_AFInvoice(PostedData postedData)
         {
-            bool? isWhatsAppMessagingAllowed = await _eRPOSContext.confApplicationRule.Where(x=> x.ClientKEY == 1).Select(x => x.IsWhatsAppInvoicing).FirstOrDefaultAsync();
+            bool? isWhatsAppMessagingAllowed = await _eRPOSContext.confApplicationRule.Where(x => x.ClientKEY == 1).Select(x => x.IsWhatsAppInvoicing).FirstOrDefaultAsync();
             var userInfo = _currentUser;
 
             if (!userInfo.IsAuthenticated)
@@ -133,7 +134,13 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
             {
                 invoiceGuID = postedData.GuID;
             }
-            bool? isOperationPermitted = true; //await _validationService.isAFInvoiceValid(postedData.OperationType, invoiceGuID, postedData.Description);
+            var validationResult = await _validationService.isAFInvoiceValid(postedData.OperationType, invoiceGuID, postedData);
+
+            if (!validationResult.IsSuccess)
+            {
+                return ServiceResult.failure(validationResult.Message, (int)validationResult.StatusCode);
+            }
+            bool? isOperationPermitted = true;
             #endregion
             if (isOperationPermitted == true)
             {
@@ -145,15 +152,13 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                     decimal invoiceChargedAmount = postedData.PostedDataAFInvoicePPI.Sum(x => x.ChargedAmount);
                     decimal receiptAmount = postedData.ReceiptAmount ?? 0m;
                     decimal dueAmount = Math.Max(0, invoiceChargedAmount - receiptAmount);
-
-                    int computedInvoiceStatus = dueAmount <= 0 ? (int)InvoiceStatus.paid    : dueAmount < invoiceChargedAmount ? (int)InvoiceStatus.partialPaid : (int)InvoiceStatus.unPaid;
+                    int computedInvoiceStatus = dueAmount <= 0 ? (int)InvoiceStatus.paid : dueAmount < invoiceChargedAmount ? (int)InvoiceStatus.partialPaid : (int)InvoiceStatus.unPaid;
                     string invoiceStatus = Enum.GetName(typeof(InvoiceStatus), computedInvoiceStatus) ?? "UNKNOWN";
                     postedData.Description = "POS Direct Invoice Generated, Amounting " + invoiceChargedAmount + " @ " + DateTime.UtcNow;
+
                     foreach (var i in postedData.PostedDataAFInvoicePPI)
                     {
                         i.GuID = Guid.NewGuid();
-                        //i.ProductATIId = await _commonServices.get_activeProductATIByParam(i.ProductId);
-                        i.ProductCombinationId = i.ProductCombinationId;
                         i.DocumentType = (int)DocumentType.invoiceProduct;
                         i.DocumentStatus = (int)DocumentStatus.active;
                         i.Status = true;
@@ -209,7 +214,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                 Status = true,
                                 BranchId= userInfo.BranchId,
                                 CompanyId = userInfo.CompanyId
-                            } 
+                            }
                     };
 
                     #region PORTION FOR :: UPSERT INTO dbo.AFCustomerLedger
@@ -289,41 +294,59 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
 
                     #region PORTION FOR :: PREPARE InventoryLedger TVP (Stock OUT)
                     var InventoryLedger = new List<AFInventoryLedger_TVP>();
+                    var errorMessage = new List<string>();
 
                     if (postedData.PostedDataAFInvoicePPI != null && postedData.PostedDataAFInvoicePPI.Any())
                     {
                         foreach (var item in postedData.PostedDataAFInvoicePPI)
                         {
-                            InventoryLedger.Add(new AFInventoryLedger_TVP
+                            var costLayerInfo = await _repo.srp_IProductConsumeLayer(item.ProductId, item.ProductCombinationId, item.vCostingModeId.Value, item.Quantity, postedData.LocationId, userInfo.CompanyId, con, transaction);
+                            var stockDeficit = costLayerInfo.FirstOrDefault(x => x.IsStockDeficit);
+                            if (stockDeficit != null)
                             {
-                                GuID = Guid.NewGuid(),
-                                LocationId = postedData.LocationId,
-                                TransactionDate = postedData.TransactionDate,
-                                ProductId = item.ProductId,
-                                ProductCombinationId =item.ProductCombinationId,
-                                RefDocumentType = (int?)DocumentType.invoice,
-                                RefDocumentId = AFInvoice.insertedId,
-                                Description = postedData.Description?.Trim(),
-                                QuantityIn = 0,
-                                QuantityOut = item.Quantity,
-                                UnitPurchasePrice = 0,
-                                UnitSalePrice = item.UnitSalePrice,
-                                Debit = 0,
-                                Credit = item.ChargedAmount,
-                                Batch = string.IsNullOrWhiteSpace(item.Batch) ? null : item.Batch.Trim(),
-                                ExpiryDate = item.ExpiryDate,
-                                ReconcillationStatus = (int?)Default.reconcileStatus,
-                                CreatedOn = DateTime.Now,
-                                CreatedBy = userInfo.UserId,
-                                UpdatedOn = DateTime.Now,
-                                UpdatedBy = userInfo.UserId,
-                                DocumentType = (int?)DocumentType.inventoryLedgerRecord,
-                                DocumentStatus = (int?)DocumentStatus.active,
-                                Status = true,
-                                BranchId = userInfo.BranchId,
-                                CompanyId = userInfo.CompanyId
-                            });
+                                errorMessage.Add($"Product {item.ProductId}: short {stockDeficit.QuantityOut} unit(s).");
+                                continue;
+                            }
+                            foreach (var layer in costLayerInfo)
+                            {
+                                InventoryLedger.Add(new AFInventoryLedger_TVP
+                                {
+                                    GuID = Guid.NewGuid(),
+                                    LocationId = postedData.LocationId,
+                                    TransactionDate = postedData.TransactionDate,
+                                    ProductId = item.ProductId,
+                                    ProductCombinationId = item.ProductCombinationId,
+                                    RefDocumentType = (int?)DocumentType.invoice,
+                                    RefDocumentId = AFInvoice.insertedId,
+                                    Description = postedData.Description?.Trim(),
+                                    QuantityIn = 0,
+                                    QuantityOut = layer.QuantityOut,
+                                    UnitPurchasePrice = layer.UnitPurchasePrice,
+                                    UnitSalePrice = item.UnitSalePrice,
+                                    Debit = 0,
+                                    Credit = layer.QuantityOut * layer.UnitPurchasePrice,
+                                    Batch = string.IsNullOrWhiteSpace(layer.Batch) ? null : layer.Batch.Trim(),
+                                    ExpiryDate = layer.ExpiryDate,
+                                    ConsumedInventoryLedgerId = layer.ConsumedInventoryLedgerId,
+                                    ReceiptBalanceQuantity = null,
+                                    ReconcillationStatus = (int?)Default.reconcileStatus,
+                                    CreatedOn = DateTime.Now,
+                                    CreatedBy = userInfo.UserId,
+                                    UpdatedOn = DateTime.Now,
+                                    UpdatedBy = userInfo.UserId,
+                                    DocumentType = (int?)DocumentType.inventoryLedgerRecord,
+                                    DocumentStatus = (int?)DocumentStatus.active,
+                                    Status = true,
+                                    BranchId = userInfo.BranchId,
+                                    CompanyId = userInfo.CompanyId
+                                });
+                            }
                         }
+                    }
+                    if (errorMessage.Any())
+                    {
+                        await transaction.RollbackAsync();
+                        return ServiceResult.failure(string.Join(" ", errorMessage), (int)Code.BadRequest);
                     }
                     #endregion
 
@@ -334,20 +357,19 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                     InventoryLedger,
                                                     con, transaction);
                     #endregion
-                    if(isWhatsAppMessagingAllowed == true)
+                    if (isWhatsAppMessagingAllowed == true)
                     {
                         #region PLACE HOLDER :: LATER SAVE DATA IN TABLE -- WILL NEED TO MAKE ANOTHER OPEN API ON BASIS OF KEY GUID TO FETC PENDING INVOICE 
-                        /* -- WORK TO DO ON LATER STAGE COMPLITION -- */
                         #endregion
                     }
 
                     #region PORTION FOR :: HANLDE TRANSACTION
-                    switch (AFInvoice.response)
+                    switch (AFInventoryLedger.response)
                     {
                         case (int)Code.Created:
                         case (int)Code.Accepted:
                             await transaction.CommitAsync();
-                            return ServiceResult.success(Message.serverResponse(AFInvoice.response), (int)AFInvoice.response,guID: invoiceGuID.ToString());
+                            return ServiceResult.success(Message.serverResponse(AFInvoice.response), (int)AFInvoice.response, guID: invoiceGuID.ToString());
                         default:
                             await transaction.RollbackAsync();
                             return ServiceResult.failure(Message.serverResponse((int?)Code.BadRequest), (int)Code.BadRequest);
@@ -574,7 +596,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
 
             if (isOperationPermitted == true)
             {
-            
+
                 using var con = new SqlConnection(_connectionString);
                 await con.OpenAsync();
                 using var transaction = con.BeginTransaction();
@@ -587,13 +609,10 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                     var productATIMapping = await _commonServices.get_ActiveATIByParam(productIds);
 
 
-
-
                     foreach (var item in postedData.PostedDataAFBillPPI)
                     {
-                        decimal existingStock = await _inventoryRetriever.getCurrentStockByParam(
 
-                    billPPI.Add(new AFBillPPI_TVP
+                        billPPI.Add(new AFBillPPI_TVP
                         {
                             Id = 0,
                             GuID = Guid.NewGuid(),
@@ -616,8 +635,8 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                             DocumentStatus = (int?)DocumentStatus.active,
                             Status = true
                         });
-                    };
-                    
+                    }
+
                     #region PORTION FOR :: UPSERT INTO dbo.AFBill
                     var AFBill = await _repo.UpsertInto_AFBill(
                                                     postedData.OperationType,
@@ -670,7 +689,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                             CompanyId = userInfo.CompanyId
                             }
                     };
-                    
+
 
                     #region PORTION FOR :: UPSERT INTO dbo.AFSupplierLedger
                     var AFSupplierLedger = await _repo.UpsertInto_AFSupplierLedger(
@@ -690,6 +709,8 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                     {
                         foreach (var item in postedData.PostedDataAFBillPPI)
                         {
+                            decimal existingStock = await _inventoryRetriever.get_iProductCurrentStockByParam(item.ProductId, item.ProductCombinationId, postedData.LocationId);
+
                             InventoryLedger.Add(new AFInventoryLedger_TVP
                             {
                                 GuID = Guid.NewGuid(),
@@ -934,23 +955,32 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                 return ServiceResult.failure(Message.serverResponse((int?)Code.Conflict), (int)Code.Conflict);
             }
         }
-
-
         private async Task iProductCCE_SPR(int refDocumentType, List<AFBillPPI_TVP> afBill_items)
         {
-            List<int?> productIds;
             List<IProductCCE> existingCombination;
             List<IProductCCE> newCombination = new List<IProductCCE>();
-
             switch (refDocumentType)
             {
                 case (int)DocumentType.inventoryAdjustment:
-                    productIds = afBill_items.Select(x => x.ProductId).Distinct().ToList();
-                    existingCombination = await _eRPOSContext.IProductCCE.Where(x => productIds.Contains(x.ProductId)).ToListAsync();
-                    foreach (var item in afBill_items)
+                    var productIds = afBill_items.Select(x => x.ProductId).Distinct().ToList();
+                    var attributedProductIds = await _eRPOSContext.IProduct.Where(x => productIds.Contains(x.Id) && !string.IsNullOrWhiteSpace(x.AttributeIds)).Select(x => x.Id).ToListAsync();
+
+                    foreach (var item in afBill_items.Where(x => !attributedProductIds.Contains(x.ProductId ?? 0)))
+                    {
+                        item.ProductCombinationId = (int)Default.productCombinationId;
+                    }
+                    var attributedItems = afBill_items.Where(x => attributedProductIds.Contains(x.ProductId ?? 0)).ToList();
+                    if(attributedItems.Count == 0)
+                    {
+                        break;
+                    }
+
+                    existingCombination = await _eRPOSContext.IProductCCE.Where(x => attributedProductIds.Contains(x.ProductId ?? 0)).ToListAsync();
+                    foreach (var item in attributedItems)
                     {
                         var formattedDescription = item.Attribute?.Trim().ToLower();
-                        var productCombination = existingCombination.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == formattedDescription) ?? newCombination.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == formattedDescription);
+                        var productCombination = existingCombination.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == formattedDescription)
+                                               ?? newCombination.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == formattedDescription);
                         if (productCombination == null)
                         {
                             var combination = new IProductCCE
@@ -974,10 +1004,14 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                         await _eRPOSContext.SaveChangesAsync();
                         existingCombination.AddRange(newCombination);
                     }
-                    foreach (var item in afBill_items)
+                    foreach (var item in attributedItems)
                     {
                         var cleanDesc = item.Attribute?.Trim().ToLower();
-                        item.ProductCombinationId = existingCombination.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == cleanDesc).Id;
+                        item.ProductCombinationId = existingCombination
+                            .FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == cleanDesc)?.Id;
+
+                        if (item.ProductCombinationId == null)
+                            throw new InvalidOperationException($"Failed to resolve product combination for ProductId {item.ProductId}.");
                     }
                     break;
             }

@@ -11,6 +11,7 @@ using SharedUI.Models.Enums;
 using SharedUI.Models.Responses;
 using SharedUI.Models.SQLParameters;
 using SharedUI.Models.TVP;
+using System.Linq;
 using System.Text.Json;
 
 
@@ -32,6 +33,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
         Task<ServiceResult> updateDocument_BrandByGuID(Guid? guid, bool? status, int documentStatus = (int)DocumentStatus.active);
         Task<ServiceResult> updateDocument_CategoryByGuID(Guid? guid, bool? status, int documentStatus = (int)DocumentStatus.active);
         Task<ServiceResult> updateDocument_SubCategoryByGuID(Guid? guid, bool? status, int documentStatus = (int)DocumentStatus.active);
+        Task<ServiceResult> updateDocument_ProductByGuID(Guid? guid, bool? status, int documentStatus = (int)DocumentStatus.active);
         #endregion
     }
     public class InventoryUpsertService : IInventoryUpsert
@@ -550,37 +552,47 @@ namespace OrganisationSetup.Areas.Inventory.Services
                 #endregion
 
                 #region PORTION FOR :: UPSERT INTO dbo.AFInventoryLedger
-                var AFInventoryLedgerInfo = postedData.PostedDataIAdjustmentPPQD.Select(ppqd => new AFInventoryLedger_TVP
+                var AFInventoryLedgerInfo = new List<AFInventoryLedger_TVP>();
+                var deficitLines = new List<string>();
+                foreach (var ppqd in postedData.PostedDataIAdjustmentPPQD)
                 {
-                    GuID = Guid.NewGuid(),
-                    LocationId = postedData.LocationId,
-                    TransactionDate = transactionDate,
-                    ProductId = ppqd.ProductId,
-                    ProductCombinationId = ppqd.ProductCombinationId,
-                    RefDocumentType = (int?)DocumentType.inventoryAdjustment,
-                    RefDocumentId = (int?)IAdjustment.insertedId,
-                    Description = $"Inventory Adjustment Recorded ({adjustmentType.Description})",
-                    QuantityIn = ppqd.QuantityIn,
-                    QuantityOut = ppqd.QuantityOut,
-                    UnitPurchasePrice = ppqd.UnitPurchasePrice,
-                    UnitSalePrice = ppqd.UnitSalePrice,
-                    Debit = ppqd.UnitPurchasePrice * ppqd.QuantityIn,
-                    Credit = ppqd.UnitPurchasePrice * ppqd.QuantityOut,
-                    Batch = ppqd.Batch,
-                    ExpiryDate = ppqd.ExpiryDate,
-                    ReceiptBalanceQuantity = ppqd.QuantityIn > 0 ? ppqd.QuantityIn : (decimal?)null,
-                    ReconcillationStatus = (int)Default.reconcileStatus,
-                    CreatedOn = transactionDate,
-                    CreatedBy = userInfo.UserId,
-                    UpdatedOn = transactionDate,
-                    UpdatedBy = userInfo.UserId,
-                    DocumentType = (int?)DocumentType.inventoryLedgerRecord,
-                    DocumentStatus = (int?)DocumentStatus.active,
-                    Status = true,
-                    BranchId = userInfo.BranchId,
-                    CompanyId = userInfo.CompanyId
-                }).ToList();
+                    bool isReceipt = ppqd.QuantityIn > 0;
+                    bool isConsumption = ppqd.QuantityOut > 0;
+                    if (isReceipt)
+                    {
+                        AFInventoryLedgerInfo.Add(new AFInventoryLedger_TVP
+                        {
+                            GuID = Guid.NewGuid(),
+                            LocationId = postedData.LocationId,
+                            TransactionDate = transactionDate,
+                            ProductId = ppqd.ProductId,
+                            ProductCombinationId = ppqd.ProductCombinationId,
+                            RefDocumentType = (int?)DocumentType.inventoryAdjustment,
+                            RefDocumentId = (int?)IAdjustment.insertedId,
+                            Description = $"Inventory Adjustment Recorded ({adjustmentType.Description})",
+                            QuantityIn = ppqd.QuantityIn,
+                            QuantityOut = 0,
+                            UnitPurchasePrice = ppqd.UnitPurchasePrice,
+                            UnitSalePrice = ppqd.UnitSalePrice,
+                            Debit = ppqd.UnitPurchasePrice * ppqd.QuantityIn,
+                            Credit = 0,
+                            Batch = ppqd.Batch,
+                            ExpiryDate = ppqd.ExpiryDate,
+                            ReceiptBalanceQuantity = ppqd.QuantityIn,
+                            ReconcillationStatus = (int)Default.reconcileStatus,
+                            CreatedOn = transactionDate,
+                            CreatedBy = userInfo.UserId,
+                            UpdatedOn = transactionDate,
+                            UpdatedBy = userInfo.UserId,
+                            DocumentType = (int?)DocumentType.inventoryLedgerRecord,
+                            DocumentStatus = (int?)DocumentStatus.active,
+                            Status = true,
+                            BranchId = userInfo.BranchId,
+                            CompanyId = userInfo.CompanyId
+                        });
+                    }
 
+                }
                 var AFInventoryLedger = await _repo.UpsertInto_AFInventoryLedger(
                     postedData.OperationType,
                     AFInventoryLedgerInfo.FirstOrDefault()?.RefDocumentType,
@@ -629,7 +641,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
 
                     foreach (var item in postedData.PostedDataIAdjustmentPPQD)
                     {
-                        bool hasPriceData = (item.UnitSalePrice ) > 0 || (item.UnitPurchasePrice) > 0;
+                        bool hasPriceData = (item.UnitSalePrice) > 0 || (item.UnitPurchasePrice) > 0;
                         if (hasPriceData == false) continue;
                         var priceLog = new AFProductPriceLog
                         {
@@ -639,7 +651,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                             ProductCombinationId = item.ProductCombinationId,
                             TierTypeId = (int)Default.tierTypeId,
                             DefaultSalePrice = item.UnitSalePrice,
-                            MinimumSalePrice = item.UnitPurchasePrice,
+                            MinimumSalePrice = item.UnitSalePrice,
                             CreatedOn = transactionDate,
                             CreatedBy = userInfo.UserId,
                             DocumentType = (int)DocumentType.productPriceLog,
@@ -756,23 +768,60 @@ namespace OrganisationSetup.Areas.Inventory.Services
                 return ServiceResult.failure($"Internal server error: {ex.Message}", (int)Code.InternalServerError);
             }
         }
-        #endregion
+        public async Task<ServiceResult> updateDocument_ProductByGuID(Guid? guid, bool? status, int documentStatus = (int)DocumentStatus.active)
+        {
+            var userInfo = _currentUser;
+            if (!userInfo.IsAuthenticated)
+                return ServiceResult.failure(Message.serverResponse((int?)Code.Unauthorized), (int)Code.Unauthorized);
 
+            try
+            {
+                var record = _eRPOSContext.IProduct.Where(x => x.GuID == guid).FirstOrDefault();
+                if (record == null)
+                {
+                    return ServiceResult.failure(Message.serverResponse((int?)Code.BadRequest), (int)Code.BadRequest);
+                }
+                if (status == false)
+                {
+                    documentStatus = (int)DocumentStatus.deleted;
+                }
+                record.Status = status;
+                record.DocumentStatus = documentStatus;
+                await _eRPOSContext.SaveChangesAsync();
+                return ServiceResult.success("Product updated successfully.", (int)Code.OK);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult.failure($"Internal server error: {ex.Message}", (int)Code.InternalServerError);
+            }
+        }
+        #endregion
         private async Task iProductCCE_SPR(int refDocumentType, List<IInventoryAdjustmentPPQD_TVP> invADJ_items)
         {
-            List<int?>productIds;
-            List<IProductCCE> existingCombination;
-            List<IProductCCE> newCombination = new List<IProductCCE>(); 
-
             switch (refDocumentType)
             {
                 case (int)DocumentType.inventoryAdjustment:
-                     productIds = invADJ_items.Select(x => x.ProductId).Distinct().ToList();
-                     existingCombination = await _eRPOSContext.IProductCCE.Where(x => productIds.Contains(x.ProductId)).ToListAsync();
-                    foreach(var item in invADJ_items)
+                    var productIds = invADJ_items.Select(x => x.ProductId).Distinct().ToList();
+                    var attributedProductIds = await _eRPOSContext.IProduct.Where(x => productIds.Contains(x.Id) && !string.IsNullOrWhiteSpace(x.AttributeIds)).Select(x => x.Id).ToListAsync();
+                    foreach (var item in invADJ_items.Where(x => !attributedProductIds.Contains(x.ProductId ?? 0)))
+                    {
+                        item.ProductCombinationId = (int)Default.productCombinationId;
+                    }
+                    var attributedItems = invADJ_items.Where(x => attributedProductIds.Contains(x.ProductId ?? 0)).ToList();
+                    if (attributedItems.Count == 0)
+                    {
+                        break;
+                    }
+
+                    var existingCombination = await _eRPOSContext.IProductCCE
+                        .Where(x => attributedProductIds.Contains(x.ProductId ?? 0)).ToListAsync();
+                    var newCombination = new List<IProductCCE>();
+
+                    foreach (var item in attributedItems)
                     {
                         var formattedDescription = item.Attribute?.Trim().ToLower();
-                        var productCombination = existingCombination.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == formattedDescription) ?? newCombination.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == formattedDescription);
+                        var productCombination = existingCombination.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == formattedDescription)
+                                               ?? newCombination.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == formattedDescription);
                         if (productCombination == null)
                         {
                             var combination = new IProductCCE
@@ -796,14 +845,17 @@ namespace OrganisationSetup.Areas.Inventory.Services
                         await _eRPOSContext.SaveChangesAsync();
                         existingCombination.AddRange(newCombination);
                     }
-                    foreach (var item in invADJ_items)
+                    foreach (var item in attributedItems)
                     {
                         var cleanDesc = item.Attribute?.Trim().ToLower();
-                        item.ProductCombinationId = existingCombination.FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == cleanDesc).Id;
+                        item.ProductCombinationId = existingCombination
+                            .FirstOrDefault(x => x.ProductId == item.ProductId && x.Description?.Trim().ToLower() == cleanDesc)?.Id;
+
+                        if (item.ProductCombinationId == null)
+                            throw new InvalidOperationException($"Failed to resolve product combination for ProductId {item.ProductId}.");
                     }
                     break;
             }
         }
     }
-
 }

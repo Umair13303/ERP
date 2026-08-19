@@ -160,6 +160,12 @@ namespace OrganisationSetup.Areas.Inventory.Controllers
             var result = await _IuService.updateInsertDataInto_IProduct(postedData);
             return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message });
         }
+        [HttpPost]
+        public async Task<IActionResult> updateProductDocumentStatus([FromBody] PostedData postedData)
+        {
+            var result = await _IuService.updateDocument_ProductByGuID(postedData.GuID, postedData.Status);
+            return Json(new { result.IsSuccess, responseCode = result.StatusCode, message = result.Message });
+        }
         #endregion
     }
 }

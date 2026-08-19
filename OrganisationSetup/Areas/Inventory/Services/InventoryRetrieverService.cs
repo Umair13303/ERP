@@ -1,3 +1,4 @@
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using NuGet.ProjectModel;
 using OrganisationSetup.Models.DAL;
@@ -7,8 +8,8 @@ using SharedUI.Models.Enums;
 using SharedUI.Models.ViewModels;
 using System;
 using System.Linq;
-using static SharedUI.Models.ViewModels.DTObject;
 using System.Text.Json;
+using static SharedUI.Models.ViewModels.DTObject;
 namespace OrganisationSetup.Areas.Inventory.Services
 {
     public interface IInventoryRetriever
@@ -374,10 +375,18 @@ namespace OrganisationSetup.Areas.Inventory.Services
                 .Where(x =>
                     x.ProductId == productId
                     && x.ProductCombinationId == productCombinationId
+                    && x.ReceiptBalanceQuantity > 0
                     && x.LocationId == locationId
                     && x.CompanyId == userInfo.CompanyId
-                    && x.Status == true)
-                .SumAsync(x => (x.QuantityIn) - (x.QuantityOut));
+                    && x.DocumentStatus == (int)DocumentStatus.active
+                    && x.Status == true
+                    )
+                .SumAsync(x => x.ReceiptBalanceQuantity ?? 0);
         }
+        public async Task<object> consume_iProductCostingLayer(int productId, int? productCombinationId, int locationId, int companyId, decimal quantity, int costingModeId, SqlConnection con, SqlTransaction trans)
+        {
+            return 200;
+        }
+
     }
 }

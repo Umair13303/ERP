@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.72" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.23" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.23">
       <PrivateAssets>all</PrivateAssets>
@@ -27,6 +28,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SharedUI\SharedUI.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Areas\Reporting\Data\" />
+    <Folder Include="Areas\Reporting\Models\" />
+    <Folder Include="Areas\Reporting\Views\" />
   </ItemGroup>
 
 </Project>

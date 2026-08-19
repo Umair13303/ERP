@@ -59,7 +59,7 @@ function createUpdateDataIntoDB() {
             initLoading();
         },
         success: function (response) {
-            if (response.IsSuccess == true) {
+            if (response.isSuccess == true) {
                 toastr.success(response.message);
                 $("#CSDepartmentForm").removeClass('was-validated');
                 clearInputFields();

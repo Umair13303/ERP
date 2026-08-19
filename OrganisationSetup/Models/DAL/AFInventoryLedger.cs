@@ -41,7 +41,11 @@ public partial class AFInventoryLedger
 
     public DateTime? ExpiryDate { get; set; }
     
-    public decimal? RemainingStock { get; set; }
+    public decimal? ReceiptBalanceQuantity { get; set; }
+    
+    public decimal? RemainingStockQuantity { get; set; }
+    
+    public int? ConsumedInventoryLedgerId { get; set; }
     
     public int? ReconcillationStatus { get; set; }
 

@@ -154,26 +154,26 @@ namespace OrganisationSetup.Areas.Inventory.Services
                 return ServiceResult.failure($"Duplicate product detected (Product ID: {isDuplicate.Key.ProductId}). Please merge or remove duplicate rows.", (int)Code.BadRequest);
             }
 
-            foreach (var line in inventoryAdjustmentPPQD_TVP)
+            foreach (var item in inventoryAdjustmentPPQD_TVP)
             {
-                if ((line.QuantityIn > 0 || line.QuantityOut > 0) && ((decimal?)line.UnitPurchasePrice ?? 0) <= 0)
+                if ((item.QuantityIn > 0 || item.QuantityOut > 0) && ((decimal?)item.UnitPurchasePrice ?? 0) <= 0)
                     return ServiceResult.failure("A valid unit cost is required for any stock movement (in or out).", (int)Code.BadRequest);
 
-                if (line.QuantityIn > 0 && line.QuantityOut > 0)
+                if (item.QuantityIn > 0 && item.QuantityOut > 0)
                     return ServiceResult.failure("A single line cannot have both Quantity In and Quantity Out.", (int)Code.BadRequest);
 
-                if (line.QuantityIn > 0 && !adjustmentType.IsQuantityIn)
+                if (item.QuantityIn > 0 && !adjustmentType.IsQuantityIn)
                     return ServiceResult.failure($"Adjustment type '{adjustmentType.Description}' does not permit stock-in quantities.", (int)Code.BadRequest);
 
-                if (line.QuantityOut > 0 && !adjustmentType.IsQuantityOut)
+                if (item.QuantityOut > 0 && !adjustmentType.IsQuantityOut)
                     return ServiceResult.failure($"Adjustment type '{adjustmentType.Description}' does not permit stock-out quantities.", (int)Code.BadRequest);
 
-                if (line.UnitPurchasePrice > 0 && !adjustmentType.IsPurchasePrice)
+                if (item.UnitPurchasePrice > 0 && !adjustmentType.IsPurchasePrice)
                     return ServiceResult.failure($"Adjustment type '{adjustmentType.Description}' does not permit purchase price entry.", (int)Code.BadRequest);
 
-                if (line.UnitSalePrice > 0 && !adjustmentType.IsSalePrice)
+                if (item.UnitSalePrice > 0 && !adjustmentType.IsSalePrice)
                     return ServiceResult.failure($"Adjustment type '{adjustmentType.Description}' does not permit sale price entry.", (int)Code.BadRequest);
-                if (adjustmentType.IsQuantityIn && line.QuantityIn > 0 && line.UnitPurchasePrice <= 0)
+                if (adjustmentType.IsQuantityIn && item.QuantityIn > 0 && item.UnitPurchasePrice <= 0)
                     return ServiceResult.failure("Purchase price must be greater than zero for stock receipts.", (int)Code.BadRequest);
             }
             var adjustmentProductIds = inventoryAdjustmentPPQD_TVP.Select(x => x.ProductId).Distinct().ToList();

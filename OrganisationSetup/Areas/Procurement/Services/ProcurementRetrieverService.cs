@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NuGet.ProjectModel;
 using OrganisationSetup.Models.DAL;
+using OrganisationSetup.Models.DAL.StoredProcedure;
 using OrganisationSetup.Services;
 using SharedUI.Models.Contexts;
 using SharedUI.Models.Enums;
@@ -14,6 +15,8 @@ namespace OrganisationSetup.Areas.Procurement.Services
     public interface IProcurementRetriever
     {
         Task<List<Supplier_List>> populateSupplierByParam(string? operationType, int? filterConditionId);
+        Task<IEnumerable<DTObject.RptSupplierSummary_List>> populateSupplierSummByParam(string operationType, int?[]? supplierId);
+
     }
 
     public class ProcurementRetrieverService : IProcurementRetriever
@@ -22,14 +25,19 @@ namespace OrganisationSetup.Areas.Procurement.Services
         private readonly ERPOrganisationSetupContext _eRPOSContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ICommon _commonsServices;
+        private readonly IOSDataLayer _repo;
+        private readonly string _connectionString;
 
 
-        public ProcurementRetrieverService(TempUser currentUser,ERPOrganisationSetupContext eRPOSC, IHttpContextAccessor httpContextAccessor, ICommon commonsServices)
+        public ProcurementRetrieverService(IOSDataLayer repo,TempUser currentUser,ERPOrganisationSetupContext eRPOSC, IHttpContextAccessor httpContextAccessor, ICommon commonsServices)
         {
             _currentUser = currentUser;
             _eRPOSContext = eRPOSC;
             _httpContextAccessor = httpContextAccessor;
             _commonsServices = commonsServices;
+            _repo = repo;
+            _connectionString = _eRPOSContext.Database.GetDbConnection().ConnectionString;
+
         }
         public async Task<List<Supplier_List>> populateSupplierByParam(string? operationType, int? filterConditionId)
         {
@@ -58,6 +66,25 @@ namespace OrganisationSetup.Areas.Procurement.Services
                 default:
                     return new List<Supplier_List>();
             }
+        }
+
+        public async Task<IEnumerable<DTObject.RptSupplierSummary_List>> populateSupplierSummByParam(string operationType, int?[]? supplierIds)
+        {
+            var userInfo = _currentUser;
+            if (!userInfo.IsAuthenticated) return new List<DTObject.RptSupplierSummary_List>();
+            int?[]? paymentStatusIds = await _commonsServices.getPaymentStatusByParam();
+            int?[]? invoiceStatusIds = await _commonsServices.getInvoiceStatusByParam();
+            int?[]? documentStatusIds = await _commonsServices.getDocumentStatusByParam(operationType);
+
+            return await _repo.ret_RptSupplierSummary_ByParam(
+                userInfo.BranchId,
+                userInfo.CompanyId,
+                paymentStatusIds,
+                invoiceStatusIds,
+                documentStatusIds,
+                supplierIds,
+                _connectionString
+            );
         }
     }
 }

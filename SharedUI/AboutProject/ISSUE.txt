@@ -1,1 +1,42 @@
-﻿
+﻿WITH ProductInfo AS (
+	SELECT 
+		I.Id AS ProductId,
+		I.Description as ProductName
+		
+	FROM IProduct AS I WITH(NOLOCK)
+	WHERE I.Status =1
+	AND I.DocumentStatus=1
+)
+
+
+SELECT 
+	P.ProductId,
+	IL.Code AS ILCode,
+	IL.TransactionDate,
+	P.ProductName,
+	CASE WHEN IL.RefDocumentType = 27 THEN 'ADJUSTMENT' ELSE 'INVOICE' END AS RecordType,
+	CASE WHEN IL.QuantityIn > 0 THEN 'STOCK - IN' WHEN IL.QuantityOut > 0 THEN 'STOCK - OUT' ELSE '' END AS MovementType,
+	IL.Description,
+	IL.QuantityIn,
+	IL.QuantityOut,
+	IL.UnitPurchasePrice AS UnitPurchasePrice,
+	PPL.DefaultSalePrice,
+	IL.UnitSalePrice AS UnitChargedRate,
+	IL.UnitSalePrice - PPL.DefaultSalePrice AS Difference
+	IL.Batch,
+	IL.ExpiryDate
+
+FROM AFInventoryLedger AS IL WITH(NOLOCK)
+
+INNER JOIN ProductInfo AS P ON IL.ProductId = P.ProductId
+INNER JOIN AFInvoice    I ON IL.RefDocumentId = I.ID AND IL.RefDocumentType=16
+INNER JOIN AFInvoicePPI    IPPI ON I.Id = IPPI.InvoiceId AND IPPI.ProductId = IL.ProductId
+INNER JOIN AFProductPriceLog AS PPL ON IPPI.ProductPriceLogId = PPL.Id AND PPL.ProductId = IPPI.ProductId
+
+ORDER BY ProductId 
+
+
+1. Need to analyse complete invoice form:
+case 1: how to get cost of good sold:
+in case discount is applied
+and incase discount is not applied

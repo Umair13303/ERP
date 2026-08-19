@@ -113,4 +113,35 @@
         return htmlContent !== "" ? `<div class="d-flex flex-wrap">${htmlContent}</div>` : "N/A";
 
     }
+    static HTML_TBL_SAVE_BTN(text, guID, cssClass, functionCall) {
+        return `<button type="button" class="btn btn-icon ${cssClass} shadow-sm" 
+                    onclick="${functionCall}" 
+                    id="ButtonSubmitDown${guID}" 
+                    title="${text}" 
+                    style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; border: 1px solid #dee2e6; background-color: #ffffff; transition: all 0.2s ease-in-out;"
+                    onmouseover="this.style.backgroundColor='#f8f9fa'; this.style.borderColor='#adb5bd';"
+                    onmouseout="this.style.backgroundColor='#ffffff'; this.style.borderColor='#dee2e6';">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-success" style="color: #198754;">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                </button>`;
+    }
+
+    static HTML_TBL_PRINT_BTN(text, guID, cssClass, functionCall) {
+        return `<button type="button" class="btn btn-icon ${cssClass} shadow-sm" 
+                    onclick="${functionCall}" 
+                    id="PrintDocument${guID}" 
+                    title="${text}" 
+                    style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; border: 1px solid #dee2e6; background-color: #ffffff; transition: all 0.2s ease-in-out;"
+                    onmouseover="this.style.backgroundColor='#f8f9fa'; this.style.borderColor='#adb5bd';"
+                    onmouseout="this.style.backgroundColor='#ffffff'; this.style.borderColor='#dee2e6';">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary" style="color: #0d6efd;">
+                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                        <rect x="6" y="14" width="12" height="8"></rect>
+                    </svg>
+                </button>`;
+    }
 }

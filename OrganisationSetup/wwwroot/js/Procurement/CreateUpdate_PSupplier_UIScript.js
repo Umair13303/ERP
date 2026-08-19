@@ -22,7 +22,7 @@ function domsupplierSummaryTable() {
         "ordering": true,
         "searching": true,
         "ajax": {
-            "url": window.basePath + "SaleOperation/PSupplierManagement/populateSupplierSummListByParam?operationType=" + operationType,
+            "url": window.basePath + "Procurement/PSupplierManagement/populateSupplierSummListByParam?operationType=" + operationType,
             "type": "GET",
             "dataSrc": "data",
             "error": function (xhr, error, thrown) {

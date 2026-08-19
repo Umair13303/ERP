@@ -5,6 +5,7 @@ namespace SharedUI.Models.TVP
     public class AFInventoryLedger_TVP
     {
         public Guid? GuID { get; set; }
+        public string? Code { get; set; }
 
         public int? LocationId { get; set; }
 

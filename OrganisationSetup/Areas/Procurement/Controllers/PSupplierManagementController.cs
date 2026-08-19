@@ -16,9 +16,11 @@ namespace OrganisationSetup.Areas.Procurement.Controllers
     {
 
         private readonly IProcurementUpsert _IuService;
-        public PSupplierManagementController(IProcurementUpsert IuService, ICommon commonsServices)
+        private readonly IProcurementRetriever _IprService;
+        public PSupplierManagementController(IProcurementUpsert IuService, IProcurementRetriever IprService, ICommon commonsServices)
         {
             _IuService = IuService;
+            _IprService = IprService;
         }
         #region PORTION CONTAIN CODE TO: RENDER VIEW
         public IActionResult CreateUpdate_PSupplier_UI(UISetting ui)
@@ -29,6 +31,21 @@ namespace OrganisationSetup.Areas.Procurement.Controllers
         }
         #endregion
 
+        #region PORTION CONTAIN CODE TO: RETURN RECORD LIST
+        [HttpGet]
+        public async Task<IActionResult> populateSupplierSummListByParam(string operationType, int?[]? supplierIds = null)
+        {
+            try
+            {
+                var result = await _IprService.populateSupplierSummByParam(operationType, supplierIds);
+                return Json(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { data = new List<object>(), message = ex.Message });
+            }
+        }
+        #endregion
 
         #region PORTION CONTAIN CODE TO: ADD/EDIT/DELETE DOCUMENT
         [HttpPost]

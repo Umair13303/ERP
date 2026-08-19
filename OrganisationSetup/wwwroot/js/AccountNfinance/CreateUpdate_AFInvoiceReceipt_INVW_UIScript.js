@@ -59,30 +59,8 @@ function domInvoiceTable() {
                 "title": "Action(s)",
                 "data": null,
                 "render": function (data, type, row) {
-                    return `
-        <div style="display: flex; gap: 12px; justify-content: center;">
-            <!-- Payment Icon -->
-            <button type="button" class="btn-icon-only btn-pay" 
-                    onclick="createUpdateDataIntoDB(this)" 
-                    id="ButtomSubmitPayment${data.guID}" title="Record Payment">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                    <line x1="1" y1="10" x2="23" y2="10"></line>
-                </svg>
-            </button>
-
-            <!-- Print Icon -->
-            <button type="button" class="btn-icon-only btn-print" 
-                    onclick="printThermalInvoice(this)" 
-                    id="PrintInvoiceThermalView${data.guID}" title="Print Invoice">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                    <path d="M6 14h12v8H6z"></path>
-                </svg>
-            </button>
-        </div>
-    `;
+                    return HTML_DATATABLE_UTIL.HTML_TBL_SAVE_BTN("Record Payment", data.guID, "btn-icon-only fas fa-save", "createUpdateDataIntoDB(this)")
+                        + HTML_DATATABLE_UTIL.HTML_TBL_PRINT_BTN("Print Invoice", data.guID, "btn-icon-only fas fa-print", "printThermalInvoice(this)");
                 }
             },
             { "data": "guID", "title": "GuID", visible:false },
@@ -208,7 +186,6 @@ function initialize() {
     changeEventHandler();
 }
 /* ------ Validation for user input ------ */
-/* ------ Validation for user input ------ */
 function validater(btnElement) {
     var form = document.getElementById("AFInvoiceReceipt");
     if (!form.checkValidity()) {
@@ -261,6 +238,7 @@ function validater(btnElement) {
 
 /* ------ Add/Edit/Delete Operation ------ */
 function createUpdateDataIntoDB(btnElement) {
+    debugger
     if (!validater(btnElement)) return;
 
     var tr = $(btnElement).closest('tr');

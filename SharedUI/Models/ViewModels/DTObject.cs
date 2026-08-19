@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static SharedUI.Models.ViewModels.DTObject;
 
 namespace SharedUI.Models.ViewModels
 {
@@ -149,23 +150,16 @@ namespace SharedUI.Models.ViewModels
             public int? Id { get; set; }
 
         }
-        public class ProductVariant_List
+        public class VMSRP_IProduct_CostingEngine
         {
-            public int? ProductCombinationId { get; set; }
-            public string? Attribute { get; set; }
-            public decimal AvailableQty { get; set; }
-        }
-
-        public class ProductSaleInfo_DTO
-        {
-            public decimal DefaultSalePrice { get; set; }
-            public decimal MinimumSalePrice { get; set; }
+            public int? ConsumedInventoryLedgerId { get; set; }
+            public decimal QuantityOut { get; set; }
+            public decimal UnitPurchasePrice { get; set; }
             public string? Batch { get; set; }
             public DateTime? ExpiryDate { get; set; }
-            public decimal AvailableQty { get; set; }
-            public bool IsExpiryApplicable { get; set; }
-            public int? CostingModeId { get; set; }
-            public bool IsBatchResolutionFailed { get; set; } // true => stock exists but all batches expired/rejected
+            public bool IsStockDeficit { get; set; }
         }
+
+
     }
 }
