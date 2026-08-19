@@ -161,6 +161,7 @@ namespace OrganisationSetup.Areas.SaleOperation.Services
                                 InvoiceId = 0,
                                 ProductPriceLogId=(int)Default.productPriceLogId,
                                 ProductId = (int)Default.productId,
+                                ProductATIId =  (int)Default.ProductATIId,
                                 ProductCombinationId = (int)Default.productCombinationId,
                                 Quantity = 0,
                                 ActualAmount = (decimal)postedData.OpeningBalance!,

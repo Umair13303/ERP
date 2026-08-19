@@ -37,9 +37,9 @@ LIST OF ALL FORMS TO BE MADE IN FLOW WISE ORDER
 	>. ADD SUPPLIER
 
 1. REPORTS & VIEW
-	1. CUSTOMER INVOICE LIST
-	1. SUPPLIER BILL LIST
-	1. ADJUSTMENT LIST
+	1. CUSTOMER INVOICE LIST  -
+	1. SUPPLIER BILL LIST - 
+	1. ADJUSTMENT LIST -
 	1. INVOICE PAYMENT RECEIPT
 	1. BILL PAYMENT RECEIPT
 	I. INVENTORY/STOCK REPORT
@@ -66,16 +66,15 @@ NO PERFORMANCE COMPROMISE AREA:
 >. DIRECT RECEIPT
 >. BILL PAYMENT
 >. DIRECT  PAYMENT
+
+
 >. STOCK TRANSFER
->. BILL RETURN
->. INVOICE RETURN
+>. BILL RETURN & BILL PAYMENT REFUND
+>. INVOICE RETURN & INVOICE PAYMENT REFUND
+>. INITIATE CLOSING
 
 
 ----------------------------------------------------------------------------------------------
-> Item Inter-Branch Transfer
-> Sale Closing
-> Sales Invoice Return & Refund Workflow
-> Purchase Bill Return & Refund Workflow
 > Customer Ledger Report  
 > Supplier Ledger Report  
 > Stock Balance & Valuation Report  

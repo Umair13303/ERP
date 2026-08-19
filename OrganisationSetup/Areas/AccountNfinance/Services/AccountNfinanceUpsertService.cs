@@ -302,6 +302,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                         {
                             var costLayerInfo = await _repo.srp_IProductConsumeLayer(item.ProductId, item.ProductCombinationId, item.vCostingModeId.Value, item.Quantity, postedData.LocationId, userInfo.CompanyId, con, transaction);
                             var stockDeficit = costLayerInfo.FirstOrDefault(x => x.IsStockDeficit);
+                            decimal invoicePPIDerivedUnitSalePrice = item.Quantity > 0    ? Math.Round(item.ChargedAmount / item.Quantity, 0, MidpointRounding.AwayFromZero): 0;
                             if (stockDeficit != null)
                             {
                                 errorMessage.Add($"Product {item.ProductId}: short {stockDeficit.QuantityOut} unit(s).");
@@ -322,7 +323,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                     QuantityIn = 0,
                                     QuantityOut = layer.QuantityOut,
                                     UnitPurchasePrice = layer.UnitPurchasePrice,
-                                    UnitSalePrice = item.UnitSalePrice,
+                                    UnitSalePrice = invoicePPIDerivedUnitSalePrice,
                                     Debit = 0,
                                     Credit = layer.QuantityOut * layer.UnitPurchasePrice,
                                     Batch = string.IsNullOrWhiteSpace(layer.Batch) ? null : layer.Batch.Trim(),
@@ -710,6 +711,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                         foreach (var item in postedData.PostedDataAFBillPPI)
                         {
                             decimal existingStock = await _inventoryRetriever.get_iProductCurrentStockByParam(item.ProductId, item.ProductCombinationId, postedData.LocationId);
+                            decimal billPPIDerivedUnitPurchasePrice = item.Quantity > 0 ? Math.Round(item.ChargedAmount / item.Quantity, 0, MidpointRounding.AwayFromZero) : 0;
 
                             InventoryLedger.Add(new AFInventoryLedger_TVP
                             {
@@ -723,7 +725,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                 Description = postedData.Description?.Trim(),
                                 QuantityIn = item.Quantity,
                                 QuantityOut = 0,
-                                UnitPurchasePrice = item.UnitPurchasePrice,
+                                UnitPurchasePrice = billPPIDerivedUnitPurchasePrice,
                                 UnitSalePrice = 0,
                                 Debit = item.ChargedAmount,
                                 Credit = 0,
@@ -967,7 +969,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
 
                     foreach (var item in afBill_items.Where(x => !attributedProductIds.Contains(x.ProductId ?? 0)))
                     {
-                        item.ProductCombinationId = (int)Default.productCombinationId;
+                        item.ProductCombinationId = null;
                     }
                     var attributedItems = afBill_items.Where(x => attributedProductIds.Contains(x.ProductId ?? 0)).ToList();
                     if(attributedItems.Count == 0)

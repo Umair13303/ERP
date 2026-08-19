@@ -60,6 +60,7 @@ namespace SharedUI.Models.Enums
     public enum Default
     {
         productId = 0,
+        ProductATIId = 0,
         productCombinationId = 0,
         tierTypeId = 0,
         productPriceLogId = 0,

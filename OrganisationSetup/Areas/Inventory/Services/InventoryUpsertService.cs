@@ -625,6 +625,8 @@ namespace OrganisationSetup.Areas.Inventory.Services
 
                     var productATIMapping = await _commonServices.get_ActiveATIByParam(productIds);
 
+                    var configuration = await _commonServices.get_configurationRuleByClientSetting();
+
                     foreach (var item in existingPriceLogs)
                     {
                         bool shouldExpire = adjustmentLines.Any(x =>
@@ -650,7 +652,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                             ProductATIId = item.ProductId.HasValue && productATIMapping.TryGetValue(item.ProductId.Value, out var atiId) ? atiId : null,
                             ProductCombinationId = item.ProductCombinationId,
                             TierTypeId = (int)Default.tierTypeId,
-                            DefaultSalePrice = item.UnitSalePrice,
+                            DefaultSalePrice = CSharedUtility.calculateDefaultPriceByMargin(item.UnitSalePrice, configuration.DefaultSaleMargin),
                             MinimumSalePrice = item.UnitSalePrice,
                             CreatedOn = transactionDate,
                             CreatedBy = userInfo.UserId,
@@ -805,7 +807,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                     var attributedProductIds = await _eRPOSContext.IProduct.Where(x => productIds.Contains(x.Id) && !string.IsNullOrWhiteSpace(x.AttributeIds)).Select(x => x.Id).ToListAsync();
                     foreach (var item in invADJ_items.Where(x => !attributedProductIds.Contains(x.ProductId ?? 0)))
                     {
-                        item.ProductCombinationId = (int)Default.productCombinationId;
+                        item.ProductCombinationId = null;
                     }
                     var attributedItems = invADJ_items.Where(x => attributedProductIds.Contains(x.ProductId ?? 0)).ToList();
                     if (attributedItems.Count == 0)

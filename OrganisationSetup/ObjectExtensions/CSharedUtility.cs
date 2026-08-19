@@ -38,5 +38,13 @@ namespace OrganisationSetup.Areas.Inventory.Services
                 return attributeJson;
             }
         }
+        public static decimal calculateDefaultPriceByMargin(decimal minimumPrice, decimal profitMargin)
+        {
+            decimal defaultPrice = minimumPrice * profitMargin;
+            defaultPrice = defaultPrice / 100;
+            defaultPrice = minimumPrice + defaultPrice;
+
+            return defaultPrice;
+        }
     }
 }

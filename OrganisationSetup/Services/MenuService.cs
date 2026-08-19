@@ -41,9 +41,11 @@ namespace OrganisationSetup.Services
                         {
                             DisplayName = r.DisplayName,
                             Url = r.FormName,
-                            OperationType =r.Purpose
-                        }).ToList()
-                    }).ToList()
+                            OperationType = r.Purpose,
+                            Priority = r.Priority,
+
+                        }).OrderBy(x => x.Priority).ToList()
+                    }).OrderBy(sm => sm.SubMenu).ToList()
                 }).ToList();
         }
     }

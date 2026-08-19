@@ -39,6 +39,8 @@ namespace OrganisationSetup.Services
         Task<int> get_productCombination(int? productId, string attributeKey);
         Task<object> get_productPricingbyParam(int? productId, int? productCombinationId, int? locationId, int? tierTypeId);
         Task<Dictionary<int, int>> get_ActiveATIByParam(IEnumerable<int> productIds);
+        Task<confApplicationRule> get_configurationRuleByClientSetting();
+
         //Task iProductCCE_SPR(int refDocumentType, List<IInventoryAdjustmentPPQD_TVP> lines, bool allowCreate);
     }
     public class CommonServices : ICommon
@@ -319,6 +321,16 @@ namespace OrganisationSetup.Services
                     g => g.OrderByDescending(x => x.CreatedOn).First().Id
                 );
         }
+
+        public async Task<confApplicationRule> get_configurationRuleByClientSetting()
+        {
+            int clientKEY = _conf.GetValue<int>("ClientKEY");
+
+            var data = await _context.confApplicationRule.FirstOrDefaultAsync(x => x.ClientKEY == clientKEY);
+
+            return data;
+        }
+        
         private async Task iProductCCE_SPR(int refDocumentType, List<IInventoryAdjustmentPPQD_TVP> invADJ_items)
         {
             List<int?> productIds;

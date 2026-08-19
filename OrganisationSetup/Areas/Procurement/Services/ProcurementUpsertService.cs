@@ -137,6 +137,7 @@ namespace OrganisationSetup.Areas.Procurement.Services
                                 GuID = Guid.NewGuid(),
                                 BillId = 0,
                                 ProductId =  (int)Default.productId,
+                                ProductATIId =  (int)Default.ProductATIId,
                                 ProductCombinationId = (int)Default.productCombinationId,
                                 Quantity = 0,
                                 UnitPurchasePrice = 0,
