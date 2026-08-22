@@ -1,4 +1,9 @@
-﻿using SharedUI.Models.Custom;
+﻿using OrganisationSetup.Models.DAL;
+using OrganisationSetup.Models.DAL.StoredProcedure;
+using SharedUI.Models.Custom;
+using SharedUI.Models.Enums;
+using SharedUI.Models.SQLParameters;
+using SharedUI.Models.TVP;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,4 +52,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
             return defaultPrice;
         }
     }
+
+
+
 }

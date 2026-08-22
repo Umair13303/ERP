@@ -18,6 +18,7 @@ namespace SharedUI.Models.TVP
         public int? RefDocumentType { get; set; }
 
         public int? RefDocumentId { get; set; }
+        public Guid? RefDocumentDetailGuID { get; set; }
 
         public string? Description { get; set; }
 

@@ -529,6 +529,14 @@ namespace OrganisationSetup.Areas.Inventory.Services
                 await iProductCCE_SPR((int)DocumentType.inventoryAdjustment, postedData.PostedDataIAdjustmentPPQD);
 
                 #region PORTION FOR :: UPSERT INTO dbo.IAdjustment
+                foreach (var item in postedData.PostedDataIAdjustmentPPQD)
+                {
+                    item.GuID = Guid.NewGuid();
+                    item.DocumentType = (int)DocumentType.inventoryAdjustmentProductInformation;
+                    item.DocumentStatus = (int)DocumentStatus.active;
+                    item.Status = true;
+                }
+
                 var IAdjustment = await _repo.UpsertInto_IAdjustment(
                     postedData.OperationType,
                     adjustmentGuID,
@@ -558,6 +566,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                 {
                     bool isReceipt = ppqd.QuantityIn > 0;
                     bool isConsumption = ppqd.QuantityOut > 0;
+                    Guid? adjustmentPPQDGuID = ppqd.GuID;
                     if (isReceipt)
                     {
                         AFInventoryLedgerInfo.Add(new AFInventoryLedger_TVP
@@ -569,6 +578,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                             ProductCombinationId = ppqd.ProductCombinationId,
                             RefDocumentType = (int?)DocumentType.inventoryAdjustment,
                             RefDocumentId = (int?)IAdjustment.insertedId,
+                            RefDocumentDetailGuID = adjustmentPPQDGuID,
                             Description = $"Inventory Adjustment Recorded ({adjustmentType.Description})",
                             QuantityIn = ppqd.QuantityIn,
                             QuantityOut = 0,
@@ -590,6 +600,10 @@ namespace OrganisationSetup.Areas.Inventory.Services
                             BranchId = userInfo.BranchId,
                             CompanyId = userInfo.CompanyId
                         });
+                    }
+                    if (isConsumption)
+                    {
+                        // TODO: stock-out adjustment pending form controls
                     }
 
                 }
@@ -652,7 +666,7 @@ namespace OrganisationSetup.Areas.Inventory.Services
                             ProductATIId = item.ProductId.HasValue && productATIMapping.TryGetValue(item.ProductId.Value, out var atiId) ? atiId : null,
                             ProductCombinationId = item.ProductCombinationId,
                             TierTypeId = (int)Default.tierTypeId,
-                            DefaultSalePrice = CSharedUtility.calculateDefaultPriceByMargin(item.UnitSalePrice, configuration.DefaultSaleMargin),
+                            DefaultSalePrice = CSharedUtility.calculateDefaultPriceByMargin(item.UnitPurchasePrice, configuration.DefaultSaleMargin),
                             MinimumSalePrice = item.UnitSalePrice,
                             CreatedOn = transactionDate,
                             CreatedBy = userInfo.UserId,

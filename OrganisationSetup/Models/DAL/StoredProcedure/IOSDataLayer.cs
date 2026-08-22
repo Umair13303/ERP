@@ -965,6 +965,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
             table.Columns.Add("ProductCombinationId", typeof(int));
             table.Columns.Add("RefDocumentType", typeof(int));
             table.Columns.Add("RefDocumentId", typeof(int));
+            table.Columns.Add("RefDocumentDetailGuID", typeof(Guid));
             table.Columns.Add("Description", typeof(string));
             table.Columns.Add("QuantityIn", typeof(decimal));
             table.Columns.Add("QuantityOut", typeof(decimal));
@@ -1001,6 +1002,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                         item.ProductCombinationId ?? (object)DBNull.Value,
                         item.RefDocumentType ?? (object)DBNull.Value,
                         item.RefDocumentId ?? (object)DBNull.Value,
+                        item.RefDocumentDetailGuID ?? (object)DBNull.Value,
                         item.Description ?? (object)DBNull.Value,
                         item.QuantityIn,
                         item.QuantityOut,

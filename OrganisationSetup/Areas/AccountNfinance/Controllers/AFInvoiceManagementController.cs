@@ -45,6 +45,13 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
             ViewBag.LocationId = _currentUser.BranchId;
             return View();
         }
+        public IActionResult CreateUpdate_AFInvoiceReturn_UI(UISetting ui)
+        {
+            ViewBag.OperationType = ui.OperationType;
+            ViewBag.DisplayName = ui.DisplayName;
+            ViewBag.LocationId = _currentUser.BranchId;
+            return View();
+        }
 
         #endregion
 

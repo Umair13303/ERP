@@ -149,13 +149,14 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                 using var transaction = con.BeginTransaction();
                 try
                 {
+
+                    #region PORTION FOR :: FILL & UPSERT Invoice
                     decimal invoiceChargedAmount = postedData.PostedDataAFInvoicePPI.Sum(x => x.ChargedAmount);
                     decimal receiptAmount = postedData.ReceiptAmount ?? 0m;
                     decimal dueAmount = Math.Max(0, invoiceChargedAmount - receiptAmount);
                     int computedInvoiceStatus = dueAmount <= 0 ? (int)InvoiceStatus.paid : dueAmount < invoiceChargedAmount ? (int)InvoiceStatus.partialPaid : (int)InvoiceStatus.unPaid;
                     string invoiceStatus = Enum.GetName(typeof(InvoiceStatus), computedInvoiceStatus) ?? "UNKNOWN";
                     postedData.Description = "POS Direct Invoice Generated, Amounting " + invoiceChargedAmount + " @ " + DateTime.UtcNow;
-
                     foreach (var i in postedData.PostedDataAFInvoicePPI)
                     {
                         i.GuID = Guid.NewGuid();
@@ -186,6 +187,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                   postedData.PostedDataAFInvoicePPI,
                                                   con, transaction
                                                   );
+                    #endregion
                     #endregion
 
                     #region PORTION FOR :: FILL & UPSERT CustomerLedger
@@ -292,10 +294,9 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                     }
                     #endregion
 
-                    #region PORTION FOR :: PREPARE InventoryLedger TVP (Stock OUT)
+                    #region PORTION FOR :: FILL & UPSERT InventoryLedger TVP (Stock OUT)
                     var InventoryLedger = new List<AFInventoryLedger_TVP>();
                     var errorMessage = new List<string>();
-
                     if (postedData.PostedDataAFInvoicePPI != null && postedData.PostedDataAFInvoicePPI.Any())
                     {
                         foreach (var item in postedData.PostedDataAFInvoicePPI)
@@ -308,6 +309,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                 errorMessage.Add($"Product {item.ProductId}: short {stockDeficit.QuantityOut} unit(s).");
                                 continue;
                             }
+                            Guid? vInvoicePPIGuID = item.GuID;
                             foreach (var layer in costLayerInfo)
                             {
                                 InventoryLedger.Add(new AFInventoryLedger_TVP
@@ -319,6 +321,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                     ProductCombinationId = item.ProductCombinationId,
                                     RefDocumentType = (int?)DocumentType.invoice,
                                     RefDocumentId = AFInvoice.insertedId,
+                                    RefDocumentDetailGuID = vInvoicePPIGuID,
                                     Description = postedData.Description?.Trim(),
                                     QuantityIn = 0,
                                     QuantityOut = layer.QuantityOut,
@@ -349,7 +352,6 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                         await transaction.RollbackAsync();
                         return ServiceResult.failure(string.Join(" ", errorMessage), (int)Code.BadRequest);
                     }
-                    #endregion
 
                     #region PORTION FOR :: UPSERT INTO dbo.AFInventoryLedger (Stock OUT)
                     var AFInventoryLedger = await _repo.UpsertInto_AFInventoryLedger(
@@ -358,6 +360,8 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                     InventoryLedger,
                                                     con, transaction);
                     #endregion
+                    #endregion
+
                     if (isWhatsAppMessagingAllowed == true)
                     {
                         #region PLACE HOLDER :: LATER SAVE DATA IN TABLE -- WILL NEED TO MAKE ANOTHER OPEN API ON BASIS OF KEY GUID TO FETC PENDING INVOICE 
@@ -604,38 +608,19 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                 try
                 {
                     #region PORTION FOR :: FILL & UPSERT Bill
-                    var billPPI = new List<AFBillPPI_TVP>();
                     await iProductCCE_SPR((int)DocumentType.inventoryAdjustment, postedData.PostedDataAFBillPPI);
                     var productIds = postedData.PostedDataAFBillPPI.Where(x => x.ProductId.HasValue).Select(x => x.ProductId!.Value).Distinct().ToList();
                     var productATIMapping = await _commonServices.get_ActiveATIByParam(productIds);
+                    decimal billChargedAmount = postedData.PostedDataAFBillPPI.Sum(x => x.ChargedAmount);
 
 
                     foreach (var item in postedData.PostedDataAFBillPPI)
                     {
-
-                        billPPI.Add(new AFBillPPI_TVP
-                        {
-                            Id = 0,
-                            GuID = Guid.NewGuid(),
-                            BillId = 0,
-                            ProductId = item.ProductId,
-                            ProductATIId = item.ProductId.HasValue && productATIMapping.TryGetValue(item.ProductId.Value, out var atiId) ? atiId : null,
-                            ProductCombinationId = item.ProductCombinationId,
-                            Quantity = item.Quantity,
-                            UnitPurchasePrice = (decimal)item.UnitPurchasePrice,
-                            ActualAmount = (decimal)item.ActualAmount,
-                            DiscountAmount = (decimal)item.DiscountAmount,
-                            ChargedAmount = (decimal)item.ChargedAmount!,
-                            Batch = item.Batch,
-                            ExpiryDate = item.ExpiryDate!,
-                            CreatedOn = DateTime.Now,
-                            CreatedBy = userInfo.UserId,
-                            UpdatedOn = DateTime.Now,
-                            UpdatedBy = userInfo.UserId,
-                            DocumentType = (int?)DocumentType.billProduct,
-                            DocumentStatus = (int?)DocumentStatus.active,
-                            Status = true
-                        });
+                        item.GuID = Guid.NewGuid();
+                        item.ProductATIId = item.ProductId.HasValue && productATIMapping.TryGetValue(item.ProductId.Value, out var atiId) ? atiId : null;
+                        item.DocumentType = (int)DocumentType.billProduct;
+                        item.DocumentStatus = (int)DocumentStatus.active;
+                        item.Status = true;
                     }
 
                     #region PORTION FOR :: UPSERT INTO dbo.AFBill
@@ -646,7 +631,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                     postedData.TransactionDate,
                                                     postedData.SupplierId,
                                                     postedData.Description,
-                                                    billPPI.Sum(x => x.ChargedAmount),
+                                                    billChargedAmount,
                                                     (int?)BillType.PurchaseBILLDirect,
                                                     (int?)Default.billStatus,
                                                     DateTime.Now,
@@ -657,7 +642,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                     (int?)DocumentStatus.active,
                                                     userInfo.BranchId,
                                                     userInfo.CompanyId,
-                                                    billPPI,
+                                                    postedData.PostedDataAFBillPPI,
                                                     con, transaction);
                     #endregion
                     #endregion
@@ -710,9 +695,8 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                     {
                         foreach (var item in postedData.PostedDataAFBillPPI)
                         {
-                            decimal existingStock = await _inventoryRetriever.get_iProductCurrentStockByParam(item.ProductId, item.ProductCombinationId, postedData.LocationId);
                             decimal billPPIDerivedUnitPurchasePrice = item.Quantity > 0 ? Math.Round(item.ChargedAmount / item.Quantity, 0, MidpointRounding.AwayFromZero) : 0;
-
+                            Guid? vBillPPIGuID = item.GuID;
                             InventoryLedger.Add(new AFInventoryLedger_TVP
                             {
                                 GuID = Guid.NewGuid(),
@@ -722,6 +706,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                 ProductCombinationId = item.ProductCombinationId,
                                 RefDocumentType = (int?)DocumentType.bill,
                                 RefDocumentId = AFBill.insertedId,
+                                RefDocumentDetailGuID = vBillPPIGuID,
                                 Description = postedData.Description?.Trim(),
                                 QuantityIn = item.Quantity,
                                 QuantityOut = 0,

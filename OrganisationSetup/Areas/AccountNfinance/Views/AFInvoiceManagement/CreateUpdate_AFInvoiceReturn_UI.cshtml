@@ -1,0 +1,77 @@
+﻿@using SharedUI.Models.Enums
+@{
+    Layout = "LayoutOne";
+}
+<div class="container-fluid py-2">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom mb-4 pb-3 gap-3">
+        <div>
+            <h5 class="fw-bold mb-0">@ViewBag.DisplayName</h5>
+            <p class="text-muted small mb-0">Fill in the form to create / update record.</p>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <div class="input-group input-group-sm" style="width: 260px;">
+                @Html.TextBox("InvoiceCode", null, new { @class = "form-control form-control-sm", placeholder = "Search Invoice By Code", @id = "TextBoxInvoiceCode" })
+                <button class="btn btn-outline-secondary" type="button" id="ButtonSearch">
+                    <i class="fa-solid fa-search"></i>
+                </button>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#mdlDailySaleHistory">
+                <i class="fa-solid fa-plus me-1"></i> DAILY SALE HISTORY
+            </button>
+        </div>
+    </div>
+
+    <form id="AFInvoiceReturnForm">
+        @Html.Hidden("OperationType", (string)ViewBag.OperationType)
+        @Html.Hidden("GuID")
+        @if (ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
+        {
+            <div class="card mb-3">
+                <div class="card-header">
+                    <div class="row mb-0">
+                        <div class="col-sm-12 col-md-6">
+                            <div class="form-group">
+                                @Html.Label("DropDownListDocument", "Document (Invoice Return)", new { @class = "col-form-label" })
+                                @Html.DropDownList("DocumentGuID", Enumerable.Empty<SelectListItem>(), "Select an option", new { @class = "form-select form-select-sm select2", @id = "DropDownListDocument" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (ViewBag.OperationType == nameof(OperationType.INSERT_DATA_INTO_DB) || ViewBag.OperationType == nameof(OperationType.UPDATE_DATA_INTO_DB))
+        {
+            <div class="card mb-0 shadow-sm">
+                <div class="card-body">
+                    <div class="col-12 mb-0">
+                        <div class="bg-light rounded-2 border-start border-primary border-4 p-2">
+                            <span class="fw-bold text-primary small"><i class="fa-solid fa-file-lines me-2"></i> INVOICE INFORMATION</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </form>
+
+    <!-- Modal Component -->
+    <div class="modal fade" id="mdlDailySaleHistory" tabindex="-1" aria-labelledby="mdlDailySaleHistoryLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fs-6" id="mdlDailySaleHistoryLabel">DAILY SALE</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small">Add your modal content, fields, or table here...</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary btn-sm">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

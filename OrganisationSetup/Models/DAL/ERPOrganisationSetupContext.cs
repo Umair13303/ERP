@@ -43,7 +43,6 @@ public partial class ERPOrganisationSetupContext : DbContext
 
     public virtual DbSet<AFProductPriceLog> AFProductPriceLog { get; set; }
 
-    public virtual DbSet<AFStockLedger> AFStockLedger { get; set; }
 
     public virtual DbSet<AFSupplierLedger> AFSupplierLedger { get; set; }
 
@@ -306,30 +305,6 @@ public partial class ERPOrganisationSetupContext : DbContext
             entity.Property(e => e.DefaultSalePrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.MinimumSalePrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
-        });
-
-        modelBuilder.Entity<AFStockLedger>(entity =>
-        {
-            entity.HasIndex(e => new { e.ProductId, e.BatchNo, e.ExpiryDate }, "IX_AFStockLedger_Batch_Expiry");
-
-            entity.HasIndex(e => new { e.LocationId, e.ProductId, e.ProductCombinationId }, "IX_AFStockLedger_Location_Product_Combination");
-
-            entity.HasIndex(e => new { e.RefDocumentType, e.RefDocumentId }, "IX_AFStockLedger_RefDocument");
-
-            entity.Property(e => e.BatchNo)
-                .HasMaxLength(100)
-                .IsUnicode(false);
-            entity.Property(e => e.CreatedOn)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.DocumentCode).HasMaxLength(100);
-            entity.Property(e => e.QtyIn).HasColumnType("decimal(18, 4)");
-            entity.Property(e => e.QtyOut).HasColumnType("decimal(18, 4)");
-            entity.Property(e => e.TransactionDate)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.UnitCost).HasColumnType("decimal(18, 4)");
-            entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 4)");
         });
 
         modelBuilder.Entity<AFSupplierLedger>(entity =>

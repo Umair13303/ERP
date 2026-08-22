@@ -1,42 +1,79 @@
-﻿WITH ProductInfo AS (
-	SELECT 
-		I.Id AS ProductId,
-		I.Description as ProductName
-		
-	FROM IProduct AS I WITH(NOLOCK)
-	WHERE I.Status =1
-	AND I.DocumentStatus=1
-)
+﻿
+    SELECT
+        IL.[TransactionDate],
+        IL.[Code]                                                          AS [LedgerBatchCode],
+
+        -- Movement type — quantity direction is the source of truth, never inferred from RefDocumentType alone
+        CASE WHEN IL.[QuantityIn]  > 0 THEN 'Stock In'
+             WHEN IL.[QuantityOut] > 0 THEN 'Stock Out'
+             ELSE 'N/A' END                                                AS [MovementType],
+
+        -- Originating document — resolved by type, never guessed
+        CASE IL.[RefDocumentType]
+            WHEN 22 THEN 'Bill'
+            WHEN 16 THEN 'Invoice'
+            WHEN 27 THEN 'Adjustment'
+            ELSE 'Other' END                                              AS [DocumentType],
+        COALESCE(B.[Code], I.[Code], A.[Code])                             AS [RefDocumentCode],
+        IL.[RefDocumentId],
+
+        -- Product / variant
+        P.[Description]                                                   AS [Product],
+        CASE WHEN IL.[ProductCombinationId] is null THEN 'N/A'
+             ELSE CCE.[Description] END                                    AS [Variant],
+
+        B_ACB.[Description]                                                AS [Location],
+        IL.[Batch],
+        IL.[ExpiryDate],
+
+        -- Movement quantities + running balance (per product/variant/location, chronological)
+        IL.[QuantityIn],
+        IL.[QuantityOut],
+        SUM(IL.[QuantityIn] - IL.[QuantityOut]) OVER (
+            PARTITION BY IL.[ProductId], IL.[ProductCombinationId], IL.[LocationId]
+            ORDER BY IL.[TransactionDate], IL.[Id]
+            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+        )                                                                  AS [RunningBalance],
+
+        -- Cost side — from the costing engine, exact, this is what feeds valuation/COGS
+        IL.[UnitPurchasePrice]                                             AS [UnitCost],
+        IL.[Debit],
+        IL.[Credit],
+
+        -- Reference sale rate — informational only, never used for revenue reconciliation (see AFInvoicePPI.ChargedAmount for that)
+        IL.[UnitSalePrice],
+
+        -- Open-layer traceability
+        IL.[ReceiptBalanceQuantity],           -- meaningful on IN rows: remaining un-consumed balance on that layer
+        IL.[ConsumedInventoryLedgerId],         -- meaningful on OUT rows: which IN layer this specific split consumed
+
+        IL.[Description]                                                   AS [Remarks],
+        U.[Description]                                                    AS [RecordedBy],
+        IL.[GuID]
+
+    FROM        [dbo].[AFInventoryLedger] AS IL WITH (NOLOCK)
+    INNER JOIN  [dbo].[IProduct]          AS P    WITH (NOLOCK) ON P.Id = IL.ProductId
+    LEFT JOIN   [dbo].[IProductCCE]       AS CCE  WITH (NOLOCK) ON CCE.Id = IL.ProductCombinationId AND IL.ProductCombinationId <> -2
+    LEFT JOIN   [dbo].[ACBranch]          AS B_ACB WITH (NOLOCK) ON B_ACB.Id = IL.LocationId
+    LEFT JOIN   [dbo].[ACUser]            AS U    WITH (NOLOCK) ON U.Id = IL.CreatedBy
+    LEFT JOIN   [dbo].[AFBill]            AS B    WITH (NOLOCK) ON IL.RefDocumentType = 22 AND B.Id = IL.RefDocumentId
+    LEFT JOIN   [dbo].[AFInvoice]         AS I    WITH (NOLOCK) ON IL.RefDocumentType = 16 AND I.Id = IL.RefDocumentId
+    LEFT JOIN   [dbo].[IAdjustment]       AS A    WITH (NOLOCK) ON IL.RefDocumentType = 27 AND A.Id = IL.RefDocumentId
+    ORDER BY
+        IL.CreatedOn
 
 
-SELECT 
-	P.ProductId,
-	IL.Code AS ILCode,
-	IL.TransactionDate,
-	P.ProductName,
-	CASE WHEN IL.RefDocumentType = 27 THEN 'ADJUSTMENT' ELSE 'INVOICE' END AS RecordType,
-	CASE WHEN IL.QuantityIn > 0 THEN 'STOCK - IN' WHEN IL.QuantityOut > 0 THEN 'STOCK - OUT' ELSE '' END AS MovementType,
-	IL.Description,
-	IL.QuantityIn,
-	IL.QuantityOut,
-	IL.UnitPurchasePrice AS UnitPurchasePrice,
-	PPL.DefaultSalePrice,
-	IL.UnitSalePrice AS UnitChargedRate,
-	IL.UnitSalePrice - PPL.DefaultSalePrice AS Difference
-	IL.Batch,
-	IL.ExpiryDate
-
-FROM AFInventoryLedger AS IL WITH(NOLOCK)
-
-INNER JOIN ProductInfo AS P ON IL.ProductId = P.ProductId
-INNER JOIN AFInvoice    I ON IL.RefDocumentId = I.ID AND IL.RefDocumentType=16
-INNER JOIN AFInvoicePPI    IPPI ON I.Id = IPPI.InvoiceId AND IPPI.ProductId = IL.ProductId
-INNER JOIN AFProductPriceLog AS PPL ON IPPI.ProductPriceLogId = PPL.Id AND PPL.ProductId = IPPI.ProductId
-
-ORDER BY ProductId 
 
 
-1. Need to analyse complete invoice form:
-case 1: how to get cost of good sold:
-in case discount is applied
-and incase discount is not applied
+
+
+
+--------------------------------------
+1. Run inventory dependency check → if count > 0, reject: "stock already consumed downstream, use Return instead"
+2. Run financial dependency check → if count > 0, reject: "payment already recorded, reverse the receipt first"
+3. If both clear:
+   - Flip header (AFBill/AFInvoice/IAdjustment) → DocumentStatus = deleted
+   - Flip detail rows (PPI/PPQD) → DocumentStatus = deleted  
+   - Flip AFInventoryLedger rows for this RefDocumentType+RefDocumentId → DocumentStatus = deleted
+   - Flip AFSupplierLedger/AFCustomerLedger rows for this document → DocumentStatus = deleted
+4. All of this in one transaction, all-or-nothing
