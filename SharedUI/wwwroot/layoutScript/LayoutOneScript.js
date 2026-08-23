@@ -102,8 +102,46 @@ function GetInvoiceStatus(InvoiceStatus) {
             BadgeColor = "suscess";
             Display = "Paid";
             break;
+        case 4:
+            BadgeColor = "warning";
+            Display = "Over-Due";
+            break;
+        case 5:
+            BadgeColor = "danger";
+            Display = "Over-Due";
+            break;
     }
-    var Label = '<td> <span class="label label-' + BadgeColor + '">' + Display + '</span></td>';
+    var Label = '<span class="fw-bold text-' + BadgeColor + '">' + Display + '</span>';
+    return Label;
+}
+
+function GetBillStatus(BillStatus) {
+    var BadgeColor = "";
+    var Display = "";
+
+    switch (BillStatus) {
+        case 1:
+            BadgeColor = "warning";
+            Display = "Un-Paid";
+            break;
+        case 2:
+            BadgeColor = "primary";
+            Display = "Partial-Paid";
+            break;
+        case 3:
+            BadgeColor = "suscess";
+            Display = "Paid";
+            break;
+        case 4:
+            BadgeColor = "warning";
+            Display = "Over-Due";
+            break;
+        case 5:
+            BadgeColor = "danger";
+            Display = "Over-Due";
+            break;
+    }
+    var Label = '<span class="fw-bold text-' + BadgeColor + '">' + Display + '</span>';
     return Label;
 }
 function navigateMenu(e, el) {

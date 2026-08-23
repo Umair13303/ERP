@@ -77,3 +77,15 @@
    - Flip AFInventoryLedger rows for this RefDocumentType+RefDocumentId → DocumentStatus = deleted
    - Flip AFSupplierLedger/AFCustomerLedger rows for this document → DocumentStatus = deleted
 4. All of this in one transaction, all-or-nothing
+
+
+
+
+
+
+
+
+
+1. CONTOUR
+2. NORTH BAY SOLUTION
+3. DEVELOPER 360

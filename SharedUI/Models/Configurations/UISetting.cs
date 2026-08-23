@@ -10,6 +10,7 @@ namespace SharedUI.Models.Configurations
     {
         public string? DisplayName { get; set; }
         public string? OperationType { get; set; }
+        public int InvoiceReturnTypeId { get; set; }
 
     }
     public class FieldConfig

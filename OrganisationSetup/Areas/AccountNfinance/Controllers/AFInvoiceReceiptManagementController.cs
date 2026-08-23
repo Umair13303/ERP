@@ -79,7 +79,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
         [HttpGet]
         public async Task<IActionResult> populateInvoiceListByParam(string operationType,Guid? guid, int? customerId, int?[] invoiceStatus)
         {
-            var result = await _anfrService.populateInvoiceByParam(operationType, guid, customerId, invoiceStatus);
+            var result = await _anfrService.populateInvoiceByParam(operationType, guid, customerId, invoiceStatus,transactionDate:null);
             return Json(new { data = result });
         }
         [HttpGet]

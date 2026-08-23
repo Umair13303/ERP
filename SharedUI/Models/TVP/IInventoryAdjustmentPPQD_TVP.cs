@@ -12,6 +12,7 @@ namespace SharedUI.Models.TVP
         public Guid? GuID { get; set; }
         public int? AdjustmentId { get; set; }
         public int? ProductId { get; set; }
+        public int? ProductATIId { get; set; }
         public string? Attribute { get; set; }
         public int? ProductCombinationId { get; set; }
         public decimal UnitPurchasePrice { get; set; }

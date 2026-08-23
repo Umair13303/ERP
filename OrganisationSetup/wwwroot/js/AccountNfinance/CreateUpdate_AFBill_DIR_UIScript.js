@@ -26,33 +26,14 @@ function initializeDataTable() {
         },
         columns: [
             { title: 'Product', data: 'ProductName' },
-            {
-                title: 'Attributes', data: 'AttributeDisplayString',
-            },
-            {
-                title: 'Unit Cost', data: 'UnitPurchasePrice',
-            },
-            {
-                title: 'QTY IN', data: 'Quantity',
-                className: 'text-success fw-bold'
-            },
-            {
-                title: 'Actual', data: 'ActualAmount',
-            },
-            {
-                title: 'Discount', data: 'DiscountAmount',
-            },
-            {
-                title: 'Charged', data: 'ChargedAmount',
-            },
-            {
-                title: 'Batch',
-                data: 'Batch',
-            },
-            {
-                title: 'Expiry',
-                data: 'Expiry',
-            },
+            { title: 'Attributes', data: 'AttributeDisplayString', },
+            { title: 'Unit Cost', data: 'UnitPurchasePrice',},
+            { title: 'QTY IN', data: 'Quantity', className: 'text-success fw-bold'},
+            {title: 'Actual', data: 'ActualAmount',},
+            {title: 'Discount', data: 'DiscountAmount',},
+            {title: 'Charged', data: 'ChargedAmount',},
+            {title: 'Batch',data: 'Batch',},
+            {title: 'Expiry', data: 'Expiry',},
             {
                 title: 'ACTIONS',
                 data: null,
@@ -60,7 +41,7 @@ function initializeDataTable() {
                 orderable: false,
                 searchable: false,
                 render: function (data, type, row, meta) {
-                    return HTML_DATATABLE_UTIL.HTML_TBL_DELETE_BTN("","");
+                    return HTML_DATATABLE_UTIL.HTML_TBL_DELETE_BTN("", "");
                 }
             }
         ],
@@ -352,8 +333,13 @@ function domBillTable() {
             { title: 'DISC AMT', data: 'discountAmount' },
             { title: 'NET AMT', data: 'netAmount' },
             { title: 'DUE AMT', data: 'dueAmount' },
-            { title: 'DOC', data: 'docStatus' },
-            { title: 'BILLING', data: 'billStatus' },
+            {
+                "title": "Billing Status",
+                "data": null,
+                "render": function (data, type, row) {
+                    return GetBillStatus(data.billStatus)
+                }
+            },
         ],
     });
 }

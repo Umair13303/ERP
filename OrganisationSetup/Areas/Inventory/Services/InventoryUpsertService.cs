@@ -527,11 +527,15 @@ namespace OrganisationSetup.Areas.Inventory.Services
             {
                 DateTime? transactionDate = postedData.TransactionDate;
                 await iProductCCE_SPR((int)DocumentType.inventoryAdjustment, postedData.PostedDataIAdjustmentPPQD);
+                var productIds = postedData.PostedDataIAdjustmentPPQD.Where(x => x.ProductId.HasValue).Select(x => x.ProductId!.Value).Distinct().ToList();
+                var productATIMapping = await _commonServices.get_ActiveATIByParam(productIds);
+
 
                 #region PORTION FOR :: UPSERT INTO dbo.IAdjustment
                 foreach (var item in postedData.PostedDataIAdjustmentPPQD)
                 {
                     item.GuID = Guid.NewGuid();
+                    item.ProductATIId = item.ProductId.HasValue && productATIMapping.TryGetValue(item.ProductId.Value, out var atiId) ? atiId : null;
                     item.DocumentType = (int)DocumentType.inventoryAdjustmentProductInformation;
                     item.DocumentStatus = (int)DocumentStatus.active;
                     item.Status = true;
@@ -631,14 +635,9 @@ namespace OrganisationSetup.Areas.Inventory.Services
 
                 if (adjustmentType.IsAutoPriceUpdate == true)
                 {
-                    var productIds = postedData.PostedDataIAdjustmentPPQD.Where(x => x.ProductId.HasValue).Select(x => x.ProductId!.Value).Distinct().ToList();
-
                     var existingPriceLogs = await _eRPOSContext.AFProductPriceLog.Where(x => x.ProductId.HasValue && productIds.Contains(x.ProductId.Value)
                                  && x.Status == true && x.DocumentStatus == (int)DocumentStatus.active && x.CompanyId == userInfo.CompanyId && x.BranchId == userInfo.BranchId
                                  && x.TierTypeId == (int)Default.tierTypeId).ToListAsync();
-
-                    var productATIMapping = await _commonServices.get_ActiveATIByParam(productIds);
-
                     var configuration = await _commonServices.get_configurationRuleByClientSetting();
 
                     foreach (var item in existingPriceLogs)
@@ -663,7 +662,6 @@ namespace OrganisationSetup.Areas.Inventory.Services
                         {
                             GuID = Guid.NewGuid(),
                             ProductId = item.ProductId,
-                            ProductATIId = item.ProductId.HasValue && productATIMapping.TryGetValue(item.ProductId.Value, out var atiId) ? atiId : null,
                             ProductCombinationId = item.ProductCombinationId,
                             TierTypeId = (int)Default.tierTypeId,
                             DefaultSalePrice = CSharedUtility.calculateDefaultPriceByMargin(item.UnitPurchasePrice, configuration.DefaultSaleMargin),

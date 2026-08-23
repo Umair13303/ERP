@@ -24,8 +24,6 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
         private readonly IAccountNfinanceUpsert _anfuService;
         private readonly IAccountNfinanceRetriever _anfrService;
 
-
-
         public AFBillManagementController(ICommon commonsServices,TempUser currentUser, IApplicationConfigurationRetriever acrService, IInventoryRetriever irService, IProcurementRetriever prService, IAccountNfinanceUpsert anfuService, IAccountNfinanceRetriever anfrService)
         {
             _commonsServices = commonsServices;

@@ -35,13 +35,10 @@ namespace OrganisationSetup.Services
         Task<List<vCostingMode>> populateCostingModeByParam();
         Task<List<vTierType>> populateTierTypeByParam();
         Task<Dictionary<string, FieldConfig>> fetchProductSetting();
-        Task<int> generate_productCombination(int? refDocumentType, List<IProductCCE> combinationEngine);
-        Task<int> get_productCombination(int? productId, string attributeKey);
         Task<object> get_productPricingbyParam(int? productId, int? productCombinationId, int? locationId, int? tierTypeId);
         Task<Dictionary<int, int>> get_ActiveATIByParam(IEnumerable<int> productIds);
         Task<confApplicationRule> get_configurationRuleByClientSetting();
 
-        //Task iProductCCE_SPR(int refDocumentType, List<IInventoryAdjustmentPPQD_TVP> lines, bool allowCreate);
     }
     public class CommonServices : ICommon
     {
@@ -240,41 +237,6 @@ namespace OrganisationSetup.Services
                 }},
             };
             return result;
-        }
-        public async Task<int> generate_productCombination(int? refDocumentType, List<IProductCCE> combinationList)
-        {
-            if (combinationList == null || !combinationList.Any())
-            {
-                return 400;
-            }
-            foreach (var item in combinationList)
-            {
-                var isExist = await _context.IProductCCE.Where(x => x.ProductId == item.ProductId && x.Description.Trim().ToLower() == item.Description.Trim().ToLower()).AnyAsync();
-                if (isExist == false)
-                {
-                    var combination = new IProductCCE
-                    {
-                        GuID = Guid.NewGuid(),
-                        RefDocumentType = refDocumentType,
-                        ProductId = item.ProductId,
-                        Description = item.Description,
-                        QRCode = item.QRCode,
-                        CreatedOn = DateTime.Now,
-                        CreatedBy = _currentUser.UserId,
-                        DocumentType = (int)DocumentType.productCombination,
-                        DocumentStatus = (int)DocumentStatus.active,
-                        Status = true
-                    };
-                    _context.IProductCCE.Add(combination);
-                }
-            }
-            await _context.SaveChangesAsync();
-            return 200;
-        }
-        public async Task<int> get_productCombination(int? productId, string description)
-        {
-            int productCombinationId = await _context.IProductCCE.Where(x => x.ProductId == productId && x.Description == description).Select(x => x.Id).FirstOrDefaultAsync();
-            return productCombinationId;
         }
         public async Task<object> get_productPricingbyParam(int? productId, int? productCombinationId, int? locationId, int? tierTypeId)
         {

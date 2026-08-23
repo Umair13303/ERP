@@ -1,5 +1,3 @@
-
-
 ----------------------------------------------------------------------------------------------
 LIST OF ALL FORMS TO BE MADE IN FLOW WISE ORDER
 1. APPLICATION CONFIGURATION:
@@ -26,34 +24,39 @@ LIST OF ALL FORMS TO BE MADE IN FLOW WISE ORDER
 	>. ADD DIRECT RECEIPT
 	>. ADD BILL WISE PAYMENT
 	>. ADD DIRECT PAYMENT
+	>. INVOICE RETURN & REFUND --PENDING
+	>. BILL RETURN & REFUND --PENDING
 	>. ADD SALE CLOSING --PENDING
-	>. INVOICE RETURN & REFUND
-	>. BILL RETURN & REFUND
 
 1. SALE OPERATION
 	>. ADD CUSTOMER
+	>. PROMOTIONAL OFFERS & DISCOUNT RULES --PENDING
 
 1. PROCURMENT
 	>. ADD SUPPLIER
 
 1. REPORTS & VIEW
-	1. CUSTOMER INVOICE LIST  -
-	1. SUPPLIER BILL LIST - 
-	1. ADJUSTMENT LIST -
-	1. INVOICE PAYMENT RECEIPT
-	1. BILL PAYMENT RECEIPT
-	I. INVENTORY/STOCK REPORT
-	I. CUSTOMER LEDGER
-	I. SUPPLIER LEDGER
-	I. TOP SELLING PRODUCT REPORT
-	I. SLOW MOVING PRODUCT REPORT
-	I. INVOICE REPORT
-	I. BILL REPORT
-	i. T-LEDGER REPORT
-	I. TRIAL BALANCE REPORT
-	I. AGING REPORT
-	I. GENERAL JOURNAL REPORT
-	2. PROFIT & LOSS REPORT
+	. CUSTOMER INVOICE LIST --PENDING
+	. INVOICE REPORT--PENDING
+	. CUSTOMER LEDGER--PENDING
+	. INVOICE PAYMENT RECEIPT--PENDING
+	
+	. SUPPLIER BILL LIST --PENDING
+	. BILL REPORT--PENDING
+	. SUPPLIER LEDGER--PENDING
+	. BILL PAYMENT RECEIPT--PENDING
+
+	. ADJUSTMENT LIST--PENDING
+	. ADJUSTMENT REPORT--PENDING
+	. INVENTORY/STOCK REPORT--PENDING
+	. TOP SELLING PRODUCT REPORT--PENDING
+	. SLOW MOVING PRODUCT REPORT--PENDING
+	
+	. GENERAL JOURNAL REPORT--PENDING
+	. T-LEDGER REPORT--PENDING
+	. TRIAL BALANCE REPORT--PENDING
+	. AGING REPORT--PENDING
+	. PROFIT & LOSS REPORT--PENDING
 
 ----------------------------------------------------------------------------------------------
 NO PERFORMANCE COMPROMISE AREA:
@@ -66,36 +69,10 @@ NO PERFORMANCE COMPROMISE AREA:
 >. DIRECT RECEIPT
 >. BILL PAYMENT
 >. DIRECT  PAYMENT
-
-
 >. STOCK TRANSFER
 >. BILL RETURN & BILL PAYMENT REFUND
 >. INVOICE RETURN & INVOICE PAYMENT REFUND
 >. INITIATE CLOSING
-
-
 ----------------------------------------------------------------------------------------------
-> Customer Ledger Report  
-> Supplier Ledger Report  
-> Stock Balance & Valuation Report  
-> Trial Balance Report  
-> Profit & Loss (P&L) Statement  
-> Accounts Receivable / Payable Aging Reports
-> Promotional Offers & Discount Rules
-> Advanced Voucher Printing & Audit Trail
-> Customer Payment Receipt Voucher
-> Supplier Payment Receipt / Bill Voucher
-> Customer Ledger Report
-> Supplier Ledger Report
-> Inventory / Stock Ledger Report (including attribute & variant resolution)
-> T-Ledger / General Ledger Report
-> Stock Balance & Valuation Report
-> Top-Selling / Best-Performing Products Report
-> Slow-Moving / Dead Stock Report
-> Inventory Adjustment Summary Report
-> Trial Balance Report
-> General Journal / Day Book Report
-> Accounts Receivable Aging Report
-> Accounts Payable Aging Report
-> Profit & Loss (P&L) / Income Statement
-----------------------------------------------------------------------------------------------
+TASK COMPLETION LIST:
+

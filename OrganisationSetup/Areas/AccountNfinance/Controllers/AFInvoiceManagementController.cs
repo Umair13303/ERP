@@ -43,6 +43,32 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
             ViewBag.OperationType = ui.OperationType;
             ViewBag.DisplayName = ui.DisplayName;
             ViewBag.LocationId = _currentUser.BranchId;
+            var documentStatusList = Enum.GetValues(typeof(DocumentStatus))
+        .Cast<DocumentStatus>()
+        .Select(e => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+        {
+            Value = ((int)e).ToString(),
+            Text = e.ToString().ToUpper()
+        }).ToList();
+            var invoiceStatusList = Enum.GetValues(typeof(InvoiceStatus))
+                    .Cast<InvoiceStatus>()
+                    .Select(e => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                    {
+                        Value = ((int)e).ToString(),
+                        Text = e.ToString().ToUpper()
+                    }).ToList();
+            documentStatusList.Insert(0, new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+            {
+                Value = null,
+                Text = "All"
+            });
+            invoiceStatusList.Insert(0, new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+            {
+                Value = null,
+                Text = "All"
+            });
+            ViewBag.DocumentStatusList = documentStatusList;
+            ViewBag.InvoiceStatusList = invoiceStatusList;
             return View();
         }
         public IActionResult CreateUpdate_AFInvoiceReturn_UI(UISetting ui)
@@ -93,6 +119,15 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
             {
                 return StatusCode(500, new { data = new List<object>(), message = ex.Message });
             }
+        }
+        #endregion
+
+        #region PORTION CONTAIN CODE TO: RETURN RECORD LIST
+        [HttpGet]
+        public async Task<IActionResult> populateInvoiceListByParam(string operationType, Guid? guid, int? customerId, int?[] invoiceStatus)
+        {
+            var result = await _anfrService.populateInvoiceByParam(operationType, guid, customerId, invoiceStatus, transactionDate: null);
+            return Json(new { data = result });
         }
         #endregion
 

@@ -156,10 +156,13 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                     decimal dueAmount = Math.Max(0, invoiceChargedAmount - receiptAmount);
                     int computedInvoiceStatus = dueAmount <= 0 ? (int)InvoiceStatus.paid : dueAmount < invoiceChargedAmount ? (int)InvoiceStatus.partialPaid : (int)InvoiceStatus.unPaid;
                     string invoiceStatus = Enum.GetName(typeof(InvoiceStatus), computedInvoiceStatus) ?? "UNKNOWN";
+                    var productIds = postedData.PostedDataAFInvoicePPI.Where(x => x.ProductId.HasValue).Select(x => x.ProductId!.Value).Distinct().ToList();
+                    var productATIMapping = await _commonServices.get_ActiveATIByParam(productIds);
                     postedData.Description = "POS Direct Invoice Generated, Amounting " + invoiceChargedAmount + " @ " + DateTime.UtcNow;
                     foreach (var i in postedData.PostedDataAFInvoicePPI)
                     {
                         i.GuID = Guid.NewGuid();
+                        i.ProductATIId = i.ProductId.HasValue && productATIMapping.TryGetValue(i.ProductId.Value, out var atiId) ? atiId : null;
                         i.DocumentType = (int)DocumentType.invoiceProduct;
                         i.DocumentStatus = (int)DocumentStatus.active;
                         i.Status = true;
@@ -174,7 +177,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                                                   postedData.Description,
                                                   postedData.FBRStamp,
                                                   invoiceChargedAmount,
-                                                  postedData.InvoiceTypeId,
+                                                  postedData.InvoiceTypeId = (int)InvoiceType.POSSale,
                                                   (int?)computedInvoiceStatus,
                                                   DateTime.Now,
                                                   userInfo.UserId,
