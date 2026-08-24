@@ -47,7 +47,7 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
         #endregion
 
         #region RETRIEVE OPERATION
-        Task<IReadOnlyList<DTObject.Invoice_List>> ret_Invoice_ByParam(Guid? guId, int? customerId, int?[] documentStatusIds, int?[] invoiceStatusIds, DateTime? transactionDate, string connStr);
+        Task<IReadOnlyList<DTObject.Invoice_List>> ret_Invoice_ByParam(Guid? guId, int?[] customerIds, int?[] documentStatusIds, int?[] invoiceStatusIds, DateTime? transactionDate, string connStr);
         Task<IReadOnlyList<DTObject.RptCustomerSummary_List>> ret_RptCustomerSummary_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] invoiceStatusIds, int?[] documentStatusIds, int?[]? customerIds, string connStr);
         Task<IReadOnlyList<DTObject.RptSaleLedger_List>> ret_RptSaleLedger_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] invoiceStatusIds, int?[] documentStatusIds, string connStr);
         Task<IReadOnlyList<DTObject.RptInvoiceReceipt_List>> ret_RptInvoiceReceipt_ByParam(int?[] paymentStatusIds, int?[] documentStatusIds, int? branchId, int? companyId, int? customerId, string connStr);
@@ -1141,13 +1141,13 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
         #endregion
 
         #region RETRIEVE OPERATION SP
-        public async Task<IReadOnlyList<DTObject.Invoice_List>> ret_Invoice_ByParam(Guid? guId, int? customerId, int?[] documentStatusIds, int?[] invoiceStatusIds, DateTime? transactionDate, string connStr)
+        public async Task<IReadOnlyList<DTObject.Invoice_List>> ret_Invoice_ByParam(Guid? guId, int?[] customerIds, int?[] documentStatusIds, int?[] invoiceStatusIds, DateTime? transactionDate, string connStr)
         {
             using IDbConnection db = new SqlConnection(connStr);
             var parameters = new
             {
                 GuID = guId,
-                CustomerId = customerId,
+                CustomerIds = customerIds != null ? string.Join(",", customerIds) : null,
                 DocumentStatus = documentStatusIds != null ? string.Join(",", documentStatusIds) : null,
                 InvoiceStatuses = invoiceStatusIds != null ? string.Join(",", invoiceStatusIds) : null,
                 TransactionDate = transactionDate

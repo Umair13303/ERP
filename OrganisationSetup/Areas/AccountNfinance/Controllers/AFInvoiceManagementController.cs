@@ -78,7 +78,6 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
             ViewBag.LocationId = _currentUser.BranchId;
             return View();
         }
-
         #endregion
 
         #region PORTION CONTAIN CODE TO: RETURN DEPENDING DDL
@@ -124,9 +123,9 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
 
         #region PORTION CONTAIN CODE TO: RETURN RECORD LIST
         [HttpGet]
-        public async Task<IActionResult> populateInvoiceListByParam(string operationType, Guid? guid, int? customerId, int?[] invoiceStatus)
+        public async Task<IActionResult> populateInvoiceMasterListBySearch(string operationType, Guid? guid, int?[] customerIds, int?[] invoiceStatus)
         {
-            var result = await _anfrService.populateInvoiceByParam(operationType, guid, customerId, invoiceStatus, transactionDate: null);
+            var result = await _anfrService.populateInvoiceByParam(operationType, guid, customerIds, invoiceStatus, transactionDate: null);
             return Json(new { data = result });
         }
         #endregion

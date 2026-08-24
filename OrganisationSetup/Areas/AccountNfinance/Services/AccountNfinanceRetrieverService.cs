@@ -15,7 +15,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
     {
         Task<List<AFChartOfAccount>> populateChartOfAccountByParam(string? operationType, int? filterConditionId, int? accountCatagoryId);
         Task<AFChartOfAccount> populateChartOfAccountInfo(Guid? guid);
-        Task<IEnumerable<DTObject.Invoice_List>> populateInvoiceByParam(string operationType, Guid? guid, int? customerId, int?[]invoiceStatus,DateTime? transactionDate);
+        Task<IEnumerable<DTObject.Invoice_List>> populateInvoiceByParam(string operationType, Guid? guid, int?[] customerIds, int?[]invoiceStatus,DateTime? transactionDate);
         Task<IEnumerable<DTObject.RptInvoiceReceipt_List>> populateInvoiceReceiptByParam(string operationType, int? customerId);
         Task<IEnumerable<DTObject.Bill_List>> populateBillByParam(string operationType, Guid? guId, int?[] supplierIds, int?[] billStatusIds, DateTime? transactionDate);
     }
@@ -83,7 +83,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                 }).FirstOrDefaultAsync() ?? new AFChartOfAccount();
         }
         
-        public async Task<IEnumerable<DTObject.Invoice_List>> populateInvoiceByParam(string operationType, Guid? guId, int? customerId, int?[] invoiceStatus, DateTime? transactionDate)
+        public async Task<IEnumerable<DTObject.Invoice_List>> populateInvoiceByParam(string operationType, Guid? guId, int?[] customerIds, int?[] invoiceStatus, DateTime? transactionDate)
         {
             var userInfo = _currentUser;
             if (!userInfo.IsAuthenticated) return new List<DTObject.Invoice_List>();
@@ -91,7 +91,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
 
             return await _repo.ret_Invoice_ByParam(
                 guId,
-                customerId,
+                customerIds,
                 documentStatusIds,
                 invoiceStatus,
                 transactionDate,
