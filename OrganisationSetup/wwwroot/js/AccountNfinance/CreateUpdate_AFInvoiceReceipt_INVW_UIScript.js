@@ -154,7 +154,7 @@ function getvPaymentMethodList() {
 }
 function getInvoiceList(customerId) {
     invoiceTable.clear().draw();
-    invoiceTable.ajax.url((window.basePath + "AccountNfinance/AFInvoiceReceiptManagement/populateInvoiceListByParam?customerId=" + customerId + "&operationType=" + operationType)).load();
+    invoiceTable.ajax.url((window.basePath + "AccountNfinance/AFInvoiceReceiptManagement/populateInvoiceListByParam?customerIds=" + customerId + "&operationType=" + operationType)).load();
 
 }
 /* ------ Change Cases DDL's ------ */

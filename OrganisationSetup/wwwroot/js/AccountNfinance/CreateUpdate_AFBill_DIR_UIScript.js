@@ -310,7 +310,6 @@ function domBillTable() {
                 d.billStatusIds = $("#DropDownListBillStatus :selected").val();
                 d.transactionDate = $("#TextBoxTransactionDate").val();
                 d.documentStatusIds = $("#DropDownListDocumentStatus :selected").val();
-                d.billStatus = $("#DropDownListBillStatus :selected").val();
             },
             "type": "GET",
             "dataSrc": "data",

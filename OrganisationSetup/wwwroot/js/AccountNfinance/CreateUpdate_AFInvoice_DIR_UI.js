@@ -389,7 +389,7 @@ function domInvoiceTable() {
                 d.customerIds = $("#DropDownListCustomer :selected").val();
                 d.transactionDate = $("#TextBoxTransactionDate").val();
                 d.documentStatusIds = $("#DropDownListDocumentStatus :selected").val();
-                d.invoiceStatus = $("#DropDownListInvoiceStatus :selected").val();
+                d.invoiceStatusIds = $("#DropDownListInvoiceStatus :selected").val();
             },
             "type": "GET",
             "dataSrc": "data",

@@ -123,9 +123,9 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
 
         #region PORTION CONTAIN CODE TO: RETURN RECORD LIST
         [HttpGet]
-        public async Task<IActionResult> populateInvoiceMasterListBySearch(string operationType, Guid? guid, int?[] customerIds, int?[] invoiceStatus)
+        public async Task<IActionResult> populateInvoiceMasterListBySearch(string operationType, Guid? guid, int?[] customerIds, int?[] invoiceStatusIds,DateTime? transactionDate)
         {
-            var result = await _anfrService.populateInvoiceByParam(operationType, guid, customerIds, invoiceStatus, transactionDate: null);
+            var result = await _anfrService.populateInvoiceByParam(operationType, guid, customerIds, invoiceStatusIds, transactionDate);
             return Json(new { data = result });
         }
         #endregion
