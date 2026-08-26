@@ -18,6 +18,8 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
         Task<IEnumerable<DTObject.Invoice_List>> populateInvoiceByParam(string operationType, Guid? guid, int?[] customerIds, int?[] invoiceStatusIds, DateTime? transactionDate);
         Task<IEnumerable<DTObject.RptInvoiceReceipt_List>> populateInvoiceReceiptByParam(string operationType, int? customerId);
         Task<IEnumerable<DTObject.Bill_List>> populateBillByParam(string operationType, Guid? guId, int?[] supplierIds, int?[] billStatusIds, DateTime? transactionDate);
+        Task<IEnumerable<DTObject.RptAFInvoiceHeader_List>> populateAFInvoiceRptHeaderByParam(int? locationId, Guid? invoiceGuID);
+        Task<IEnumerable<DTObject.RptAFInvoiceDetail_List>> populateAFInvoiceRptDetailByParam(string operationType, Guid? invoiceGuID);
     }
     public class AccountNfinanceRetrieverService : IAccountNfinanceRetriever
     {
@@ -28,7 +30,7 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
         private readonly string _connectionString;
 
 
-        public AccountNfinanceRetrieverService(TempUser currentUser,ERPOrganisationSetupContext eRPOSC,ICommon commonsServices, IOSDataLayer repo)
+        public AccountNfinanceRetrieverService(TempUser currentUser, ERPOrganisationSetupContext eRPOSC, ICommon commonsServices, IOSDataLayer repo)
         {
             _currentUser = currentUser;
             _eRPOSContext = eRPOSC;
@@ -74,15 +76,15 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                 .AsNoTracking()
                 .Where(x =>
                     x.GuID == guid.Value &&
-                    x.Status == true 
+                    x.Status == true
                     ).Select(x => new AFChartOfAccount
-                {
-                    Id = x.Id,
-                    GuID = x.GuID,
-                    Description = x.Description
-                }).FirstOrDefaultAsync() ?? new AFChartOfAccount();
+                    {
+                        Id = x.Id,
+                        GuID = x.GuID,
+                        Description = x.Description
+                    }).FirstOrDefaultAsync() ?? new AFChartOfAccount();
         }
-        
+
         public async Task<IEnumerable<DTObject.Invoice_List>> populateInvoiceByParam(string operationType, Guid? guId, int?[] customerIds, int?[] invoiceStatusIds, DateTime? transactionDate)
         {
             var userInfo = _currentUser;
@@ -126,6 +128,28 @@ namespace OrganisationSetup.Areas.AccountNfinance.Services
                 documentStatusIds,
                 billStatusIds,
                 transactionDate,
+                _connectionString
+            );
+        }
+        public async Task<IEnumerable<DTObject.RptAFInvoiceHeader_List>> populateAFInvoiceRptHeaderByParam(int? locationId, Guid? invoiceGuID)
+        {
+            var userInfo = _currentUser;
+            if (!userInfo.IsAuthenticated) return new List<DTObject.RptAFInvoiceHeader_List>();
+            return await _repo.ret_AFInvoice_RptHeader_GBLParam(
+                locationId,
+                invoiceGuID,
+                _connectionString
+            );
+        }
+        public async Task<IEnumerable<DTObject.RptAFInvoiceDetail_List>> populateAFInvoiceRptDetailByParam(string operationType, Guid? invoiceGuID)
+        {
+            var userInfo = _currentUser;
+            if (!userInfo.IsAuthenticated) return new List<DTObject.RptAFInvoiceDetail_List>();
+            int?[]? documentStatusIds = await _commonsServices.getDocumentStatusByParam(operationType);
+
+            return await _repo.ret_AFInvoice_RptDetail_GBLParam(
+                invoiceGuID,
+                documentStatusIds,
                 _connectionString
             );
         }

@@ -218,7 +218,6 @@ function getCustomerCurrentBalance(customerId) {
         });
     }
 }
-
 function addLineItemToStagingWithPricing(productId, pricing) {
     var productName = $("#DropDownListProduct :selected").text();
     var isExpiryApplied = $("#DropDownListProduct :selected").data('isexpiryapplied');

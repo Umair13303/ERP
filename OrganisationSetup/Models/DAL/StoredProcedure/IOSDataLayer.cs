@@ -54,6 +54,9 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
         Task<IReadOnlyList<DTObject.RptInventoryAdjustment_List>> ret_RptInventoryAdjustment_ByParam(int?[] adjustmentStatusIds, int?[] documentStatusIds, int? locationId, int? branchId, int? companyId, int? productId, string connStr);
         Task<IReadOnlyList<DTObject.Bill_List>> ret_Bill_ByParam(Guid? guId, int?[] supplierIds, int?[] documentStatusIds, int?[] billStatusIds, DateTime? transactionDate, string connStr);
         Task<IReadOnlyList<DTObject.RptSupplierSummary_List>> ret_RptSupplierSummary_ByParam(int? branchId, int? companyId, int?[] paymentStatusIds, int?[] billStatusIds, int?[] documentStatusIds, int?[]? supplierIds, string connStr);
+        Task<IReadOnlyList<DTObject.RptAFInvoiceHeader_List>> ret_AFInvoice_RptHeader_GBLParam(int? locationId, Guid? invoiceGUID, string connStr);
+        Task<IReadOnlyList<DTObject.RptAFInvoiceDetail_List>> ret_AFInvoice_RptDetail_GBLParam(Guid? invoiceGUID, int?[] documentStatusIds, string connStr);
+
         #endregion
 
         Task<List<VMSRP_IProduct_CostingEngine>> srp_IProductConsumeLayer(int? productId, int? productCombinationId, int costingModeId, decimal requestedQuantity, int? locationId, int? companyId, SqlConnection con, SqlTransaction trans);
@@ -1294,7 +1297,43 @@ namespace OrganisationSetup.Models.DAL.StoredProcedure
                 throw ex;
             }
         }
-        #endregion
+        public async Task<IReadOnlyList<DTObject.RptAFInvoiceHeader_List>> ret_AFInvoice_RptHeader_GBLParam(int? locationId, Guid? invoiceGUID, string connStr)
+        {
+            using IDbConnection db = new SqlConnection(connStr);
+            var parameters = new
+            {
+                LocationId = locationId,
+                InvoiceGUID = invoiceGUID
+            };
+            try
+            {
+                var result = await db.QueryAsync<DTObject.RptAFInvoiceHeader_List>("[dbo].[AFInvoice_RptHeader_GBLParam]", parameters, commandType: CommandType.StoredProcedure);
+                return result.ToList().AsReadOnly();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public async Task<IReadOnlyList<DTObject.RptAFInvoiceDetail_List>> ret_AFInvoice_RptDetail_GBLParam(Guid? invoiceGUID, int?[] documentStatusIds, string connStr)
+        {
+            using IDbConnection db = new SqlConnection(connStr);
+            var parameters = new
+            {
+                InvoiceGUID = invoiceGUID,
+                DocumentStatusIds = documentStatusIds != null ? string.Join(",", documentStatusIds) : null
+            };
+            try
+            {
+                var result = await db.QueryAsync<DTObject.RptAFInvoiceDetail_List>("[dbo].[AFInvoice_RptDetail_GBLParam]", parameters, commandType: CommandType.StoredProcedure);
+                return result.ToList().AsReadOnly();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+         #endregion
 
         #region SINGLE RESOLVING POINT
         public async Task<List<VMSRP_IProduct_CostingEngine>> srp_IProductConsumeLayer(int? productId, int? productCombinationId, int costingModeId, decimal requestedQuantity, int? locationId, int? companyId, SqlConnection con, SqlTransaction trans)

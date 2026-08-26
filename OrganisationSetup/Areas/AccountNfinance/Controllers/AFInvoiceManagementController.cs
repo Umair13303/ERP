@@ -128,6 +128,13 @@ namespace OrganisationSetup.Areas.AccountNfinance.Controllers
             var result = await _anfrService.populateInvoiceByParam(operationType, guid, customerIds, invoiceStatusIds, transactionDate);
             return Json(new { data = result });
         }
+        [HttpGet]
+        public async Task<IActionResult> populateInvoiceInfoByParam(string operationType, Guid? guid)
+        {
+            var resultInvHeader = await _anfrService.populateAFInvoiceRptHeaderByParam(_currentUser.BranchId, guid);
+            var resultInvDetail = await _anfrService.populateAFInvoiceRptDetailByParam(operationType, guid);
+            return Json(new { info = resultInvHeader, data = resultInvDetail });
+        }
         #endregion
 
         #region PORTION FOR :: ADD/EDIT/DELETE DOCUMENT

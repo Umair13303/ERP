@@ -4,83 +4,95 @@ var dropDownListInitOption = "<option value='-1'>Select an option</option>";
 var invoiceTable;
 
 /* ------ UI COMPONENTS ------ */
-function initializeDataTable() {
-    invoicePPITable = $('#InvoiceDetailTable').DataTable({
-        "processing": false,
-        "serverSide": false,
-        "responsive": true,
-        "ordering": false,
-        "searching": false,
-        "paging": false,
-        "info": false,
-        "lengthChange": false,
-        "columns": [
-            {
-                title: 'PRODUCT',
-                data: 'ProductName',
-                className: 'text-start td-product-name',
-                render: function (data, type, row) {
-                    if (!data) return '';
-                    return `
-                        <div class="product-text-wrapper truncated text-truncate" style="max-width: 180px; cursor: pointer;" title="Click to expand">
-                            ${data}
-                         </div>`;
-                }
-            },
-            {
-                title: 'UNIT PRC', data: 'UnitSalePrice',
-            },
-            { title: 'QTY', data: 'Quantity', className: 'text-danger fw-bold' },
-            { title: 'TOTAL PRC', data: 'ActualAmount' },
-            { title: 'DISC', data: 'DiscountAmount', },
-            { title: 'SUB NET', data: 'ChargedAmount', },
-            {
-                title: 'ACTIONS',
-                data: null,
-                className: 'text-center',
-                orderable: false,
-                searchable: false,
-                render: function (data, type, row, meta) {
-                    return HTML_DATATABLE_UTIL.HTML_TBL_DELETE_BTN("", "");
-                }
-            },
-            { title: 'BATCH', data: 'Batch', visible: false },
-            { title: 'EXPIRY', data: 'Expiry', visible: false },
-        ],
-        language: {
-            emptyTable: `
-        <div class="d-flex flex-column align-items-center justify-content-center py-4 w-100" style="min-height: 120px;">
-            <div class="mb-2 p-3 bg-light rounded-circle d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 60px; height: 60px;">
-                <i class="fa-solid fa-cart-shopping text-primary-subtle" style="font-size: 1.8rem;"></i>
-            </div>
-            <h6 class="text-secondary fw-semibold mb-1" style="font-size: 0.8rem;">Invoice Slate is Empty</h6>
-            <span class="text-muted" style="font-size: 0.72rem;">Search & select a product from the dropdown above to add items.</span>
-        </div>
-    `
-        },
-        initComplete: function () {
-            var $tableBody = $('#InvoiceDetailTable').find('tbody');
-            $tableBody.off('click', '.btn-danger, .btn-table-delete');
-            $tableBody.on('click', '.btn-danger, .btn-table-delete', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                var $rowElement = $(this).closest('tr');
-                if (invoicePPITable) {
-                    invoicePPITable.row($rowElement).remove().draw(false);
-                    recalculateSummary();
-                }
-            });
-            $tableBody.off('click', '.product-text-wrapper');
-            $tableBody.on('click', '.product-text-wrapper', function () {
-                var $wrapper = $(this);
-                if ($wrapper.hasClass('truncated')) {
-                    $wrapper.removeClass('truncated text-truncate').css('max-width', 'none');
-                } else {
-                    $wrapper.addClass('truncated text-truncate').css('max-width', '180px');
-                }
-            });
+function inputsUISetup() {
+    $(".simpleDatePicker").attr("type", "date");
+}
+
+/* ------ Change Cases DDL's ------ */
+function changeEventHandler() {
+    $("#ButtonSearchInvoiceMaster").on("click", function (e) {
+        e.preventDefault();
+        if (validater() && invoiceTable) {
+            invoiceTable.ajax.reload(null, false);
         }
     });
 }
 
+/* ------ MPO Operation ------ */
+function domInvoiceTable() {
+    invoiceTable = $('#TableInvoice').DataTable({
+        "processing": true,
+        "serverSide": false,
+        "responsive": true,
+        "ordering": false,
+        "searching": true,
+        "ajax": {
+            "url": window.basePath + "AccountNfinance/AFInvoiceManagement/populateInvoiceMasterListBySearch",
+            "data": function (d) {
+                d.operationType = operationType;
+                d.transactionDate = $("#TextBoxTransactionDate").val();
+            },
+            "type": "GET",
+            "dataSrc": "data",
+        },
+        "oLanguage": {
+            "oPaginate": {
+                "sPrevious": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>',
+                "sNext": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>'
+            },
+            "sInfo": "Showing page _PAGE_ of _PAGES_",
+            "sSearch": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>',
+            "sSearchPlaceholder": "Search...",
+            "sLengthMenu": "Results :  _MENU_"
+        },
+        columns: [
+            { title: 'Date', data: 'transactionDate' },
+            { title: 'Code', data: 'code' },
+            { title: 'Customer', data: 'customerName' },
+            { title: 'NET AMT', data: 'netAmount' },
+            {
+                "title": "",
+                "data": null,
+                "render": function (data, type, row) {
+                    return GetInvoiceStatus(data.invoiceStatus)
+                }
+            },
+        ],
+    });
+}
+function getInvoiceDetailByGuID(invoiceGuID) {
 
+}
+
+/* ------ Validation for user input ------ */
+function validater() {
+    var form = document.getElementById("AFInvoiceReturnForm");
+    if (!form.checkValidity()) {
+        form.classList.add('was-validated');
+
+        var $firstInvalid = $(form).find(":invalid").first();
+        if ($firstInvalid.length) {
+            $firstInvalid.trigger("focus");
+        }
+
+        toastr.warning("Please fill in all required fields correctly.");
+        return false;
+    }
+    return true;
+}
+
+function initialize() {
+    const intputMasking = new UIMasking();
+    intputMasking.initialize();
+    inputsUISetup();
+    changeEventHandler();
+    $('.select2').select2({
+        width: '100%'
+    });
+    domInvoiceTable();
+}
+
+$(function () {
+    if (typeof setupGlobalAjax === "function") setupGlobalAjax();
+    initialize();
+});
